@@ -34,7 +34,7 @@ public class LocalConsole : MonoBehaviour
     private bool _active = true;    // This LocalConsole script initialized correctly
     private bool _ready = false;    // Ready to process commands
     private List<Command> _cmdQueue;
-    private FPSControl _pScript;
+    private Player _pScript;
 
     // Add references to Player, InputManager, mainly used keys here
 
@@ -66,14 +66,14 @@ public class LocalConsole : MonoBehaviour
         if (Active)
         {
             _cmdQueue = new List<Command>();
-            if (FPSControl.Player != null)
+            if (Player.Instance != null)
             {
-                _pScript = FPSControl.Player;
+                _pScript = Player.Instance;
                 Ready = true;
             }
             else
             {
-                Debug.LogError("LocalConsole OnEnable(): FPSControl.Player is null");
+                Debug.LogError("LocalConsole OnEnable(): Player.Instance is null");
                 _pScript = null;
             }
         }
@@ -88,16 +88,24 @@ public class LocalConsole : MonoBehaviour
                 switch (cmd.Type)
                 {
                     case Command.CmdType.MoveF:
-                        FPSControl.Player.Move(FPSControl.Axis.V, 1.0f);
+                        Player.Instance.Move(InputManager.Axis.V, 1.0f);
                         break;
                     case Command.CmdType.MoveB:
-                        FPSControl.Player.Move(FPSControl.Axis.V, -1.0f);
+                        Player.Instance.Move(InputManager.Axis.V, -1.0f);
                         break;
                     case Command.CmdType.MoveL:
-                        FPSControl.Player.Move(FPSControl.Axis.H, -1.0f);
+                        Player.Instance.Move(InputManager.Axis.H, -1.0f);
                         break;
                     case Command.CmdType.MoveR:
-                        FPSControl.Player.Move(FPSControl.Axis.H, 1.0f);
+                        Player.Instance.Move(InputManager.Axis.H, 1.0f);
+                        break;
+                    case Command.CmdType.RotLeft:
+                        if (Player.Instance.Type == (byte)Player.PType.FL)
+                            Player.Instance.CamRot(InputManager.Axis.H, -1.0f);
+                        break;
+                    case Command.CmdType.RotRight:
+                        if (Player.Instance.Type == (byte)Player.PType.FL)
+                            Player.Instance.CamRot(InputManager.Axis.H, 1.0f);
                         break;
                     default:
                         break;
@@ -159,9 +167,9 @@ public class LocalConsole : MonoBehaviour
             else
             {
 
-                if (FPSControl.Player != null)
+                if (Player.Instance != null)
                 {
-                    _pScript = FPSControl.Player;
+                    _pScript = Player.Instance;
                     Debug.Log("LocalConsole Update(): FPSControl.Player found, setting Ready = true");
                     Ready = true;
                 }

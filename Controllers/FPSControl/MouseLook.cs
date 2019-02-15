@@ -29,6 +29,7 @@ public class MouseLook
 			XSens = nX;
 		if(nY != 0.0f)
 			YSens = nY;
+        smooth = false;
         m_CharacterTargetRot = character.localRotation;
         m_CameraTargetRot = camera.localRotation;
     }
@@ -61,6 +62,48 @@ public class MouseLook
         UpdateCursorLock();
     }
 
+    public void LookRotationSingleAxis(InputManager.Axis ax, Transform character, Transform camera)
+    {
+        float yRot;
+        float xRot;
+
+        if (ax == InputManager.Axis.H)
+        {
+            yRot = Input.GetAxis("Mouse X") * XSens;
+            xRot = 0.0f;
+        }
+        else if (ax == InputManager.Axis.V)
+        {
+            xRot = Input.GetAxis("Mouse Y") * YSens;
+            yRot = 0.0f;
+        }
+        else
+        {
+            xRot = 0.0f;
+            yRot = 0.0f;
+        }
+
+        m_CharacterTargetRot *= Quaternion.Euler(0f, yRot, 0f);
+        m_CameraTargetRot *= Quaternion.Euler(-xRot, 0f, 0f);
+
+        if (clampVerticalRotation)
+            m_CameraTargetRot = ClampRotationAroundXAxis(m_CameraTargetRot);
+
+        if (smooth)
+        {
+            character.localRotation = Quaternion.Slerp(character.localRotation, m_CharacterTargetRot,
+                smoothTime * Time.deltaTime);
+            camera.localRotation = Quaternion.Slerp(camera.localRotation, m_CameraTargetRot,
+                smoothTime * Time.deltaTime);
+        }
+        else
+        {
+            character.localRotation = m_CharacterTargetRot;
+            camera.localRotation = m_CameraTargetRot;
+        }
+
+        UpdateCursorLock();
+    }
 
     public void SetCursorLock()
     {
@@ -93,7 +136,7 @@ public class MouseLook
             SetCursorLock();
     }
 
-    Quaternion ClampRotationAroundXAxis(Quaternion q)
+    public Quaternion ClampRotationAroundXAxis(Quaternion q)
     {
         q.x /= q.w;
         q.y /= q.w;

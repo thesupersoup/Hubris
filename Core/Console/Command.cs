@@ -33,7 +33,13 @@ public class Command
         MapKey,
         Disconnect,
         Quit,
-        Num_Cmds }
+
+        // FreeLook specific
+        RotLeft,
+        RotRight,
+
+        Num_Cmds    // Keep at the end for handy enum length hack
+    }
 
     // Static array of Commands
     public static Command[] cmdArr = new Command[(int)CmdType.Num_Cmds] {   // Use Num_Cmds to ensure proper array length
@@ -64,7 +70,11 @@ public class Command
         new Command("Open Console", "console", CmdType.Console),
         new Command("Map Key to Command", "mapkey", CmdType.MapKey),
         new Command("Disconnect from server", "disconnect", CmdType.Disconnect),
-        new Command("Quit to desktop", "quit", CmdType.Quit)
+        new Command("Quit to desktop", "quit", CmdType.Quit),
+
+        // FreeLook specific
+        new Command("Rotate Camera Left", "rotleft", CmdType.RotLeft),
+        new Command("Rotate Camera Right", "rotright", CmdType.RotRight)
     };
 
     // Command instance variables
@@ -222,6 +232,18 @@ public class Command
     public static Command Quit
     {
         get { return cmdArr[(int)CmdType.Quit]; }
+        protected set { /* This space intentionally left blank */ }
+    }
+
+    public static Command RotLeft
+    {
+        get { return cmdArr[(int)CmdType.RotLeft]; }
+        protected set { /* This space intentionally left blank */ }
+    }
+
+    public static Command RotRight
+    {
+        get { return cmdArr[(int)CmdType.RotRight]; }
         protected set { /* This space intentionally left blank */ }
     }
 

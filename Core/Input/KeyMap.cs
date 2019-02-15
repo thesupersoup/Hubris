@@ -46,6 +46,10 @@ public class KeyMap
 
         // Console and console-only cmds
         kbDict.Add(KeyCode.Tilde, Command.Console);
+
+        // FreeLook specific
+        kbDict.Add(KeyCode.LeftArrow, Command.RotLeft);
+        kbDict.Add(KeyCode.RightArrow, Command.RotRight);
     }
 
     public static Command CheckKeyCmd(KeyCode kcKey)

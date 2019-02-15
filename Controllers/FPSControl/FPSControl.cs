@@ -3,37 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(InputManager))]
-public class FPSControl : MonoBehaviour
+public class FPSControl : Player
 {
-    // Singleton Instance
-    private static FPSControl _p = null;
-
-    private static object _lock = new object();
-    private static bool _disposing = false; // Check if we're in the process of disposing this singleton
-
-    public static FPSControl Player
-    {
-        get
-        {
-            if (_disposing)
-                return null;
-            else
-                return _p;
-        }
-
-        set
-        {
-            lock(_lock)
-            {
-                if (_p == null)
-                    _p = value;
-            }
-        }
-    }
-
     // Temporary vars for test
-    public enum Axis { H, V, M_X, M_Y, NUM_AXIS }
-
     private bool standing = true;
     private float baseSpd = 0.1f;
     private float spd = 1.0f;
@@ -67,47 +39,51 @@ public class FPSControl : MonoBehaviour
         spd = fSpdNew;
     }
 
-    private Vector3 GetMoveAsVector(Axis ax, float val)
+    private Vector3 GetMoveAsVector(InputManager.Axis ax, float val)
     {
         Vector3 dir = Vector3.zero;
 
-        if (ax == Axis.H)
+        if (ax == InputManager.Axis.H)
             dir = new Vector3(val, 0, 0);
-        else if (ax == Axis.V)
+        else if (ax == InputManager.Axis.V)
             dir = new Vector3(0, 0, val);
         else
-            Debug.LogError("InputManager GetAxisAsVector(): Invalid Axis Vector requested");
+            Debug.LogError("InputManager GetMoveAsVector(): Invalid Axis Vector requested");
 
         return dir;
     }
 
-    private Vector2 GetMouseLookAsVector()
-    {
-        Vector2 dir = Vector2.zero;
-
-        dir.x = Input.GetAxis("Mouse X");   // Horizontal
-        dir.y = Input.GetAxis("Mouse Y");   // Vertical
-
-        return dir;
-    }
-
-    public void Move(Axis ax, float val)
+    public override void Move(InputManager.Axis ax, float val)
     {
         if (Active)
         {
-            gObj.transform.Translate(GetMoveAsVector(ax, val));
+            gObj.transform.Translate(GetMoveAsVector(ax, val) * baseSpd);
         }
+    }
+
+    public override void CamRot(InputManager.Axis ax, float val)
+    {
+        Debug.LogError("FPSControl CamRot(): Calling a camera rotation on a FPS Player...");
+    }
+
+    private void UpdateMouse()
+    {
+        mLook.LookRotation(gObj.transform, pCam.transform);
     }
 
     void OnEnable()
     {
-        if (Player == null)
-            Player = this;
-        else if(Player != null)
+        if (Instance == null)
+        {
+           Instance = this;
+        }
+        else if (Instance != null)
         {
             Active = false;
             Destroy(this.gameObject);
         }
+
+        Type = (byte)PType.FPS;
 
         if (gObj == null)
             gObj = this.gameObject;
@@ -132,7 +108,7 @@ public class FPSControl : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        UpdateMouse(); 
     }
 
     private void FixedUpdate()

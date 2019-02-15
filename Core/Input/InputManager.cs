@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class InputManager : MonoBehaviour
 {
+    public enum Axis { H, V, M_X, M_Y, NUM_AXIS }
+
     // InputManager variables
     private bool _active = true;
     private KeyMap _km;
@@ -43,7 +45,6 @@ public class InputManager : MonoBehaviour
                 {
                     if(Input.GetKey(kc))
                     {
-                        Debug.Log("InputManager Update(): Keypress detected...");
                         Command cmd = KeyMap.CheckKeyCmd(kc);
 
                         if (cmd != Command.None)

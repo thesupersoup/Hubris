@@ -2,69 +2,84 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class InputManager : MonoBehaviour
+namespace Hubris
 {
-    public enum Axis { H, V, M_X, M_Y, NUM_AXIS }
-
-    // InputManager variables
-    private bool _active = true;
-    private KeyMap _km;
-
-    // InputManager properties
-    public bool Active
+    public class InputManager : MonoBehaviour
     {
-        get { return _active; }
-        protected set { _active = value;  }
-    }
+        public enum Axis { X, Y, Z, M_X, M_Y, NUM_AXIS }
 
-    public KeyMap KeyMap
-    {
-        get { return _km; }
-        protected set { _km = value; }
-    }
+        // InputManager variables
+        private bool _active = true;
+        private KeyMap _km;
 
-    // InputManager methods
-    void Start()
-    {
-        KeyMap = new KeyMap();
-        if (LocalConsole.Instance == null)
+        // InputManager properties
+        public bool Active
         {
-            Debug.LogError("InputManager Start(): LocalConsole.Instance is null");
-            _active = false;
+            get { return _active; }
+            protected set { _active = value; }
         }
-    }
 
-    // Update is called once per frame
-    void Update()
-    {
-        if (_active)
+        public KeyMap KeyMap
         {
-            if (Input.anyKey)
-            {
-                foreach (KeyCode kc in System.Enum.GetValues(typeof(KeyCode)))
-                {
-                    if(Input.GetKey(kc))
-                    {
-                        Command cmd = KeyMap.CheckKeyCmd(kc);
+            get { return _km; }
+            protected set { _km = value; }
+        }
 
-                        if (cmd != Command.None)
-                            LocalConsole.Instance.AddToQueue(cmd);
+        // InputManager methods
+        void Start()
+        {
+            KeyMap = new KeyMap();
+            if (LocalConsole.Instance == null)
+            {
+                Debug.LogError("InputManager Start(): LocalConsole.Instance is null");
+                _active = false;
+            }
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+            if (_active)
+            {
+                if (Input.anyKey)
+                {
+                    foreach (KeyCode kc in System.Enum.GetValues(typeof(KeyCode)))
+                    {
+                        if (Input.GetKey(kc))
+                        {
+                            Command cmd = KeyMap.CheckKeyCmd(kc);
+
+                            if (cmd != Command.None)
+                            {
+                                if (cmd.Continuous)
+                                {
+                                    LocalConsole.Instance.AddToQueue(cmd);
+                                }
+                                else
+                                {
+                                    if (Input.GetKeyDown(kc))
+                                    {
+                                        LocalConsole.Instance.AddToQueue(cmd);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
-        }
-        else
-        {
-            if (LocalConsole.Instance != null)
+            else
             {
-                Debug.LogError("InputManager Update(): Found LocalConsole.Instance, setting Active = true");
-                _active = true;
+                if (LocalConsole.Instance != null)
+                {
+                    Debug.LogError("InputManager Update(): Found LocalConsole.Instance, setting Active = true");
+                    _active = true;
+                }
             }
         }
-    }
 
-    private void FixedUpdate()
-    {
-        
+        private void FixedUpdate()
+        {
+
+        }
     }
 }

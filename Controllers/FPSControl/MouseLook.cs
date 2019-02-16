@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using Hubris;
 
 
 [Serializable]
@@ -23,6 +24,11 @@ public class MouseLook
     }
 
     // MouseLook Methods
+    public MouseLook(Transform character, Transform camera, float nX = 0.0f, float nY = 0.0f)
+    {
+        Init(character, camera, nX, nY);
+    }
+
     public void Init(Transform character, Transform camera, float nX = 0.0f, float nY = 0.0f)
     {
 		if(nX != 0.0f)
@@ -67,12 +73,12 @@ public class MouseLook
         float yRot;
         float xRot;
 
-        if (ax == InputManager.Axis.H)
+        if (ax == InputManager.Axis.X)
         {
             yRot = Input.GetAxis("Mouse X") * XSens;
             xRot = 0.0f;
         }
-        else if (ax == InputManager.Axis.V)
+        else if (ax == InputManager.Axis.Y)
         {
             xRot = Input.GetAxis("Mouse Y") * YSens;
             yRot = 0.0f;

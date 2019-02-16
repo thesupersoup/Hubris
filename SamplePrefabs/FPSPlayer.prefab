@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 3666192215026667056}
   - component: {fileID: 3666192215026667057}
   - component: {fileID: 3666192215026667070}
+  - component: {fileID: 1074731678333243250}
   - component: {fileID: 3666192215026667071}
   - component: {fileID: 3666192215026667058}
   - component: {fileID: 3666192215026667059}
@@ -82,6 +83,22 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+--- !u!54 &1074731678333243250
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3666192215026667068}
+  serializedVersion: 2
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 32
+  m_CollisionDetection: 0
 --- !u!136 &3666192215026667071
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -108,9 +125,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 773647b86fc5708459ec25c20662ad3e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _type: 1
   _active: 0
-  gObj: {fileID: 3666192215026667068}
-  pCam: {fileID: 3666192216150355353}
+  _gObj: {fileID: 3666192215026667068}
+  _pBod: {fileID: 1074731678333243250}
+  _pCol: {fileID: 3666192215026667071}
+  _pCam: {fileID: 3666192216150355353}
 --- !u!114 &3666192215026667059
 MonoBehaviour:
   m_ObjectHideFlags: 0

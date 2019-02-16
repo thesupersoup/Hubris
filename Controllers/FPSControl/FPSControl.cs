@@ -2,117 +2,122 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(InputManager))]
-public class FPSControl : Player
+
+namespace Hubris
 {
-    // Temporary vars for test
-    private bool standing = true;
-    private float baseSpd = 0.1f;
-    private float spd = 1.0f;
-    private float h = 0.0f;
-    private float v = 0.0f;
-    private float sens = 2.0f;
-    private MouseLook mLook = null;
-    private Vector2 look = Vector2.zero;
-    private Vector3 aH = Vector3.zero;
-    private Vector3 aV = Vector3.zero;
-    private Vector3 move = Vector3.zero;
-
-    // FPSControl instance vars
-    [SerializeField]
-    private bool _active = false;
-    [SerializeField]
-    private GameObject gObj = null;
-    [SerializeField]
-    private Camera pCam = null;
-
-    // FPSControl properties
-    public bool Active
+    [RequireComponent(typeof(InputManager))]
+    public class FPSControl : Player
     {
-        get { return _active; }
-        protected set { _active = value; }
-    }
-    
-    // FPSControl methods
-    public void ChangeSpeed(float fSpdNew)
-    {
-        spd = fSpdNew;
-    }
+        // Temporary vars for test
+        private bool standing = true;
+        private float h = 0.0f;
+        private float v = 0.0f;
+        private Vector2 look = Vector2.zero;
+        private Vector3 aH = Vector3.zero;
+        private Vector3 aV = Vector3.zero;
+        private Vector3 move = Vector3.zero;
 
-    private Vector3 GetMoveAsVector(InputManager.Axis ax, float val)
-    {
-        Vector3 dir = Vector3.zero;
+        // FPSControl instance vars
 
-        if (ax == InputManager.Axis.H)
-            dir = new Vector3(val, 0, 0);
-        else if (ax == InputManager.Axis.V)
-            dir = new Vector3(0, 0, val);
-        else
-            Debug.LogError("InputManager GetMoveAsVector(): Invalid Axis Vector requested");
 
-        return dir;
-    }
-
-    public override void Move(InputManager.Axis ax, float val)
-    {
-        if (Active)
+        // FPSControl properties
+        public bool Active
         {
-            gObj.transform.Translate(GetMoveAsVector(ax, val) * baseSpd);
-        }
-    }
-
-    public override void CamRot(InputManager.Axis ax, float val)
-    {
-        Debug.LogError("FPSControl CamRot(): Calling a camera rotation on a FPS Player...");
-    }
-
-    private void UpdateMouse()
-    {
-        mLook.LookRotation(gObj.transform, pCam.transform);
-    }
-
-    void OnEnable()
-    {
-        if (Instance == null)
-        {
-           Instance = this;
-        }
-        else if (Instance != null)
-        {
-            Active = false;
-            Destroy(this.gameObject);
+            get { return _active; }
+            protected set { _active = value; }
         }
 
-        Type = (byte)PType.FPS;
-
-        if (gObj == null)
-            gObj = this.gameObject;
-
-        if (pCam == null)
-            pCam = GetComponent<Camera>();
-
-        if (pCam && gObj != null)
+        // FPSControl methods
+        public override void Move(InputManager.Axis ax, float val)
         {
-            Active = true;
-            mLook = new MouseLook();
-            mLook.Init(gObj.transform, pCam.transform, sens, sens);
+            if (Active)
+            {
+                _gObj.transform.Translate(GetMoveAsVector(ax, val) * _baseSpd);
+            }
         }
-    }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+        public override void Rotate(InputManager.Axis ax, float val)
+        {
+            if (Active)
+            {
+                if (ax == InputManager.Axis.X)
+                {
+                    _gObj.transform.Rotate(val, 0.0f, 0.0f, Space.World);
+                }
+                if (ax == InputManager.Axis.Y)
+                {
+                    _gObj.transform.Rotate(0.0f, val, 0.0f, Space.World);
+                }
+                else if (ax == InputManager.Axis.Z)
+                {
+                    _gObj.transform.Rotate(0.0f, 0.0f, val, Space.World);
+                }
+                else
+                {
+                    Debug.LogError("FreeLookControl Rotate(): Invalid Axis specified");
+                }
 
-    // Update is called once per frame
-    void Update()
-    {
-        UpdateMouse(); 
-    }
+                Debug.Log("FPSControl Rotate(): Calling a rotation on Player...");
+            }
+        }
 
-    private void FixedUpdate()
-    {
-        
+        protected override void ProcessState()
+        {
+            ProcessGravity();
+        }
+
+        void OnEnable()
+        {
+            if (Instance == null)
+            {
+                Instance = this;
+            }
+            else if (Instance != null)
+            {
+                Active = false;
+                Destroy(this.gameObject);
+            }
+
+            Type = (byte)PType.FPS;
+
+            if (_gObj == null)
+                _gObj = this.gameObject;
+
+            if (_pCam == null)
+                _pCam = GetComponent<Camera>();
+
+            if (_pCol == null)
+                _pCol = GetComponent<Collider>();
+
+            if (_pCam != null && _gObj != null && _pCol != null)
+            {
+                Active = true;
+                _mLook = new MouseLook(_gObj.transform, _pCam.transform, _sens, _sens);
+            }
+        }
+
+        // Start is called before the first frame update
+        void Start()
+        {
+
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+            if (Active)
+            {
+                UpdateMouse();
+            }
+        }
+
+        private void FixedUpdate()
+        {
+            if (Active)
+            {
+                CheckCollisions();
+                ProcessState();
+            }
+        }
     }
 }

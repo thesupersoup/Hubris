@@ -2,145 +2,120 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(InputManager))]
-public class FreeLookControl : Player
+
+namespace Hubris
 {
-    // Temporary vars for test
-    private bool standing = true;
-    private float baseSpd = 0.1f;
-    private float spd = 1.0f;
-    private float h = 0.0f;
-    private float v = 0.0f;
-    private float sens = 2.0f;
-    private MouseLook mLook = null;
-    private Vector2 look = Vector2.zero;
-    private Vector3 aH = Vector3.zero;
-    private Vector3 aV = Vector3.zero;
-    private Vector3 move = Vector3.zero;
-
-    // FPSControl instance vars
-    [SerializeField]
-    private bool _active = false;
-    [SerializeField]
-    private GameObject gObj = null;
-    [SerializeField]
-    private Camera pCam = null;
-
-    // FPSControl properties
-    public bool Active
+    [RequireComponent(typeof(InputManager))]
+    public class FreeLookControl : Player
     {
-        get { return _active; }
-        protected set { _active = value; }
-    }
-    
-    // FPSControl methods
-    public void ChangeSpeed(float fSpdNew)
-    {
-        spd = fSpdNew;
-    }
+        // Temporary vars for test
+        private bool standing = true;
+        private float h = 0.0f;
+        private float v = 0.0f;
+        private Vector2 look = Vector2.zero;
+        private Vector3 aH = Vector3.zero;
+        private Vector3 aV = Vector3.zero;
+        private Vector3 move = Vector3.zero;
 
-    private Vector3 GetMoveAsVector(InputManager.Axis ax, float val)
-    {
-        Vector3 dir = Vector3.zero;
+        // FreeLookControl instance vars
 
-        if (ax == InputManager.Axis.H)
-            dir = new Vector3(val, 0, 0);
-        else if (ax == InputManager.Axis.V)
-            dir = new Vector3(0, 0, val);
-        else
-            Debug.LogError("InputManager GetMoveAsVector(): Invalid Axis Vector requested");
-
-        return dir;
-    }
-
-    public override void Move(InputManager.Axis ax, float val)
-    {
-        if (Active)
+        // FreeLookControl properties
+        public bool Active
         {
-            gObj.transform.Translate(GetMoveAsVector(ax, val) * baseSpd);
-        }
-    }
-
-    public override void CamRot(InputManager.Axis ax, float val)
-    {
-        Quaternion m_CharacterTargetRot;
-        Quaternion m_CameraTargetRot;
-        float yRot;
-        float xRot;
-
-        m_CharacterTargetRot = gObj.transform.localRotation;
-        m_CameraTargetRot = pCam.transform.localRotation;
-
-        if (ax == InputManager.Axis.H)
-        {
-            yRot = Input.GetAxis("Mouse X") * 1.0f;
-            xRot = 0.0f;
-        }
-        else if (ax == InputManager.Axis.V)
-        {
-            xRot = Input.GetAxis("Mouse Y") * 1.0f;
-            yRot = 0.0f;
-        }
-        else
-        {
-            xRot = 0.0f;
-            yRot = 0.0f;
+            get { return _active; }
+            protected set { _active = value; }
         }
 
-        m_CharacterTargetRot *= Quaternion.Euler(0f, yRot, 0f);
-        m_CameraTargetRot *= Quaternion.Euler(-xRot, 0f, 0f);
-
-        m_CameraTargetRot = mLook.ClampRotationAroundXAxis(m_CameraTargetRot);
-
-        gObj.transform.localRotation = m_CharacterTargetRot;
-        pCam.transform.localRotation = m_CameraTargetRot;
-    }
-
-    private void UpdateMouse()
-    {
-        mLook.LookRotationSingleAxis(InputManager.Axis.H, gObj.transform, pCam.transform);
-    }
-
-    void OnEnable()
-    {
-        if (Instance == null)
-            Instance = this;
-        else if(Instance != null)
+        // FreeLookControl methods
+        public override void Move(InputManager.Axis ax, float val)
         {
-            Active = false;
-            Destroy(this.gameObject);
+            if (Active)
+            {
+                Vector3 dir = GetMoveAsVector(ax, val, true);
+                PhysAccel(dir * _spd);
+            }
         }
 
-        Type = (byte)PType.FL;
-
-        if (gObj == null)
-            gObj = this.gameObject;
-
-        if (pCam == null)
-            pCam = GetComponent<Camera>();
-
-        if (pCam && gObj != null)
+        public override void Rotate(InputManager.Axis ax, float val)
         {
-            Active = true;
-            mLook = new MouseLook();
-            mLook.Init(gObj.transform, pCam.transform, sens, sens);
+            if (Active)
+            {
+                if (ax == InputManager.Axis.X)
+                {
+                    _gObj.transform.Rotate(val, 0.0f, 0.0f, Space.World);
+                }
+                if (ax == InputManager.Axis.Y)
+                {
+                    _gObj.transform.Rotate(0.0f, val, 0.0f, Space.World);
+                }
+                else if (ax == InputManager.Axis.Z)
+                {
+                    _gObj.transform.Rotate(0.0f, 0.0f, val, Space.World);
+                }
+                else
+                {
+                    Debug.LogError("FreeLookControl Rotate(): Invalid Axis specified");
+                }
+
+                Debug.Log("FPSControl Rotate(): Calling a rotation on Player...");
+            }
         }
-    }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+        protected override void ProcessState()
+        {
+            ProcessGravity();
+        }
 
-    // Update is called once per frame
-    void Update()
-    {
-        UpdateMouse(); 
-    }
+        void OnEnable()
+        {
+            if (Instance == null)
+                Instance = this;
+            else if (Instance != null)
+            {
+                Active = false;
+                Destroy(this.gameObject);
+            }
 
-    private void FixedUpdate()
-    {
-        
+            Type = (byte)PType.FL;
+
+            if (_gObj == null)
+                _gObj = this.gameObject;
+
+            if (_pCam == null)
+                _pCam = GetComponent<Camera>();
+
+            if (_pCol == null)
+                _pCol = GetComponent<Collider>();
+
+            if (_pCam != null && _gObj != null && _pCol != null)
+            {
+                Active = true;
+                _mLook = new MouseLook(_gObj.transform, _pCam.transform, _sens, _sens);
+            }
+        }
+
+        // Start is called before the first frame update
+        void Start()
+        {
+
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+            if (Active)
+            {
+                UpdateMouse();
+            }
+        }
+
+        private void FixedUpdate()
+        {
+            if (Active)
+            {
+                CheckCollisions();
+                ProcessState();
+            }
+        }
     }
 }

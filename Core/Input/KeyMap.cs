@@ -26,6 +26,7 @@ namespace Hubris
         {
             kbDict.Clear();
             kbDict.Add(KeyCode.None, Command.None);
+            kbDict.Add(KeyCode.Return, Command.Submit);
 
             // Basic movement
             kbDict.Add(KeyCode.W, Command.MoveF);
@@ -47,7 +48,7 @@ namespace Hubris
             kbDict.Add(KeyCode.B, Command.ChatPrivate);
 
             // Console and console-only cmds
-            kbDict.Add(KeyCode.Tilde, Command.Console);
+            kbDict.Add(KeyCode.BackQuote, Command.Console); // KeyCode.BackQuote is the ~/` (Tilde) key
 
             // FreeLook specific
             kbDict.Add(KeyCode.LeftArrow, Command.RotLeft);

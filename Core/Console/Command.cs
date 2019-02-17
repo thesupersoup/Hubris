@@ -11,6 +11,7 @@ namespace Hubris
         public enum CmdType : short
         {
             None = 0,
+            Submit,
 
             // Basic movement
             MoveF,
@@ -54,6 +55,7 @@ namespace Hubris
             Command[] cmds = new Command[(int)CmdType.Num_Cmds]; // Use Num_Cmds to ensure proper array length
 
             cmds[(int)CmdType.None] = new Command("Null", "none", CmdType.None);
+            cmds[(int)CmdType.Submit] = new Command("Submit", "submit", CmdType.Submit, 0, false);
 
             // Basic movement
             cmds[(int)CmdType.MoveF] = new Command("Move Forward", "movef", CmdType.MoveF, 0, true);
@@ -130,6 +132,12 @@ namespace Hubris
         public static Command None
         {
             get { return cmdArr[(int)CmdType.None]; }
+            protected set { /* This space intentionally left blank */ }
+        }
+
+        public static Command Submit
+        {
+            get { return cmdArr[(int)CmdType.Submit]; }
             protected set { /* This space intentionally left blank */ }
         }
 
@@ -282,6 +290,22 @@ namespace Hubris
             _type = eType;
             _value = bValue;
             _cont= bSign;
+        }
+
+        public static Command CheckCmdName(string nName)
+        {
+            Command cmd = Command.None;
+
+            for(int i = 0; i < cmdArr.Length; i++)
+            {
+                if (cmdArr[i].CmdName == nName)
+                {
+                    cmd = cmdArr[i];
+                    break;  // Found it, don't need to keep searching
+                }
+            }
+
+            return cmd;
         }
     }
 }

@@ -166,7 +166,7 @@ namespace Hubris
                 else if (ax == InputManager.Axis.Z)
                     dir = new Vector3(0, 0, val);
                 else
-                    Debug.LogError("InputManager GetMoveAsVector(): Invalid Axis Vector requested");
+                    LocalConsole.Instance.LogError("InputManager GetMoveAsVector(): Invalid Axis Vector requested", true);
             }
             else
             {
@@ -177,7 +177,7 @@ namespace Hubris
                 else if (ax == InputManager.Axis.Z)
                     dir = _gObj.transform.forward * val;
                 else
-                    Debug.LogError("InputManager GetMoveAsVector(): Invalid Axis Vector requested");
+                    LocalConsole.Instance.LogError("InputManager GetMoveAsVector(): Invalid Axis Vector requested", true);
 
                 dir.y = 0;
             }
@@ -297,7 +297,7 @@ namespace Hubris
                     _rotate = bVal;
                     break;
                 default:
-                    Debug.LogError("Player SetState(): Invalid PState specified...");
+                    LocalConsole.Instance.LogError("Player SetState(): Invalid PState specified...", true);
                     break;
             }
         }

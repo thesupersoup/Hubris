@@ -19,6 +19,7 @@ namespace Hubris
 
         // FreeLookControl instance vars
 
+
         // FreeLookControl properties
         public bool Active
         {
@@ -54,10 +55,10 @@ namespace Hubris
                 }
                 else
                 {
-                    Debug.LogError("FreeLookControl Rotate(): Invalid Axis specified");
+                    LocalConsole.Instance.LogError("FreeLookControl Rotate(): Invalid Axis specified", true);
                 }
 
-                Debug.Log("FPSControl Rotate(): Calling a rotation on Player...");
+                LocalConsole.Instance.Log("FPSControl Rotate(): Calling a rotation on Player...", true);
             }
         }
 

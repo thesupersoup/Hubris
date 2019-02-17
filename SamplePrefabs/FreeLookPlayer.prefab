@@ -63,7 +63,7 @@ MeshRenderer:
     firstSubMesh: 0
     subMeshCount: 0
   m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 976757888743179541}
+  m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
   m_PreserveUVs: 0
@@ -178,7 +178,6 @@ MonoBehaviour:
   _pBod: {fileID: 6200244475951575274}
   _pCol: {fileID: 1236664602105290102}
   _pCam: {fileID: 3332700193410018569}
-  _sphere: {fileID: 3217453323905026927}
 --- !u!114 &3035677519943089990
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -4,31 +4,40 @@ using System.Collections.Generic;
 
 namespace Hubris
 {
-    public class LocalConsole : MonoBehaviour
+    public class LocalConsole : HubrisBase
     {
-        // Singleton instance
-        public static LocalConsole _con = null;
-
-        private static object _lock = new object();
-        private static bool _disposing = false; // Check if we're in the process of disposing this singleton
-
-        public static LocalConsole Instance
+        public class Msg
         {
-            get
+            // Msg instance variables
+            private int _id;        // ID # of Msg, for referencing specific Msgs when desired
+            private string _txt;    // The text of the message, to be displayed in the LocalConsole
+            private string _cmd;    // The command which generated the message, for debugging purposes
+
+            // Msg properties
+            public int Id
             {
-                if (_disposing)
-                    return null;
-                else
-                    return _con;
+                get { return _id; }
+                protected set { _id = value; }  // Set in constructor, not to be changed
             }
 
-            set
+            public string Txt
             {
-                lock (_lock)
-                {
-                    if (_con == null)
-                        _con = value;
-                }
+                get { return _txt; }
+                protected set { _txt = value; } // Set in constructor, not to be changed
+            }
+
+            public string Cmd
+            {
+                get { return _cmd; }
+                protected set { _cmd = value; } // Set in constructor, not to be changed
+            }
+
+            // Msg methods
+            public Msg(int nId, string nTxt, string nCmd)
+            {
+                _id = nId;
+                _txt = nTxt;
+                _cmd = nCmd;
             }
         }
 
@@ -37,7 +46,8 @@ namespace Hubris
         private bool _ready = false;    // Ready to process commands
         private List<Msg> _msgList;
         private int _msgCounter = 0;
-        private List<Command> _cmdQueue;
+        private List<Command> _cmdQueue;    
+        private List<string> _cmdData;
         private Player _pScript;
 
 
@@ -54,31 +64,27 @@ namespace Hubris
             set { _ready = value; }
         }
 
-        // Console methods
-        private void OnEnable()
+        public static LocalConsole Instance
         {
-            if (Instance == null)
-                Instance = this;
-            else if (Instance != this)
-            {
-                Active = false;
-                Destroy(this.gameObject);
-            }
+            get { return HubrisCore.Console; }    // Moved LocalConsole instance to Core class
+            protected set { }
+        }
 
-            if (Active)
+        // Console methods
+        public void Init()
+        {
+            _msgList = new List<Msg>();
+            _cmdQueue = new List<Command>();
+            _cmdData = new List<string>();
+            if (Player.Instance != null)
             {
-                _msgList = new List<Msg>();
-                _cmdQueue = new List<Command>();
-                if (Player.Instance != null)
-                {
-                    _pScript = Player.Instance;
-                    Ready = true;
-                }
-                else
-                {
-                    LogError("LocalConsole OnEnable(): Player.Instance is null", true);
-                    _pScript = null;
-                }
+                _pScript = Player.Instance;
+                Ready = true;
+            }
+            else
+            {
+                LogError("LocalConsole OnEnable(): Player.Instance is null", true);
+                _pScript = null;
             }
         }
 
@@ -93,8 +99,10 @@ namespace Hubris
                     switch (cmd.Type)
                     {
                         case Command.CmdType.Submit:
-                            if (UIManager.Instance != null)
-                                UIManager.Instance.SubmitConsoleInput();
+                            if (UIManager.Instance.ConsoleCheckActive())
+                                UIManager.Instance.ConsoleSubmitInput();
+                            else
+                                LogWarning("LocalConsole ProcessCommands(): Console is not active, cannot submit input from console", true);
                             break;
                         case Command.CmdType.MoveF:
                             Player.Instance.Move(InputManager.Axis.Z, 1.0f);
@@ -113,8 +121,7 @@ namespace Hubris
                                 Player.Instance.PhysImpulse(Vector3.up * Player.Instance.JumpSpd);
                             break;
                         case Command.CmdType.Console:
-                            if (UIManager.Instance != null)
-                                UIManager.Instance.ToggleConsole();
+                            UIManager.Instance.ConsoleToggle();
                             break;
                         case Command.CmdType.RotLeft:
                             Player.Instance.Rotate(InputManager.Axis.X, -5.0f);
@@ -122,13 +129,25 @@ namespace Hubris
                         case Command.CmdType.RotRight:
                             Player.Instance.Rotate(InputManager.Axis.X, 5.0f);
                             break;
+                        case Command.CmdType.Net_Send:
+                            Player.Instance.SendData(_cmdQueue[i].Data);
+                            break;
+                        case Command.CmdType.Version:
+                            Log("Current Hubris Build: " + HubrisCore.Version);
+                            break;
+                        case Command.CmdType.Net_Info:
+                            Log("NetLibType: " + HubrisCore.NetLibType);
+                            Log("NetSendMethod: " + HubrisCore.NetSendMethod);
+                            break;
                         default:
                             break;
 
                     }
+
+                    cmd.ClearData();    // Clear out data from processed commands
                 }
 
-                _cmdQueue.Clear();
+                _cmdQueue.Clear();      // Clear out cmdQueue for next update
             }
         }
 
@@ -145,11 +164,11 @@ namespace Hubris
             bool success = false;
             string[] strArr;
 
-            Log("Processing input: " + nIn);
+            Log("LocalConsole ProcessInput(): Processing input \'" + nIn + "\'");
 
             if (nIn != null)
             {
-                strArr = nIn.Split(new char[] { ' ' });
+                strArr = nIn.Split(new char[] { ' ' }, 2); // Split at whitespace, max two strings (Cmd and data)
 
                 if (strArr != null && strArr.Length > 0)
                 {
@@ -158,29 +177,37 @@ namespace Hubris
                     if (temp != Command.None)
                     {
                         success = true;
-                        Log(temp.CmdName);
+
+                        if (strArr.Length > 1)
+                        {
+                            temp.SetData(strArr[1]);    // Assume the next string in the array is the data
+                            Log("Calling " + temp.CmdName + " with data " + temp.Data);
+                        }
+                        else
+                        {
+                            Log("Calling " + temp.CmdName);
+                        }
+
                         AddToQueue(temp);
                     }
                     else
-                        Log("Unrecognized command \'" + strArr[0] + "\'");
+                        Log("LocalConsole ProcessInput(): Unrecognized command \'" + strArr[0] + "\'");
                 }
             }
 
             return success;
         }
 
-        public void AddToQueue(Command cAdd)
+        public void AddToQueue(Command nAdd, string nData = null)
         {
-            _cmdQueue.Add(cAdd);
-        }
+            if (nData != null)
+                nAdd.SetData(nData);
 
-        void Start()
-        {
-
+            _cmdQueue.Add(nAdd);
         }
 
         // Update is called once per frame
-        void Update()
+        public new void Tick()
         {
             if (Active)
             {
@@ -199,18 +226,13 @@ namespace Hubris
             }
         }
 
-        private void LateUpdate()
+        public new void LateTick()
         {
             if (Active)
             {
                 if (Ready)
                     ProcessMessages();
             }
-        }
-
-        void FixedUpdate()
-        {
-
         }
 
         public void AddMsg(Msg nMsg)
@@ -244,7 +266,7 @@ namespace Hubris
                 if (cmd != null)
                     cmdName = cmd.CmdName;
 
-                AddMsg(new Msg(_msgCounter, "WARNING: " + msg, cmdName));
+                AddMsg(new Msg(_msgCounter, "*WARNING* " + msg, cmdName));
 
                 if (unity)
                     UnityEngine.Debug.LogWarning(msg);
@@ -261,47 +283,12 @@ namespace Hubris
                 if (cmd != null)
                     cmdName = cmd.CmdName;
 
-                AddMsg(new Msg(_msgCounter, "ERROR: " + msg, cmdName));
+                AddMsg(new Msg(_msgCounter, "*ERROR* " + msg, cmdName));
 
                 if (unity)
                     UnityEngine.Debug.LogError(msg);
 
                 _msgCounter++;
-            }
-        }
-
-        public class Msg
-        {
-            // Msg instance variables
-            private int _id;       // ID # of Msg, for referencing specific Msgs when desired
-            private string _txt;    // The text of the message, to be displayed in the LocalConsole
-            private string _cmd;    // The command which generated the message, for debugging purposes
-
-            // Msg properties
-            public int Id
-            {
-                get { return _id; }
-                protected set { _id = value; }  // Set in constructor, not to be changed
-            }
-
-            public string Txt
-            {
-                get { return _txt; }
-                protected set { _txt = value; } // Set in constructor, not to be changed
-            }
-
-            public string Cmd
-            {
-                get { return _cmd; }
-                protected set { _cmd = value; } // Set in constructor, not to be changed
-            }
-            
-            // Msg methods
-            public Msg(int nId, string nTxt, string nCmd)
-            {
-                _id = nId;
-                _txt = nTxt;
-                _cmd = nCmd;
             }
         }
     }

@@ -55,7 +55,15 @@ namespace Hubris
             }
         }
 
-        public void ToggleConsole()
+        public bool ConsoleCheckActive()
+        {
+            if (_conObj != null)
+                return _conObj.activeSelf;
+            else
+                return false;
+        }
+
+        public void ConsoleToggle()
         {
             if (_conObj != null)
             {
@@ -78,7 +86,7 @@ namespace Hubris
             }
         }
 
-        public void SubmitConsoleInput()
+        public void ConsoleSubmitInput()
         {
             if (_conObj != null)
             {

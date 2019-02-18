@@ -2,7 +2,6 @@ using System;
 using UnityEngine;
 using Hubris;
 
-
 [Serializable]
 public class MouseLook
 {

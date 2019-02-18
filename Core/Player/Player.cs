@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -43,6 +44,10 @@ namespace Hubris
             }
         }
 
+        // Networking Type instance, to be populated at runtime (See GetNetInstance())
+        private object _netInstance = null;
+        private System.Type _netType = null;
+        private System.Reflection.MethodInfo _netSendMethod = null;
 
         // Player states, use properties to interact
         private bool _stand = true;     // Is the player standing?
@@ -71,6 +76,7 @@ namespace Hubris
         protected float _fallSpd = 20.0f;
         protected float _baseSpd = 0.1f;
         protected float _spd = 2.0f;
+        protected static InputManager _im = null;
         protected MouseLook _mLook = null;
 
         // Player properties
@@ -122,10 +128,23 @@ namespace Hubris
             protected set { _canJump = value; }
         }
 
+        public static InputManager Input
+        {
+            get { return _im; }
+            protected set { _im = value; }
+        }
+
         // Player methods
         public abstract void Move(InputManager.Axis ax, float val);
         public abstract void Rotate(InputManager.Axis ax, float val);
         protected abstract void ProcessState();
+
+        protected void Init()
+        {
+            _im = new InputManager();
+            _im.Init();
+            TrySetNetVars();
+        }
 
         public void ChangeSpeed(float fSpdNew)
         {
@@ -227,6 +246,59 @@ namespace Hubris
             _mLook.LookRotation(_gObj.transform, _pCam.transform);
         }
 
+        public void TrySetNetVars()
+        {
+            System.Type chkType = System.Type.GetType(HubrisCore.NetLibType); // Check if our specified networking Type.Class exists
+
+            if (chkType != null)
+            {
+                System.Reflection.MethodInfo chkMethod = chkType.GetMethod(HubrisCore.NetSendMethod); // Check if the specified method exists
+
+                if (chkMethod != null)   // We have the method we need to send data
+                {
+                    _netInstance = Activator.CreateInstance(chkType);
+                    _netType = chkType;
+                    _netSendMethod = chkMethod;
+                    LocalConsole.Instance.Log("Player TrySetNetVars(): All network variables successfully set", true);
+                }
+                else
+                {
+                    LocalConsole.Instance.LogError("Player TrySetNetVars(): The specified method (" + HubrisCore.NetSendMethod + ") can't be found on " + HubrisCore.NetLibType + ", networking disabled", true);
+                }
+            }
+            else
+            {
+                LocalConsole.Instance.LogError("Player TrySetNetVars(): The specified networking library (" + HubrisCore.NetLibType + ") can't be found, networking disabled", true);
+            }
+        }
+
+        public void SendData(string nData)
+        {
+            if (_netInstance != null)
+            {
+                if (nData != null)
+                {
+                    LocalConsole.Instance.Log("Player SendData(): Sending \'" + nData + "\'", true);
+                    try
+                    {
+                        _netSendMethod.Invoke(_netInstance, new object[] { System.Text.Encoding.ASCII.GetBytes(nData) });  // Rewrite for specific invocation or return handling
+                    }
+                    catch (Exception e)
+                    {
+                        LocalConsole.Instance.LogError("Player SendData(): Exception while invoking network send method");
+                    }
+                }
+                else
+                {
+                    LocalConsole.Instance.LogError("Player SendData(): Data to send is null", true);
+                }
+            }
+            else
+            {
+                LocalConsole.Instance.LogError("Player SendData(): The specified networking library (" + HubrisCore.NetLibType + ") can't be found, so no data can be sent", true);
+            }
+        }
+
         void OnCollisionEnter(Collision collision)
         {
             // Debug.Log("Col detected");
@@ -269,8 +341,8 @@ namespace Hubris
                     else
                         check = 0;
                     break;
-                default:
-                    check = 2; // Error
+                default:        // Can't check the state of something that doesn't exist, and returning false doesn't notify of that
+                    check = 2;  // Error
                     break;
             }
 
@@ -300,6 +372,16 @@ namespace Hubris
                     LocalConsole.Instance.LogError("Player SetState(): Invalid PState specified...", true);
                     break;
             }
+        }
+
+        protected void Update()
+        {
+            _im.Tick();
+        }
+
+        protected void LateUpdate()
+        {
+            _im.LateTick();
         }
     }
 }

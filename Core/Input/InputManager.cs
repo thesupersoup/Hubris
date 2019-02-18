@@ -4,35 +4,9 @@ using UnityEngine;
 
 namespace Hubris
 {
-    public class InputManager : MonoBehaviour
+    public class InputManager : HubrisBase
     {
         public enum Axis { X, Y, Z, M_X, M_Y, NUM_AXIS }
-
-        // Singleton instance
-        public static InputManager _im = null;
-
-        private static object _lock = new object();
-        private static bool _disposing = false; // Check if we're in the process of disposing this singleton
-
-        public static InputManager Instance
-        {
-            get
-            {
-                if (_disposing)
-                    return null;
-                else
-                    return _im;
-            }
-
-            set
-            {
-                lock (_lock)
-                {
-                    if (_im == null)
-                        _im = value;
-                }
-            }
-        }
 
         // InputManager variables
         private bool _active = true;
@@ -51,6 +25,12 @@ namespace Hubris
             protected set { _km = value; }
         }
 
+        public static InputManager Instance
+        {
+            get { return Player.Input; }
+            protected set { }
+        }
+
         // InputManager methods
         public void SetActive(bool nAct)
         {
@@ -58,18 +38,7 @@ namespace Hubris
             Active = nAct;
         }
 
-        private void OnEnable()
-        {
-            if (Instance == null)
-                Instance = this;
-            else if (Instance != this)
-            {
-                Destroy(this.gameObject);
-                Active = false;
-            }
-        }
-
-        void Start()
+        public void Init()
         {
             KeyMap = new KeyMap();
             if (LocalConsole.Instance == null)
@@ -79,8 +48,7 @@ namespace Hubris
             }
         }
 
-        // Update is called once per frame
-        void Update()
+        public new void Tick()
         {
             if (Active)
             {
@@ -132,11 +100,6 @@ namespace Hubris
                     }
                 }
             }
-        }
-
-        private void FixedUpdate()
-        {
-
         }
     }
 }

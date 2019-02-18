@@ -1,11 +1,10 @@
 ﻿using UnityEngine;
 using System;
 
-
 namespace Hubris
 {
     [Serializable]
-    public class KeyBind : System.Object
+    public class KeyBind
     {
         // KeyBind instance variables
         private KeyCode key;

@@ -5,7 +5,6 @@ using UnityEngine;
 
 namespace Hubris
 {
-    [RequireComponent(typeof(InputManager))]
     public class FPSControl : Player
     {
         // Temporary vars for test
@@ -71,6 +70,7 @@ namespace Hubris
             if (Instance == null)
             {
                 Instance = this;
+
             }
             else if (Instance != null)
             {
@@ -78,21 +78,26 @@ namespace Hubris
                 Destroy(this.gameObject);
             }
 
-            Type = (byte)PType.FPS;
-
-            if (_gObj == null)
-                _gObj = this.gameObject;
-
-            if (_pCam == null)
-                _pCam = GetComponent<Camera>();
-
-            if (_pCol == null)
-                _pCol = GetComponent<Collider>();
-
-            if (_pCam != null && _gObj != null && _pCol != null)
+            if (Instance == this)
             {
-                Active = true;
-                _mLook = new MouseLook(_gObj.transform, _pCam.transform, _sens, _sens);
+                Type = (byte)PType.FPS;
+
+                base.Init();
+
+                if (_gObj == null)
+                    _gObj = this.gameObject;
+
+                if (_pCam == null)
+                    _pCam = GetComponent<Camera>();
+
+                if (_pCol == null)
+                    _pCol = GetComponent<Collider>();
+
+                if (_pCam != null && _gObj != null && _pCol != null)
+                {
+                    Active = true;
+                    _mLook = new MouseLook(_gObj.transform, _pCam.transform, _sens, _sens);
+                }
             }
         }
 
@@ -107,11 +112,20 @@ namespace Hubris
         {
             if (Active)
             {
+                base.Update();
                 UpdateMouse();
             }
         }
 
-        private void FixedUpdate()
+        void LateUpdate()
+        {
+            if(Active)
+            {
+                base.LateUpdate();
+            }
+        }
+
+        void FixedUpdate()
         {
             if (Active)
             {

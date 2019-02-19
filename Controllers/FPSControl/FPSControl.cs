@@ -84,7 +84,10 @@ namespace Hubris
                 Active = false;
                 Destroy(this.gameObject);
             }
+        }
 
+        void Start()
+        {
             if (Instance == this)
             {
                 Type = (byte)PType.FPS;
@@ -107,12 +110,6 @@ namespace Hubris
                     _mLook = new MouseLook(_gObj.transform, _pCam.transform, _sens, _sens);
                 }
             }
-        }
-
-        // Start is called before the first frame update
-        void Start()
-        {
-
         }
 
         // Update is called once per frame

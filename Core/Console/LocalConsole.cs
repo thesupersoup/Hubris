@@ -180,7 +180,7 @@ namespace Hubris
 
                         if (strArr.Length > 1)
                         {
-                            temp.SetData(strArr[1]);    // Assume the next string in the array is the data
+                            temp.SetData(strArr[1]);    // Assume the other string in the array is the data
                             Log("Calling " + temp.CmdName + " with data " + temp.Data);
                         }
                         else
@@ -226,7 +226,7 @@ namespace Hubris
             }
         }
 
-        // LateTick is called once per frame after rendering with MonoBehaviour.LateUpdate()
+        // LateTick is called once per frame after Update() with MonoBehaviour.LateUpdate()
         public new void LateTick()
         {
             if (Active)

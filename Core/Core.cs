@@ -7,11 +7,13 @@ namespace Hubris
         // Base methods
         public void Tick()
         {
+            // Should be called with Update()
             // Use with new definition in derived class
         }
 
         public void LateTick()
         {
+            // Should be called with LateUpdate()
             // Use with new definition in derived class
         }
     }

@@ -137,7 +137,7 @@ namespace Hubris
         public string Data
         {
             get { return _data; }
-            protected set { _data = value; } // Let the record show that I have renamed the instance variable
+            protected set { _data = value; } 
         }
 
         public bool Continuous

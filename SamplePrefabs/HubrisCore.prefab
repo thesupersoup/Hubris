@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6482430645408080299}
-  - component: {fileID: 630973730995684214}
+  - component: {fileID: 7015523284075767936}
   m_Layer: 0
   m_Name: HubrisCore
   m_TagString: Untagged
@@ -31,7 +31,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &630973730995684214
+--- !u!114 &7015523284075767936
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -40,6 +40,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 3818872976495289613}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b0ff21a412015e7489600a2c19f55392, type: 3}
+  m_Script: {fileID: 11500000, guid: 04e587effbf93e64e8108228b538ad3c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _version: v0.0.5b
+  _netLibType: Telepathy.Client
+  _netSendMethod: Send

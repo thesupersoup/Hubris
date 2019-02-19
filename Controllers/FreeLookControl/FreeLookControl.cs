@@ -63,6 +63,12 @@ namespace Hubris
         protected override void ProcessState()
         {
             ProcessGravity();
+            ProcessDeltas();
+        }
+
+        protected override void SetSpecifics()
+        {
+
         }
 
         void OnEnable()
@@ -80,6 +86,7 @@ namespace Hubris
                 Type = (byte)PType.FL;
 
                 base.Init();
+                SetSpecifics();
 
                 if (_gObj == null)
                     _gObj = this.gameObject;

@@ -6,7 +6,7 @@ using Hubris;
 public class MouseLook
 {
     // MouseLook instance vars
-    private bool lockCursor = false;
+    private bool cursorLock = false;
     private float XSens = 1f;
     private float YSens = 1f;
     private bool clampVerticalRotation = true;
@@ -20,6 +20,13 @@ public class MouseLook
     public Vector2 Sens
     {
         get { return new Vector2(XSens, YSens); }
+    }
+
+    // MouseLook properties
+    public bool CursorLock
+    {
+        get { return cursorLock; }
+        set { cursorLock = value; }
     }
 
     // MouseLook Methods
@@ -110,10 +117,17 @@ public class MouseLook
         UpdateCursorLock();
     }
 
-    public void SetCursorLock()
+    public void ToggleCursorLock()
     {
-        if(!lockCursor)
-        {//we force unlock the cursor if the user disable the cursor locking helper
+        SetCursorLock(!CursorLock);
+    }
+
+    public void SetCursorLock(bool nLock)
+    {
+        CursorLock = nLock;
+
+        if(!CursorLock)
+        {   // We force unlock the cursor if the user disables the cursor locking helper
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
         }
@@ -126,19 +140,20 @@ public class MouseLook
 
    public void UpdateCursorLock()
     {
-        bool prevLock = lockCursor;
+        bool prevLock = CursorLock;
 
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            lockCursor = false;
+            prevLock = false;
         }
         else if (Input.GetMouseButtonUp(0))
         {
-            lockCursor = true;
+            if(!UIManager.Instance.ConsoleCheckActive())
+                prevLock = true;
         }
 
-        if (prevLock != lockCursor) 
-            SetCursorLock();
+        if (prevLock != CursorLock) 
+            SetCursorLock(prevLock);
     }
 
     public Quaternion ClampRotationAroundXAxis(Quaternion q)

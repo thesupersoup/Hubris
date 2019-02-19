@@ -2,7 +2,7 @@
 
 namespace Hubris
 {
-    public class HubrisBase
+    public class Base
     {
         // Base methods
         public void Tick()
@@ -16,15 +16,15 @@ namespace Hubris
         }
     }
 
-    public class HubrisCore : MonoBehaviour
+    public class Core : MonoBehaviour
     {
         // Singleton instance
-        private static HubrisCore _i = null;
+        private static Core _i = null;
 
         private static object _lock = new object();
         private static bool _disposing = false; // Check if we're in the process of disposing this singleton
 
-        public static HubrisCore Instance
+        public static Core Instance
         {
             get
             {
@@ -45,31 +45,35 @@ namespace Hubris
         }
 
         // Core instance vars
-        private static string _version = "v0.0.5";
-        private static string _netLibType = "Telepathy.Client"; // Fully qualified networking class name
-        private static string _netSendMethod = "Send";          // Method name to send data
-        private static LocalConsole _con = null;    
+        [SerializeField]
+        private string _version = "v0.0.5b";
+        [SerializeField]
+        private string _netLibType = "Telepathy.Client";    // Fully qualified networking class name
+        [SerializeField]
+        private string _netSendMethod = "Send";             // Method name to send data
+
+        private LocalConsole _con = new LocalConsole();     // "new LocalConsole()" required to prevent null errors
 
         // Core properties
-        public static string Version
+        public string Version
         {
             get { return _version; }
             protected set { _version = value; }
         }
 
-        public static string NetLibType
+        public string NetLibType
         {
             get { return _netLibType; }
             protected set { _netLibType = value; }
         }
 
-        public static string NetSendMethod
+        public string NetSendMethod
         {
             get { return _netSendMethod; }
             protected set { _netSendMethod = value; }
         }
 
-        public static LocalConsole Console
+        public LocalConsole Console
         {
             get { return _con; }
             protected set { _con = value; }
@@ -85,7 +89,6 @@ namespace Hubris
                 Destroy(this.gameObject);
             }
 
-            _con = new LocalConsole();
             _con.Init();
         }
 

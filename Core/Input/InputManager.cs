@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Hubris
 {
-    public class InputManager : HubrisBase
+    public class InputManager : Base
     {
         public enum Axis { X, Y, Z, M_X, M_Y, NUM_AXIS }
 

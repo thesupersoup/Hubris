@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEditor;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -55,8 +56,10 @@ namespace Hubris
         }
 
         // Static array of Commands
+        [SerializeField]
         public static Command[] cmdArr = InitCmds();
 
+        [ExecuteInEditMode]
         private static Command[] InitCmds()
         {
             Command[] cmds = new Command[(int)CmdType.Num_Cmds]; // Use Num_Cmds to ensure proper array length
@@ -326,7 +329,7 @@ namespace Hubris
             _cmdName = sCmd;
             _type = eType;
             _data = sData;
-            _cont= bSign;
+            _cont = bSign;
         }
 
         public void ClearData()
@@ -338,7 +341,7 @@ namespace Hubris
         {
             Command cmd = Command.None;
 
-            for(int i = 0; i < cmdArr.Length; i++)
+            for (int i = 0; i < cmdArr.Length; i++)
             {
                 if (cmdArr[i].CmdName == nName)
                 {

@@ -69,6 +69,7 @@ namespace Hubris
             {
                 bool act = !_conObj.activeSelf;
                 _conObj.SetActive(act);
+                Player.Instance.SetMouse(!act);
 
                 if (InputManager.Instance != null)
                     InputManager.Instance.SetActive(!act);
@@ -76,7 +77,9 @@ namespace Hubris
                 if (_conIn != null)
                 {
                     if (act)
+                    {
                         _conIn.ActivateInputField();
+                    }
                     else
                     {
                         _conIn.text = "";

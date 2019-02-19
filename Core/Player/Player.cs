@@ -9,7 +9,7 @@ namespace Hubris
     public abstract class Player : MonoBehaviour
     {
         // Player constants
-        public const float DIST_CHK_GROUND = 1f;
+        public const float DIST_CHK_GROUND = 2.0f;
 
         // Player type enum, whether First Person, Free Look, or others
         public enum PType : byte { NONE = 0, FPS, FL, NUM_TYPES };
@@ -71,11 +71,12 @@ namespace Hubris
         [SerializeField]
         protected Camera _pCam = null;
         protected float _sens = 2.0f;
+        protected float _spd = 2.0f;
+        protected float _acc = 2.0f;
         protected float _jumpSpd = 10.0f;
         protected float _fallAng = 59.0f;   // The angle of the slope at which the player can no longer walk forward or jump
         protected float _fallSpd = 20.0f;
         protected float _baseSpd = 0.1f;
-        protected float _spd = 2.0f;
         protected static InputManager _im = null;
         protected MouseLook _mLook = null;
 
@@ -84,6 +85,18 @@ namespace Hubris
         {
             get { return (byte)_type; }
             protected set { if (value > (byte)PType.NONE && value < (byte)PType.NUM_TYPES) { _type = (PType)value; } else { _type = PType.FPS; } }
+        }
+
+        public float Speed
+        {
+            get { return _spd; }
+            protected set { _spd = value; }
+        }
+
+        public float Accel
+        {
+            get { return _acc; }
+            protected set { _acc = value; }
         }
 
         public float JumpSpd
@@ -137,6 +150,7 @@ namespace Hubris
         // Player methods
         public abstract void Move(InputManager.Axis ax, float val);
         public abstract void Rotate(InputManager.Axis ax, float val);
+        protected abstract void SetSpecifics();
         protected abstract void ProcessState();
 
         protected void Init()
@@ -219,12 +233,12 @@ namespace Hubris
 
                 if (angle > _fallAng)
                 {
+                    Grounded = false;
                     CanJump = false;
                     PhysImpulse(Vector3.down * _fallSpd);
                 }
                 else
                 {
-                    Grounded = true;
                     CanJump = true;
                 }
             }
@@ -241,18 +255,41 @@ namespace Hubris
                 PhysForce(Vector3.down * _fallSpd);
         }
 
+        protected void ProcessDeltas()
+        {
+
+        }
+
         protected void UpdateMouse()
         {
-            _mLook.LookRotation(_gObj.transform, _pCam.transform);
+            if (_mLook.CursorLock)
+                _mLook.LookRotation(_gObj.transform, _pCam.transform);
+            else
+                _mLook.UpdateCursorLock();
+        }
+
+        public void ToggleMouse()
+        {
+            _mLook.ToggleCursorLock();
+        }
+
+        public void SetMouse(bool nLock)
+        {
+            _mLook.SetCursorLock(nLock);
+        }
+
+        public bool GetMouse()
+        {
+            return _mLook.CursorLock;
         }
 
         public void TrySetNetVars()
         {
-            System.Type chkType = System.Type.GetType(HubrisCore.NetLibType); // Check if our specified networking Type.Class exists
+            System.Type chkType = System.Type.GetType(Core.Instance.NetLibType); // Check if our specified networking Type.Class exists
 
             if (chkType != null)
             {
-                System.Reflection.MethodInfo chkMethod = chkType.GetMethod(HubrisCore.NetSendMethod); // Check if the specified method exists
+                System.Reflection.MethodInfo chkMethod = chkType.GetMethod(Core.Instance.NetSendMethod); // Check if the specified method exists
 
                 if (chkMethod != null)   // We have the method we need to send data
                 {
@@ -263,12 +300,12 @@ namespace Hubris
                 }
                 else
                 {
-                    LocalConsole.Instance.LogError("Player TrySetNetVars(): The specified method (" + HubrisCore.NetSendMethod + ") can't be found on " + HubrisCore.NetLibType + ", networking disabled", true);
+                    LocalConsole.Instance.LogError("Player TrySetNetVars(): The specified method (" + Core.Instance.NetSendMethod + ") can't be found on " + Core.Instance.NetLibType + ", networking disabled", true);
                 }
             }
             else
             {
-                LocalConsole.Instance.LogError("Player TrySetNetVars(): The specified networking library (" + HubrisCore.NetLibType + ") can't be found, networking disabled", true);
+                LocalConsole.Instance.LogError("Player TrySetNetVars(): The specified networking library (" + Core.Instance.NetLibType + ") can't be found, networking disabled", true);
             }
         }
 
@@ -295,12 +332,18 @@ namespace Hubris
             }
             else
             {
-                LocalConsole.Instance.LogError("Player SendData(): The specified networking library (" + HubrisCore.NetLibType + ") can't be found, so no data can be sent", true);
+                LocalConsole.Instance.LogError("Player SendData(): The specified networking library (" + Core.Instance.NetLibType + ") can't be found, so no data can be sent", true);
             }
         }
 
         void OnCollisionEnter(Collision collision)
         {
+            RaycastHit hit;
+
+            if(Physics.Raycast(_gObj.transform.position, Vector3.down, out hit, DIST_CHK_GROUND))
+            {
+                Grounded = true;
+            }
             // Debug.Log("Col detected");
         }
 

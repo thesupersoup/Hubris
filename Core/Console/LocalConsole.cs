@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Hubris
 {
-    public class LocalConsole : HubrisBase
+    public class LocalConsole : Base
     {
         public class Msg
         {
@@ -66,7 +66,7 @@ namespace Hubris
 
         public static LocalConsole Instance
         {
-            get { return HubrisCore.Console; }    // Moved LocalConsole instance to Core class
+            get { return Core.Instance.Console; }    // Moved LocalConsole instance to Core class
             protected set { }
         }
 
@@ -133,11 +133,11 @@ namespace Hubris
                             Player.Instance.SendData(_cmdQueue[i].Data);
                             break;
                         case Command.CmdType.Version:
-                            Log("Current Hubris Build: " + HubrisCore.Version);
+                            Log("Current Hubris Build: " + Core.Instance.Version);
                             break;
                         case Command.CmdType.Net_Info:
-                            Log("NetLibType: " + HubrisCore.NetLibType);
-                            Log("NetSendMethod: " + HubrisCore.NetSendMethod);
+                            Log("NetLibType: " + Core.Instance.NetLibType);
+                            Log("NetSendMethod: " + Core.Instance.NetSendMethod);
                             break;
                         default:
                             break;
@@ -206,7 +206,7 @@ namespace Hubris
             _cmdQueue.Add(nAdd);
         }
 
-        // Update is called once per frame
+        // Tick is called once per frame with MonoBehaviour.Update()
         public new void Tick()
         {
             if (Active)
@@ -226,6 +226,7 @@ namespace Hubris
             }
         }
 
+        // LateTick is called once per frame after rendering with MonoBehaviour.LateUpdate()
         public new void LateTick()
         {
             if (Active)
@@ -243,53 +244,68 @@ namespace Hubris
 
         public void Log(string msg, bool unity = false, Command cmd = null)
         {
-            if (msg != null)
+            if (Instance != null)
             {
-                string cmdName = null;
-                if (cmd != null)
-                    cmdName = cmd.CmdName;
+                if (msg != null)
+                {
+                    string cmdName = null;
+                    if (cmd != null)
+                        cmdName = cmd.CmdName;
 
-                AddMsg(new Msg(_msgCounter, msg, cmdName));
+                    AddMsg(new Msg(_msgCounter, msg, cmdName));
 
-                if (unity)
-                    UnityEngine.Debug.Log(msg);
+                    if (unity)
+                        UnityEngine.Debug.Log(msg);
 
-                _msgCounter++;
+                    _msgCounter++;
+                }
             }
+            else
+                UnityEngine.Debug.Log(msg);
         }
 
         public void LogWarning(string msg, bool unity = false, Command cmd = null)
         {
-            if (msg != null)
+            if (Instance != null)
             {
-                string cmdName = null;
-                if (cmd != null)
-                    cmdName = cmd.CmdName;
+                if (msg != null)
+                {
+                    string cmdName = null;
+                    if (cmd != null)
+                        cmdName = cmd.CmdName;
 
-                AddMsg(new Msg(_msgCounter, "*WARNING* " + msg, cmdName));
+                    AddMsg(new Msg(_msgCounter, "*WARNING* " + msg, cmdName));
 
-                if (unity)
-                    UnityEngine.Debug.LogWarning(msg);
+                    if (unity)
+                        UnityEngine.Debug.LogWarning(msg);
 
-                _msgCounter++;
+                    _msgCounter++;
+                }
             }
+            else
+                UnityEngine.Debug.LogWarning(msg);
         }
 
         public void LogError(string msg, bool unity = false, Command cmd = null)
         {
-            if (msg != null)
+            if (Instance != null)
             {
-                string cmdName = null;
-                if (cmd != null)
-                    cmdName = cmd.CmdName;
+                if (msg != null)
+                {
+                    string cmdName = null;
+                    if (cmd != null)
+                        cmdName = cmd.CmdName;
 
-                AddMsg(new Msg(_msgCounter, "*ERROR* " + msg, cmdName));
+                    AddMsg(new Msg(_msgCounter, "*ERROR* " + msg, cmdName));
 
-                if (unity)
-                    UnityEngine.Debug.LogError(msg);
+                    if (unity)
+                        UnityEngine.Debug.LogError(msg);
 
-                _msgCounter++;
+                    _msgCounter++;
+                }
             }
+            else
+                UnityEngine.Debug.LogError(msg);
         }
     }
 }

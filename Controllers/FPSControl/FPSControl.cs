@@ -31,7 +31,8 @@ namespace Hubris
         {
             if (Active)
             {
-                _gObj.transform.Translate(GetMoveAsVector(ax, val) * _baseSpd);
+                Vector3 dir = GetMoveAsVector(ax, val, true);
+                PhysForce(dir * _spd);
             }
         }
 
@@ -63,6 +64,12 @@ namespace Hubris
         protected override void ProcessState()
         {
             ProcessGravity();
+            ProcessDeltas();
+        }
+
+        protected override void SetSpecifics()
+        {
+            Speed = 10.0f;
         }
 
         void OnEnable()
@@ -83,6 +90,7 @@ namespace Hubris
                 Type = (byte)PType.FPS;
 
                 base.Init();
+                SetSpecifics();
 
                 if (_gObj == null)
                     _gObj = this.gameObject;

@@ -11,6 +11,7 @@ namespace Hubris
         // InputManager variables
         private bool _active = true;
         private KeyMap _km;
+        private Player.PType _type = Player.PType.NONE;
 
         // InputManager properties
         public bool Active
@@ -38,14 +39,48 @@ namespace Hubris
             Active = nAct;
         }
 
-        public void Init()
+        public void Init(Player.PType nType)
         {
+            _type = nType;
             KeyMap = new KeyMap();
             if (LocalConsole.Instance == null)
             {
                 Debug.LogError("InputManager Start(): LocalConsole.Instance is null");
                 _active = false;
             }
+        }
+
+        private bool CheckValidForType(Command nCmd)
+        {
+            bool valid;
+
+            switch(_type)
+            {
+                case Player.PType.FPS:
+                    valid = true;
+                    break;
+                case Player.PType.FL:
+                    valid = true;
+                    break;
+                case Player.PType.RTS:
+                    switch(nCmd.Type)
+                    {
+                        case Command.CmdType.Jump:
+                        case Command.CmdType.CrouchHold:
+                        case Command.CmdType.CrouchToggle:
+                            valid = false;
+                            break;
+                        default:
+                            valid = true;
+                            break;
+                    }
+                    break;
+                default:
+                    valid = true;
+                    break;
+            }
+
+            return valid;
         }
 
         public new void Tick()
@@ -62,16 +97,24 @@ namespace Hubris
 
                             if (cmd != Command.None)
                             {
-                                if (cmd.Continuous)
+                                if (CheckValidForType(cmd))
                                 {
-                                    LocalConsole.Instance.AddToQueue(cmd);
-                                }
-                                else
-                                {
-                                    if (Input.GetKeyDown(kc))
+                                    if (cmd.Continuous)
                                     {
                                         LocalConsole.Instance.AddToQueue(cmd);
                                     }
+                                    else
+                                    {
+                                        if (Input.GetKeyDown(kc))
+                                        {
+                                            LocalConsole.Instance.AddToQueue(cmd);
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    if (Core.Instance.Debug)
+                                        LocalConsole.Instance.LogWarning("InputManager Tick(): CheckValidForType(" + cmd.CmdName + ") returned false", true);
                                 }
                             }
                         }

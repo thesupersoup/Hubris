@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
 namespace Hubris
 {
     public abstract class Player : MonoBehaviour
@@ -12,7 +11,7 @@ namespace Hubris
         public const float DIST_CHK_GROUND = 2.0f;
 
         // Player type enum, whether First Person, Free Look, or others
-        public enum PType : byte { NONE = 0, FPS, FL, NUM_TYPES };
+        public enum PType : byte { NONE = 0, FPS, FL, RTS, NUM_TYPES };
 
         // Player state enum, see bool states below
         public enum PState : byte { NONE = 0, STAND, GRAV, GROUND, DEMIGOD, ROTATE, NUM_STATES };
@@ -70,6 +69,7 @@ namespace Hubris
         protected Collider _pCol = null;
         [SerializeField]
         protected Camera _pCam = null;
+        protected Vector3 move = Vector3.zero;
         protected float _sens = 2.0f;
         protected float _spd = 2.0f;
         protected float _acc = 2.0f;
@@ -81,6 +81,12 @@ namespace Hubris
         protected MouseLook _mLook = null;
 
         // Player properties
+        public bool Active
+        {
+            get { return _active; }
+            protected set { _active = value; }
+        }
+
         public byte Type
         {
             get { return (byte)_type; }
@@ -156,7 +162,7 @@ namespace Hubris
         protected void Init()
         {
             _im = new InputManager();
-            _im.Init();
+            _im.Init(_type);
             TrySetNetVars();
         }
 

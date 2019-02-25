@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System.Threading;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
@@ -7,6 +8,9 @@ namespace Hubris
 {
     public class UIManager : MonoBehaviour
     {
+        // UIManager consts
+        private const int CON_LENGTH_MAX = 2056;
+
         // UIManager singleton
         private static UIManager _ui = null;
 
@@ -35,12 +39,13 @@ namespace Hubris
 
         // UIManager instance variables
         [SerializeField]
-        GameObject _conObj = null;
-        [SerializeField]
         TextMeshProUGUI _conTxt = null;
         [SerializeField]
         TMP_InputField _conIn = null;
-        private string input = null;
+        [SerializeField]
+        Canvas _conCan = null;
+        private string _input = null;
+        private Thread _uiThread;
 
         // UIManager methods
         void OnEnable()
@@ -57,18 +62,18 @@ namespace Hubris
 
         public bool ConsoleCheckActive()
         {
-            if (_conObj != null)
-                return _conObj.activeSelf;
+            if (_conCan != null)
+                return _conCan.enabled;
             else
                 return false;
         }
 
         public void ConsoleToggle()
         {
-            if (_conObj != null)
+            if (_conCan != null)
             {
-                bool act = !_conObj.activeSelf;
-                _conObj.SetActive(act);
+                bool act = !_conCan.enabled;
+                _conCan.enabled = act;
                 Player.Instance.SetMouse(!act);
 
                 if (InputManager.Instance != null)
@@ -91,17 +96,24 @@ namespace Hubris
 
         public void ConsoleSubmitInput()
         {
-            if (_conObj != null)
+            if (_conCan != null)
             {
                 if (_conIn != null)
                 {
-                    input = _conIn.text;
                     if (LocalConsole.Instance != null)
                     {
-                        LocalConsole.Instance.ProcessInput(input);
+                        if (ConsoleCheckActive())
+                        {
+                            _input = _conIn.text;
+                            LocalConsole.Instance.ProcessInput(_input);
+                            _conIn.text = "";
+                            _conIn.ActivateInputField();
+                        }
+                        else
+                            LocalConsole.Instance.LogWarning("UIManager ConsoleSubmitInput(): Console is not active, cannot submit input from console", true);
                     }
-                    _conIn.text = "";
-                    _conIn.ActivateInputField();
+                    else
+                        Debug.LogError("UIManager ConsoleSubmitInput(): LocalConsole.Instance is null, can't proceed");
                 }
             }
         }
@@ -109,7 +121,13 @@ namespace Hubris
         public void AddConsoleText(LocalConsole.Msg nMsg)
         {
             if (_conTxt != null)
+            {
+                int trimLen = (_conTxt.text.Length + nMsg.Txt.Length) - CON_LENGTH_MAX;
+                if (trimLen > 0)
+                    ClearExcess(trimLen);
+
                 _conTxt.text += nMsg.Txt + "\n";
+            }
         }
 
         public void AddConsoleText(LocalConsole.Msg[] nMsgs)
@@ -118,9 +136,18 @@ namespace Hubris
             {
                 for(int i = 0; i < nMsgs.Length; i++)
                 {
+                    int trimLen = (_conTxt.text.Length + nMsgs[i].Txt.Length) - CON_LENGTH_MAX;
+                    if (trimLen > 0)
+                        ClearExcess(trimLen);
+
                     _conTxt.text += nMsgs[i].Txt + "\n";
                 }
             }
+        }
+
+        private void ClearExcess(int nLen)  // nLen is the num of chars to clear
+        {
+            _conTxt.text = _conTxt.text.Substring(nLen);    // Trim the oldest text first
         }
 
         void Start()

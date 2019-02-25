@@ -33,6 +33,8 @@ namespace Hubris
             kbDict.Add(KeyCode.S, Command.MoveB);
             kbDict.Add(KeyCode.A, Command.MoveL);
             kbDict.Add(KeyCode.D, Command.MoveR);
+            kbDict.Add(KeyCode.Q, Command.RotLeft);
+            kbDict.Add(KeyCode.E, Command.RotRight);
             kbDict.Add(KeyCode.Space, Command.Jump);
             kbDict.Add(KeyCode.LeftShift, Command.RunHold);
             kbDict.Add(KeyCode.LeftControl, Command.CrouchHold);

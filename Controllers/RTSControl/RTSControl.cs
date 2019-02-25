@@ -4,29 +4,28 @@ using UnityEngine;
 
 namespace Hubris
 {
-    public class FreeLookControl : Player
+    public class RTSControl : Player
     {
         // Temporary vars for test
-        private bool standing = true;
         private float h = 0.0f;
         private float v = 0.0f;
         private Vector2 look = Vector2.zero;
         private Vector3 aH = Vector3.zero;
         private Vector3 aV = Vector3.zero;
 
-        // FreeLookControl instance vars
+        // RTSControl instance vars
 
 
-        // FreeLookControl properties
+        // RTSControl properties
 
 
-        // FreeLookControl methods
+        // RTSControl methods
         public override void Move(InputManager.Axis ax, float val)
         {
-            if (Active)
+            if(Active)
             {
-                move = GetMoveAsVector(ax, val, true);
-                PhysAccel(move * _spd);
+                _gObj.transform.Translate(GetMoveAsVector(ax, val, true), Space.World);
+                PhysForce(move * _spd);
             }
         }
 
@@ -34,42 +33,34 @@ namespace Hubris
         {
             if (Active)
             {
-                if (ax == InputManager.Axis.X)
-                {
-                    _gObj.transform.Rotate(val, 0.0f, 0.0f, Space.World);
-                }
                 if (ax == InputManager.Axis.Y)
                 {
                     _gObj.transform.Rotate(0.0f, val, 0.0f, Space.World);
                 }
-                else if (ax == InputManager.Axis.Z)
-                {
-                    _gObj.transform.Rotate(0.0f, 0.0f, val, Space.World);
-                }
                 else
                 {
-                    LocalConsole.Instance.LogError("FreeLookControl Rotate(): Invalid Axis specified", true);
+                    LocalConsole.Instance.LogError("RTSControl Rotate(): Invalid Axis specified", true);
                 }
-
-                LocalConsole.Instance.Log("FPSControl Rotate(): Calling a rotation on Player...", true);
             }
         }
 
         protected override void ProcessState()
         {
-            ProcessGravity();
-            ProcessDeltas();
+
         }
 
         protected override void SetSpecifics()
         {
-
+            Speed = 3.0f;
         }
 
         void OnEnable()
         {
             if (Instance == null)
+            {
                 Instance = this;
+
+            }
             else if (Instance != null)
             {
                 Active = false;
@@ -81,7 +72,7 @@ namespace Hubris
         {
             if (Instance == this)
             {
-                Type = (byte)PType.FL;
+                Type = (byte)PType.RTS;
 
                 base.Init();
                 SetSpecifics();
@@ -98,21 +89,20 @@ namespace Hubris
                 if (_pCam == null)
                     _pCam = GetComponent<Camera>();
 
-                if ( _gObj != null && _pBod != null && _pCol != null && _pCam != null)
+                if (_gObj != null && _pBod != null && _pCol != null && _pCam != null)
                 {
                     Active = true;
                     _mLook = new MouseLook(_gObj.transform, _pCam.transform, _sens, _sens);
+                    _mLook.SetCursorLock(false);
                 }
             }
         }
 
-        // Update is called once per frame
         void Update()
         {
             if (Active)
             {
                 base.Update();
-                UpdateMouse();
             }
         }
 
@@ -124,7 +114,7 @@ namespace Hubris
             }
         }
 
-        private void FixedUpdate()
+        void FixedUpdate()
         {
             if (Active)
             {

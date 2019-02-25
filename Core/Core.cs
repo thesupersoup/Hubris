@@ -48,11 +48,13 @@ namespace Hubris
 
         // Core instance vars
         [SerializeField]
-        private string _version = "v0.0.5b";
+        private string _version = "v0.0.6";
         [SerializeField]
         private string _netLibType = "Telepathy.Client";    // Fully qualified networking class name
         [SerializeField]
         private string _netSendMethod = "Send";             // Method name to send data
+        [SerializeField]
+        private bool _debug = false;
 
         private LocalConsole _con = new LocalConsole();     // "new LocalConsole()" required to prevent null errors
 
@@ -73,6 +75,12 @@ namespace Hubris
         {
             get { return _netSendMethod; }
             protected set { _netSendMethod = value; }
+        }
+
+        public bool Debug
+        {
+            get { return _debug; }
+            protected set { _debug = value; }
         }
 
         public LocalConsole Console

@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Hubris
 {
@@ -76,6 +77,7 @@ namespace Hubris
             _msgList = new List<Msg>();
             _cmdQueue = new List<Command>();
             _cmdData = new List<string>();
+
             if (Player.Instance != null)
             {
                 _pScript = Player.Instance;
@@ -99,10 +101,7 @@ namespace Hubris
                     switch (cmd.Type)
                     {
                         case Command.CmdType.Submit:
-                            if (UIManager.Instance.ConsoleCheckActive())
-                                UIManager.Instance.ConsoleSubmitInput();
-                            else
-                                LogWarning("LocalConsole ProcessCommands(): Console is not active, cannot submit input from console", true);
+                            UIManager.Instance.ConsoleSubmitInput();
                             break;
                         case Command.CmdType.MoveF:
                             Player.Instance.Move(InputManager.Axis.Z, 1.0f);
@@ -124,10 +123,10 @@ namespace Hubris
                             UIManager.Instance.ConsoleToggle();
                             break;
                         case Command.CmdType.RotLeft:
-                            Player.Instance.Rotate(InputManager.Axis.X, -5.0f);
+                            Player.Instance.Rotate(InputManager.Axis.Y, -1.0f);
                             break;
                         case Command.CmdType.RotRight:
-                            Player.Instance.Rotate(InputManager.Axis.X, 5.0f);
+                            Player.Instance.Rotate(InputManager.Axis.Y, 1.0f);
                             break;
                         case Command.CmdType.Net_Send:
                             Player.Instance.SendData(_cmdQueue[i].Data);

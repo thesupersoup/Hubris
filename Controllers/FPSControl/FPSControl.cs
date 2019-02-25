@@ -14,25 +14,20 @@ namespace Hubris
         private Vector2 look = Vector2.zero;
         private Vector3 aH = Vector3.zero;
         private Vector3 aV = Vector3.zero;
-        private Vector3 move = Vector3.zero;
 
         // FPSControl instance vars
 
 
         // FPSControl properties
-        public bool Active
-        {
-            get { return _active; }
-            protected set { _active = value; }
-        }
+
 
         // FPSControl methods
         public override void Move(InputManager.Axis ax, float val)
         {
             if (Active)
             {
-                Vector3 dir = GetMoveAsVector(ax, val, true);
-                PhysForce(dir * _spd);
+                move = GetMoveAsVector(ax, val, true);
+                PhysForce(move * _spd);
             }
         }
 
@@ -54,7 +49,7 @@ namespace Hubris
                 }
                 else
                 {
-                    LocalConsole.Instance.LogError("FreeLookControl Rotate(): Invalid Axis specified", true);
+                    LocalConsole.Instance.LogError("FPSControl Rotate(): Invalid Axis specified", true);
                 }
 
                 LocalConsole.Instance.Log("FPSControl Rotate(): Calling a rotation on Player...", true);
@@ -98,13 +93,16 @@ namespace Hubris
                 if (_gObj == null)
                     _gObj = this.gameObject;
 
-                if (_pCam == null)
-                    _pCam = GetComponent<Camera>();
+                if (_pBod == null)
+                    _pBod = GetComponent<Rigidbody>();
 
                 if (_pCol == null)
                     _pCol = GetComponent<Collider>();
 
-                if (_pCam != null && _gObj != null && _pCol != null)
+                if (_pCam == null)
+                    _pCam = GetComponent<Camera>();
+
+                if (_gObj != null && _pBod != null && _pCol != null && _pCam != null)
                 {
                     Active = true;
                     _mLook = new MouseLook(_gObj.transform, _pCam.transform, _sens, _sens);

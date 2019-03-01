@@ -85,7 +85,9 @@ namespace Hubris
             }
             else
             {
-                LogError("LocalConsole OnEnable(): Player.Instance is null", true);
+                if(Core.Instance.Debug)
+                    LogError("LocalConsole OnEnable(): Player.Instance is null", true);
+
                 _pScript = null;
             }
         }
@@ -122,6 +124,9 @@ namespace Hubris
                         case Command.CmdType.Console:
                             UIManager.Instance.ConsoleToggle();
                             break;
+                        case Command.CmdType.ConClear:
+                            UIManager.Instance.ConsoleClear();
+                            break;
                         case Command.CmdType.RotLeft:
                             Player.Instance.Rotate(InputManager.Axis.Y, -1.0f);
                             break;
@@ -132,11 +137,13 @@ namespace Hubris
                             Player.Instance.SendData(_cmdQueue[i].Data);
                             break;
                         case Command.CmdType.Version:
-                            Log("Current Hubris Build: " + Core.Instance.Version);
+                            Core.Instance.VersionPrint();
+                            break;
+                        case Command.CmdType.Debug:
+                            Core.Instance.DebugToggle();
                             break;
                         case Command.CmdType.Net_Info:
-                            Log("NetLibType: " + Core.Instance.NetLibType);
-                            Log("NetSendMethod: " + Core.Instance.NetSendMethod);
+                            Core.Instance.NetInfoPrint();
                             break;
                         default:
                             break;
@@ -163,7 +170,8 @@ namespace Hubris
             bool success = false;
             string[] strArr;
 
-            Log("LocalConsole ProcessInput(): Processing input \'" + nIn + "\'");
+            if (Core.Instance.Debug)
+                Log("LocalConsole ProcessInput(): Processing input \'" + nIn + "\'");
 
             if (nIn != null)
             {
@@ -180,17 +188,32 @@ namespace Hubris
                         if (strArr.Length > 1)
                         {
                             temp.SetData(strArr[1]);    // Assume the other string in the array is the data
-                            Log("Calling " + temp.CmdName + " with data " + temp.Data);
+                            if (Core.Instance.Debug)
+                                Log("Calling " + temp.CmdName + " with data " + temp.Data);
                         }
                         else
                         {
-                            Log("Calling " + temp.CmdName);
+                            if (Core.Instance.Debug)
+                                Log("Calling " + temp.CmdName);
+                        }
+
+                        if (temp.CmdName != Command.ConClear.CmdName)
+                        {
+                            if (temp.Data == null)
+                                Log(temp.CmdName);
+                            else
+                                Log(temp.CmdName + ": " + temp.Data);
                         }
 
                         AddToQueue(temp);
                     }
                     else
-                        Log("LocalConsole ProcessInput(): Unrecognized command \'" + strArr[0] + "\'");
+                    {
+                        if (Core.Instance.Debug)
+                            Log("LocalConsole ProcessInput(): Unrecognized command \'" + strArr[0] + "\'");
+                        else
+                            Log("Unrecognized command \"" + strArr[0] + "\"");
+                    }
                 }
             }
 
@@ -218,7 +241,8 @@ namespace Hubris
                     if (Player.Instance != null)
                     {
                         _pScript = Player.Instance;
-                        Log("LocalConsole Update(): FPSControl.Player found, setting Ready = true", true);
+                        if (Core.Instance.Debug)
+                            Log("LocalConsole Update(): FPSControl.Player found, setting Ready = true", true);
                         Ready = true;
                     }
                 }

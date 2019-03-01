@@ -110,11 +110,25 @@ namespace Hubris
                             _conIn.ActivateInputField();
                         }
                         else
-                            LocalConsole.Instance.LogWarning("UIManager ConsoleSubmitInput(): Console is not active, cannot submit input from console", true);
+                        {
+                            if (Core.Instance.Debug)
+                                LocalConsole.Instance.LogWarning("UIManager ConsoleSubmitInput(): Console is not active, cannot submit input from console", true);
+                        }
                     }
                     else
-                        Debug.LogError("UIManager ConsoleSubmitInput(): LocalConsole.Instance is null, can't proceed");
+                    {
+                       Debug.LogError("UIManager ConsoleSubmitInput(): LocalConsole.Instance is null, can't proceed");
+                    }
                 }
+            }
+        }
+
+
+        public void ConsoleClear()
+        {
+            if (_conTxt != null)
+            {
+                _conTxt.text = "";
             }
         }
 

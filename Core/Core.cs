@@ -102,6 +102,23 @@ namespace Hubris
             _con.Init();
         }
 
+        public void VersionPrint()
+        {
+            Console.Log("Current Hubris Build: " + Core.Instance.Version);
+        }
+
+        public void NetInfoPrint()
+        {
+            Console.Log("NetLibType: " + Core.Instance.NetLibType);
+            Console.Log("NetSendMethod: " + Core.Instance.NetSendMethod);
+        }
+
+        public void DebugToggle()
+        {
+            Debug = !Debug;
+            Console.Log("Debug mode " + (Debug ? "activated" : "deactivated"));
+        }
+
         void Update()
         {
             _con.Tick();

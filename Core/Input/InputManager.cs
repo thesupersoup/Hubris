@@ -35,7 +35,8 @@ namespace Hubris
         // InputManager methods
         public void SetActive(bool nAct)
         {
-            LocalConsole.Instance.Log("Setting InputManager Active to " + nAct, true);
+            if (Core.Instance.Debug)
+                LocalConsole.Instance.Log("Setting InputManager Active to " + nAct, true);
             Active = nAct;
         }
 

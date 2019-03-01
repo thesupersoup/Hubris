@@ -39,7 +39,8 @@ namespace Hubris
                 }
                 else
                 {
-                    LocalConsole.Instance.LogError("RTSControl Rotate(): Invalid Axis specified", true);
+                    if (Core.Instance.Debug)
+                        LocalConsole.Instance.LogError("RTSControl Rotate(): Invalid Axis specified", true);
                 }
             }
         }

@@ -49,10 +49,9 @@ namespace Hubris
                 }
                 else
                 {
-                    LocalConsole.Instance.LogError("FPSControl Rotate(): Invalid Axis specified", true);
+                    if (Core.Instance.Debug)
+                        LocalConsole.Instance.LogError("FPSControl Rotate(): Invalid Axis specified", true);
                 }
-
-                LocalConsole.Instance.Log("FPSControl Rotate(): Calling a rotation on Player...", true);
             }
         }
 

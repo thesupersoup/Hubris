@@ -205,7 +205,10 @@ namespace Hubris
                 else if (ax == InputManager.Axis.Z)
                     dir = new Vector3(0, 0, val);
                 else
-                    LocalConsole.Instance.LogError("InputManager GetMoveAsVector(): Invalid Axis Vector requested", true);
+                {
+                    if (Core.Instance.Debug)
+                        LocalConsole.Instance.LogError("InputManager GetMoveAsVector(): Invalid Axis Vector requested", true);
+                }
             }
             else
             {
@@ -216,7 +219,10 @@ namespace Hubris
                 else if (ax == InputManager.Axis.Z)
                     dir = _gObj.transform.forward * val;
                 else
-                    LocalConsole.Instance.LogError("InputManager GetMoveAsVector(): Invalid Axis Vector requested", true);
+                {
+                    if (Core.Instance.Debug)
+                        LocalConsole.Instance.LogError("InputManager GetMoveAsVector(): Invalid Axis Vector requested", true);
+                }
 
                 dir.y = 0;
             }
@@ -302,16 +308,19 @@ namespace Hubris
                     _netInstance = Activator.CreateInstance(chkType);
                     _netType = chkType;
                     _netSendMethod = chkMethod;
-                    LocalConsole.Instance.Log("Player TrySetNetVars(): All network variables successfully set", true);
+                    if (Core.Instance.Debug)
+                        LocalConsole.Instance.Log("Player TrySetNetVars(): All network variables successfully set", true);
                 }
                 else
                 {
-                    LocalConsole.Instance.LogError("Player TrySetNetVars(): The specified method (" + Core.Instance.NetSendMethod + ") can't be found on " + Core.Instance.NetLibType + ", networking disabled", true);
+                    if (Core.Instance.Debug)
+                        LocalConsole.Instance.LogError("Player TrySetNetVars(): The specified method (" + Core.Instance.NetSendMethod + ") can't be found on " + Core.Instance.NetLibType + ", networking disabled", true);
                 }
             }
             else
             {
-                LocalConsole.Instance.LogError("Player TrySetNetVars(): The specified networking library (" + Core.Instance.NetLibType + ") can't be found, networking disabled", true);
+                if (Core.Instance.Debug)
+                    LocalConsole.Instance.LogError("Player TrySetNetVars(): The specified networking library (" + Core.Instance.NetLibType + ") can't be found, networking disabled", true);
             }
         }
 
@@ -321,24 +330,31 @@ namespace Hubris
             {
                 if (nData != null)
                 {
-                    LocalConsole.Instance.Log("Player SendData(): Sending \'" + nData + "\'", true);
+                    if (Core.Instance.Debug)
+                        LocalConsole.Instance.Log("Player SendData(): Sending \'" + nData + "\'", true);
+                    else
+                        LocalConsole.Instance.Log("net_data \"" + nData + "\"");
+
                     try
                     {
                         _netSendMethod.Invoke(_netInstance, new object[] { System.Text.Encoding.ASCII.GetBytes(nData) });  // Rewrite for specific invocation or return handling
                     }
                     catch (Exception e)
                     {
-                        LocalConsole.Instance.LogError("Player SendData(): Exception while invoking network send method");
+                        if (Core.Instance.Debug)
+                            LocalConsole.Instance.LogError("Player SendData(): Exception while invoking network send method");
                     }
                 }
                 else
                 {
-                    LocalConsole.Instance.LogError("Player SendData(): Data to send is null", true);
+                    if (Core.Instance.Debug)
+                        LocalConsole.Instance.LogError("Player SendData(): Data to send is null", true);
                 }
             }
             else
             {
-                LocalConsole.Instance.LogError("Player SendData(): The specified networking library (" + Core.Instance.NetLibType + ") can't be found, so no data can be sent", true);
+                if (Core.Instance.Debug)
+                    LocalConsole.Instance.LogError("Player SendData(): The specified networking library (" + Core.Instance.NetLibType + ") can't be found, so no data can be sent", true);
             }
         }
 
@@ -418,7 +434,8 @@ namespace Hubris
                     _rotate = bVal;
                     break;
                 default:
-                    LocalConsole.Instance.LogError("Player SetState(): Invalid PState specified...", true);
+                    if (Core.Instance.Debug)
+                        LocalConsole.Instance.LogError("Player SetState(): Invalid PState specified...", true);
                     break;
             }
         }

@@ -40,6 +40,7 @@ namespace Hubris
             MapKey,
             Disconnect,
             Quit,
+            ConClear,
 
             // FreeLook commands
             RotLeft,
@@ -50,6 +51,7 @@ namespace Hubris
 
             // Developer commands
             Version,
+            Debug,
             Net_Info,
 
             Num_Cmds    // Keep at the end for handy enum length hack
@@ -93,6 +95,7 @@ namespace Hubris
             cmds[(int)CmdType.MapKey] = new Command("Map Key to Command", "mapkey", CmdType.MapKey);
             cmds[(int)CmdType.Disconnect] = new Command("Disconnect from server", "disconnect", CmdType.Disconnect, null, false);
             cmds[(int)CmdType.Quit] = new Command("Quit to desktop", "quit", CmdType.Quit, null, false);
+            cmds[(int)CmdType.ConClear] = new Command("Clear Console text", "clr", CmdType.ConClear, null, false);
 
             // FreeLook commands
             cmds[(int)CmdType.RotLeft] = new Command("Rotate Camera Left", "rotleft", CmdType.RotLeft, null, true);
@@ -103,6 +106,7 @@ namespace Hubris
 
             // Developer commands
             cmds[(int)CmdType.Version] = new Command("Display version info", "version", CmdType.Version, null, false);
+            cmds[(int)CmdType.Debug] = new Command("Debug mode toggle", "debug", CmdType.Debug, null, false);
             cmds[(int)CmdType.Net_Info] = new Command("Display networking info", "net_info", CmdType.Net_Info, null, false);
 
             return cmds;
@@ -110,7 +114,7 @@ namespace Hubris
 
         // Command instance variables
         private string _uiName;     // Name to be used in UI and other human-readable contexts
-        private string _cmdName;    // Name to be used when invoking the Command in console or config
+        private string _cmdName;    // Name to be used when invoking the Command in console or config. Should always be lowercase
         private CmdType _type;      // What type of Command is it? See CmdType enum
         private string _data;       // Data included with command, used for providing setting values or sending associated data
         private bool _cont;         // Continuous key (true), or only on key down (false)?
@@ -277,6 +281,12 @@ namespace Hubris
             protected set { /* This space intentionally left blank */ }
         }
 
+        public static Command ConClear
+        {
+            get { return cmdArr[(int)CmdType.ConClear]; }
+            protected set { /* This space intentionally left blank */ }
+        }
+
         public static Command RotLeft
         {
             get { return cmdArr[(int)CmdType.RotLeft]; }
@@ -298,6 +308,12 @@ namespace Hubris
         public static Command Version
         {
             get { return cmdArr[(int)CmdType.Version]; }
+            protected set { /* This space intentionally left blank */ }
+        }
+
+        public static Command Debug
+        {
+            get { return cmdArr[(int)CmdType.Debug]; }
             protected set { /* This space intentionally left blank */ }
         }
 
@@ -340,10 +356,11 @@ namespace Hubris
         public static Command CheckCmdName(string nName)
         {
             Command cmd = Command.None;
+            string cmdLower = nName.ToLower();
 
             for (int i = 0; i < cmdArr.Length; i++)
             {
-                if (cmdArr[i].CmdName == nName)
+                if (cmdArr[i].CmdName == cmdLower)
                 {
                     cmd = cmdArr[i];
                     break;  // Found it, don't need to keep searching

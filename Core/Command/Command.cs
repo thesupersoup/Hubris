@@ -328,13 +328,13 @@ namespace Hubris
             _cont = true;
         }
 
-        public Command(string sUI = "DefaultUIName", string sCmd = "DefaultCmdName", CmdType eType = CmdType.None, string sData = null, bool bSign = true)
+        public Command(string sUI = "DefaultUIName", string sCmd = "DefaultCmdName", CmdType eType = CmdType.None, string sData = null, bool bCont = true)
         {
             _uiName = sUI;
             _cmdName = sCmd;
             _type = eType;
             _data = sData;
-            _cont = bSign;
+            _cont = bCont;
         }
 
         public void ClearData()

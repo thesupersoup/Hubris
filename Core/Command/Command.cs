@@ -9,10 +9,14 @@ namespace Hubris
     public class Command
     {
         // Command Type (CmdType) enum, of short type for smaller size if conveying over network
+        // Should have one-to-one parity with the Commands in the Command[] below and in the KeyMap
         public enum CmdType : short
         {
+            // General commands
             None = 0,
             Submit,
+            InteractA,
+            InteractB,
 
             // Basic movement commands
             MoveF,
@@ -57,7 +61,8 @@ namespace Hubris
             Num_Cmds    // Keep at the end for handy enum length hack
         }
 
-        // Static array of Commands
+        // Static array of Commands, individual commands initialized in InitCmds()
+        // Should have one-to-one parity with the CmdType enum above
         [SerializeField]
         public static Command[] cmdArr = InitCmds();
 
@@ -66,8 +71,11 @@ namespace Hubris
         {
             Command[] cmds = new Command[(int)CmdType.Num_Cmds]; // Use Num_Cmds to ensure proper array length
 
+            // General commands
             cmds[(int)CmdType.None] = new Command("Null", "none", CmdType.None);
             cmds[(int)CmdType.Submit] = new Command("Submit", "submit", CmdType.Submit, null, false);
+            cmds[(int)CmdType.InteractA] = new Command("Select", "intera", CmdType.InteractA, null, false);
+            cmds[(int)CmdType.InteractB] = new Command("Deselect", "interb", CmdType.InteractB, null, false);
 
             // Basic movement commands
             cmds[(int)CmdType.MoveF] = new Command("Move Forward", "movef", CmdType.MoveF, null, true);
@@ -158,175 +166,156 @@ namespace Hubris
         public static Command None
         {
             get { return cmdArr[(int)CmdType.None]; }
-            protected set { /* This space intentionally left blank */ }
         }
 
         public static Command Submit
         {
             get { return cmdArr[(int)CmdType.Submit]; }
-            protected set { /* This space intentionally left blank */ }
+        }
+
+        public static Command InteractA
+        {
+            get { return cmdArr[(int)CmdType.InteractA]; }
+        }
+
+        public static Command InteractB
+        {
+            get { return cmdArr[(int)CmdType.InteractB]; }
         }
 
         public static Command MoveF
         {
             get { return cmdArr[(int)CmdType.MoveF]; }
-            protected set { /* This space intentionally left blank */ }
         }
 
         public static Command MoveB
         {
             get { return cmdArr[(int)CmdType.MoveB]; }
-            protected set { /* This space intentionally left blank */ }
         }
 
         public static Command MoveL
         {
             get { return cmdArr[(int)CmdType.MoveL]; }
-            protected set { /* This space intentionally left blank */ }
         }
 
         public static Command MoveR
         {
             get { return cmdArr[(int)CmdType.MoveR]; }
-            protected set { /* This space intentionally left blank */ }
         }
 
         public static Command Jump
         {
             get { return cmdArr[(int)CmdType.Jump]; }
-            protected set { /* This space intentionally left blank */ }
         }
 
         public static Command RunHold
         {
             get { return cmdArr[(int)CmdType.RunHold]; }
-            protected set { /* This space intentionally left blank */ }
         }
 
         public static Command RunToggle
         {
             get { return cmdArr[(int)CmdType.RunToggle]; }
-            protected set { /* This space intentionally left blank */ }
         }
 
         public static Command CrouchHold
         {
             get { return cmdArr[(int)CmdType.CrouchHold]; }
-            protected set { /* This space intentionally left blank */ }
         }
 
         public static Command CrouchToggle
         {
             get { return cmdArr[(int)CmdType.CrouchToggle]; }
-            protected set { /* This space intentionally left blank */ }
         }
 
         public static Command Slot1
         {
             get { return cmdArr[(int)CmdType.Slot1]; }
-            protected set { /* This space intentionally left blank */ }
         }
 
         public static Command Slot2
         {
             get { return cmdArr[(int)CmdType.Slot2]; }
-            protected set { /* This space intentionally left blank */ }
         }
 
         public static Command Slot3
         {
             get { return cmdArr[(int)CmdType.Slot3]; }
-            protected set { /* This space intentionally left blank */ }
         }
 
         public static Command Slot4
         {
             get { return cmdArr[(int)CmdType.Slot4]; }
-            protected set { /* This space intentionally left blank */ }
         }
 
         public static Command ChatPublic
         {
             get { return cmdArr[(int)CmdType.ChatPublic]; }
-            protected set { /* This space intentionally left blank */ }
         }
 
         public static Command ChatPrivate
         {
             get { return cmdArr[(int)CmdType.ChatPrivate]; }
-            protected set { /* This space intentionally left blank */ }
         }
 
         public static Command Console
         {
             get { return cmdArr[(int)CmdType.Console]; }
-            protected set { /* This space intentionally left blank */ }
         }
 
         public static Command MapKey
         {
             get { return cmdArr[(int)CmdType.MapKey]; }
-            protected set { /* This space intentionally left blank */ }
         }
 
         public static Command Disconnect
         {
             get { return cmdArr[(int)CmdType.Disconnect]; }
-            protected set { /* This space intentionally left blank */ }
         }
 
         public static Command Quit
         {
             get { return cmdArr[(int)CmdType.Quit]; }
-            protected set { /* This space intentionally left blank */ }
         }
 
         public static Command ConClear
         {
             get { return cmdArr[(int)CmdType.ConClear]; }
-            protected set { /* This space intentionally left blank */ }
         }
 
         public static Command RotLeft
         {
             get { return cmdArr[(int)CmdType.RotLeft]; }
-            protected set { /* This space intentionally left blank */ }
         }
 
         public static Command RotRight
         {
             get { return cmdArr[(int)CmdType.RotRight]; }
-            protected set { /* This space intentionally left blank */ }
         }
 
         public static Command Net_Send
         {
             get { return cmdArr[(int)CmdType.Net_Send]; }
-            protected set { /* This space intentionally left blank */ }
         }
 
         public static Command Version
         {
             get { return cmdArr[(int)CmdType.Version]; }
-            protected set { /* This space intentionally left blank */ }
         }
 
         public static Command Debug
         {
             get { return cmdArr[(int)CmdType.Debug]; }
-            protected set { /* This space intentionally left blank */ }
         }
 
         public static Command Net_Info
         {
             get { return cmdArr[(int)CmdType.Net_Info]; }
-            protected set { /* This space intentionally left blank */ }
         }
 
         public static short Num_Cmds
         {
             get { return (short)CmdType.Num_Cmds; }
-            protected set { /* This space intentionally left blank */ }
         }
 
         // Command methods

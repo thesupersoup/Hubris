@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Hubris
 {
-    public class FreeLookControl : Player
+    public class FreeLookControl : HubrisPlayer
     {
         // Temporary vars for test
         private bool standing = true;
@@ -21,12 +21,22 @@ namespace Hubris
 
 
         // FreeLookControl methods
+        public override void InteractA()
+        {
+
+        }
+
+        public override void InteractB()
+        {
+
+        }
+
         public override void Move(InputManager.Axis ax, float val)
         {
             if (Active)
             {
-                move = GetMoveAsVector(ax, val, true);
-                PhysAccel(move * _spd);
+                _move = GetMoveAsVector(ax, val, true);
+                PhysAccel(_move * _spd);
             }
         }
 

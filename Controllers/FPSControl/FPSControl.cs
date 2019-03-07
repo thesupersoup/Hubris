@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Hubris
 {
-    public class FPSControl : Player
+    public class FPSControl : HubrisPlayer
     {
         // Temporary vars for test
         private bool standing = true;
@@ -22,12 +22,23 @@ namespace Hubris
 
 
         // FPSControl methods
+        public override void InteractA()
+        {
+
+        }
+
+        public override void InteractB()
+        {
+
+        }
+
         public override void Move(InputManager.Axis ax, float val)
         {
             if (Active)
             {
-                move = GetMoveAsVector(ax, val, true);
-                PhysForce(move * _spd);
+                _move = GetMoveAsVector(ax, val, true);
+                //PhysForce(move * _spd);
+                PhysAccel(_move * _spd);
             }
         }
 

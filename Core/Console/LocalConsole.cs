@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Hubris
 {
-    public class LocalConsole : Base
+    public class LocalConsole : Entity
     {
         public class Msg
         {
@@ -43,22 +43,15 @@ namespace Hubris
         }
 
         // Console instance vars
-        private bool _active = true;    // This LocalConsole script initialized correctly
         private bool _ready = false;    // Ready to process commands
         private List<Msg> _msgList;
         private int _msgCounter = 0;
         private List<Command> _cmdQueue;    
         private List<string> _cmdData;
-        private Player _pScript;
+        private HubrisPlayer _pScript;
 
 
         // Console properties
-        public bool Active
-        {
-            get { return _active; }
-            set { _active = value; }
-        }
-
         public bool Ready
         {
             get { return _ready; }
@@ -78,9 +71,9 @@ namespace Hubris
             _cmdQueue = new List<Command>();
             _cmdData = new List<string>();
 
-            if (Player.Instance != null)
+            if (HubrisPlayer.Instance != null)
             {
-                _pScript = Player.Instance;
+                _pScript = HubrisPlayer.Instance;
                 Ready = true;
             }
             else
@@ -102,24 +95,30 @@ namespace Hubris
 
                     switch (cmd.Type)
                     {
+                        case Command.CmdType.InteractA:
+                            HubrisPlayer.Instance.InteractA();
+                            break;
+                        case Command.CmdType.InteractB:
+                            HubrisPlayer.Instance.InteractB();
+                            break;
                         case Command.CmdType.Submit:
                             UIManager.Instance.ConsoleSubmitInput();
                             break;
                         case Command.CmdType.MoveF:
-                            Player.Instance.Move(InputManager.Axis.Z, 1.0f);
+                            HubrisPlayer.Instance.Move(InputManager.Axis.Z, 1.0f);
                             break;
                         case Command.CmdType.MoveB:
-                            Player.Instance.Move(InputManager.Axis.Z, -1.0f);
+                            HubrisPlayer.Instance.Move(InputManager.Axis.Z, -1.0f);
                             break;
                         case Command.CmdType.MoveL:
-                            Player.Instance.Move(InputManager.Axis.X, -1.0f);
+                            HubrisPlayer.Instance.Move(InputManager.Axis.X, -1.0f);
                             break;
                         case Command.CmdType.MoveR:
-                            Player.Instance.Move(InputManager.Axis.X, 1.0f);
+                            HubrisPlayer.Instance.Move(InputManager.Axis.X, 1.0f);
                             break;
                         case Command.CmdType.Jump:
-                            if(Player.Instance.Grounded)
-                                Player.Instance.PhysImpulse(Vector3.up * Player.Instance.JumpSpd);
+                            if(HubrisPlayer.Instance.Grounded)
+                                HubrisPlayer.Instance.PhysImpulse(Vector3.up * HubrisPlayer.Instance.JumpSpd);
                             break;
                         case Command.CmdType.Console:
                             UIManager.Instance.ConsoleToggle();
@@ -128,26 +127,26 @@ namespace Hubris
                             UIManager.Instance.ConsoleClear();
                             break;
                         case Command.CmdType.RotLeft:
-                            Player.Instance.Rotate(InputManager.Axis.Y, -1.0f);
+                            HubrisPlayer.Instance.Rotate(InputManager.Axis.Y, -1.0f);
                             break;
                         case Command.CmdType.RotRight:
-                            Player.Instance.Rotate(InputManager.Axis.Y, 1.0f);
+                            HubrisPlayer.Instance.Rotate(InputManager.Axis.Y, 1.0f);
                             break;
                         case Command.CmdType.Net_Send:
-                            Player.Instance.SendData(_cmdQueue[i].Data);
+                            HubrisPlayer.Instance.SendData(_cmdQueue[i].Data);
                             break;
                         case Command.CmdType.Version:
                             Core.Instance.VersionPrint();
                             break;
                         case Command.CmdType.Debug:
                             Core.Instance.DebugToggle();
+                            UIManager.Instance.DevToggle();
                             break;
                         case Command.CmdType.Net_Info:
                             Core.Instance.NetInfoPrint();
                             break;
                         default:
                             break;
-
                     }
 
                     cmd.ClearData();    // Clear out data from processed commands
@@ -238,9 +237,9 @@ namespace Hubris
                 else
                 {
 
-                    if (Player.Instance != null)
+                    if (HubrisPlayer.Instance != null)
                     {
-                        _pScript = Player.Instance;
+                        _pScript = HubrisPlayer.Instance;
                         if (Core.Instance.Debug)
                             Log("LocalConsole Update(): FPSControl.Player found, setting Ready = true", true);
                         Ready = true;

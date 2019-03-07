@@ -1,12 +1,11 @@
-﻿using System.Threading;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
 using TMPro;
+using UnityEngine;
 
 namespace Hubris
 {
-    public class UIManager : MonoBehaviour
+    public class UIManager : Entity
     {
         // UIManager consts
         private const int CON_LENGTH_MAX = 2056;
@@ -39,13 +38,37 @@ namespace Hubris
 
         // UIManager instance variables
         [SerializeField]
-        TextMeshProUGUI _conTxt = null;
+        private TextMeshProUGUI _conTxt = null;
         [SerializeField]
-        TMP_InputField _conIn = null;
+        private TMP_InputField _conIn = null;
         [SerializeField]
-        Canvas _conCan = null;
+        private Canvas _conCan = null;
+        [SerializeField]
+        private Canvas _devCan = null;
         private string _input = null;
-        private Thread _uiThread;
+
+
+        // UIManager properties
+        public TextMeshProUGUI ConText
+        {
+            get { return _conTxt; }
+        }
+
+        public TMP_InputField ConInput
+        {
+            get { return _conIn; }
+        }
+
+        public Canvas ConCanvas
+        {
+            get { return _conCan; }
+        }
+
+        public Canvas DevCanvas
+        {
+            get { return _devCan; }
+        }
+
 
         // UIManager methods
         void OnEnable()
@@ -60,12 +83,20 @@ namespace Hubris
             }
         }
 
-        public bool ConsoleCheckActive()
+        private bool CheckActive(Behaviour b)
         {
-            if (_conCan != null)
-                return _conCan.enabled;
+            if (b != null)
+                return b.enabled;
             else
                 return false;
+        }
+
+        public void DevToggle()
+        {
+            if(_devCan != null)
+            {
+                _devCan.enabled = !CheckActive(_devCan);
+            }
         }
 
         public void ConsoleToggle()
@@ -74,7 +105,11 @@ namespace Hubris
             {
                 bool act = !_conCan.enabled;
                 _conCan.enabled = act;
-                Player.Instance.SetMouse(!act);
+
+                if (HubrisPlayer.Instance.Type == (byte)HubrisPlayer.PType.FPS)
+                {
+                    HubrisPlayer.Instance.SetMouse(!act);
+                }
 
                 if (InputManager.Instance != null)
                     InputManager.Instance.SetActive(!act);
@@ -102,7 +137,7 @@ namespace Hubris
                 {
                     if (LocalConsole.Instance != null)
                     {
-                        if (ConsoleCheckActive())
+                        if (CheckActive(_conCan))
                         {
                             _input = _conIn.text;
                             LocalConsole.Instance.ProcessInput(_input);
@@ -172,7 +207,10 @@ namespace Hubris
         // Update is called once per frame
         void Update()
         {
-
+            if(Core.Instance.Debug)
+            {
+               
+            }
         }
     }
 }

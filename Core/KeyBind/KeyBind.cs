@@ -4,23 +4,54 @@ using System;
 namespace Hubris
 {
     [Serializable]
-    public class KeyBind
+    public class KeyBind : IComparable
     {
         // KeyBind instance variables
-        private KeyCode key;
-        private Command cmd;
+        private KeyCode _key;
+        private Command _cmd;
+
+
+        // KeyBind properties
+        public KeyCode Key
+        {
+            get { return _key; }
+        }
+       
+        public Command Cmd
+        {
+            get { return _cmd; }
+        }
 
         // KeyBind methods
         public KeyBind()
         {
-            key = KeyCode.None;
-            cmd = Command.None;
+            _key = KeyCode.None;
+            _cmd = Command.None;
         }
 
         public KeyBind(KeyCode kcKey, Command cCmd)
         {
-            key = kcKey;
-            cmd = cCmd;
+            _key = kcKey;
+            _cmd = cCmd;
+        }
+
+        public int CompareTo(object obj)
+        {
+            if(obj == null)
+            {
+                return 1;
+            }
+
+            KeyBind nKb = obj as KeyBind;
+
+            if(nKb != null)
+            {
+                return (this.Key.CompareTo(nKb.Key));
+            }
+            else
+            {
+                throw new ArgumentException("KeyBind CompareTo(): obj is not a KeyBind");
+            }
         }
     }
 }

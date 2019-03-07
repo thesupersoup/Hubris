@@ -148,7 +148,7 @@ public class MouseLook
         }
         else if (Input.GetMouseButtonUp(0))
         {
-            if(!UIManager.Instance.ConsoleCheckActive())
+            if(UIManager.Instance.ConCanvas != null && !UIManager.Instance.ConCanvas.enabled)
                 prevLock = true;
         }
 

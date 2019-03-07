@@ -5,25 +5,25 @@ using UnityEngine;
 
 namespace Hubris
 {
-    public abstract class Player : MonoBehaviour
+    public abstract class HubrisPlayer : Entity
     {
-        // Player constants
+        // HubrisPlayer constants
         public const float DIST_CHK_GROUND = 2.0f;
 
-        // Player type enum, whether First Person, Free Look, or others
+        // HubrisPlayer type enum, whether First Person, Free Look, or others
         public enum PType : byte { NONE = 0, FPS, FL, RTS, NUM_TYPES };
 
-        // Player state enum, see bool states below
+        // HubrisPlayer state enum, see bool states below
         public enum PState : byte { NONE = 0, STAND, GRAV, GROUND, DEMIGOD, ROTATE, NUM_STATES };
 
 
         // Singleton instance, to be populated by the derived class
-        private static Player _i = null;
+        private static HubrisPlayer _i = null;
 
         private static object _lock = new object();
         private static bool _disposing = false; // Check if we're in the process of disposing this singleton
 
-        public static Player Instance
+        public static HubrisPlayer Instance
         {
             get
             {
@@ -60,8 +60,6 @@ namespace Hubris
         [SerializeField]
         protected PType _type = PType.FPS;
         [SerializeField]
-        protected bool _active = false;
-        [SerializeField]
         protected GameObject _gObj = null;
         [SerializeField]
         protected Rigidbody _pBod = null;
@@ -69,7 +67,7 @@ namespace Hubris
         protected Collider _pCol = null;
         [SerializeField]
         protected Camera _pCam = null;
-        protected Vector3 move = Vector3.zero;
+        protected Vector3 _move = Vector3.zero;
         protected float _sens = 2.0f;
         protected float _spd = 2.0f;
         protected float _acc = 2.0f;
@@ -81,10 +79,9 @@ namespace Hubris
         protected MouseLook _mLook = null;
 
         // Player properties
-        public bool Active
+        public Vector3 Velocity
         {
-            get { return _active; }
-            protected set { _active = value; }
+            get {  if(_pBod != null) { return _pBod.velocity; } else { return Vector3.zero; } }
         }
 
         public byte Type
@@ -154,6 +151,8 @@ namespace Hubris
         }
 
         // Player methods
+        public abstract void InteractA();
+        public abstract void InteractB();
         public abstract void Move(InputManager.Axis ax, float val);
         public abstract void Rotate(InputManager.Axis ax, float val);
         protected abstract void SetSpecifics();
@@ -247,7 +246,6 @@ namespace Hubris
                 {
                     Grounded = false;
                     CanJump = false;
-                    PhysImpulse(Vector3.down * _fallSpd);
                 }
                 else
                 {
@@ -442,7 +440,7 @@ namespace Hubris
 
         protected void Update()
         {
-            _im.Tick();
+            _im.Tick(); // Process input on each frame for accuracy
         }
 
         protected void LateUpdate()

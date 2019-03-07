@@ -1,69 +1,80 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System;
 
 namespace Hubris
 {
     public class KeyMap
     {
         // Static array of KeyBinds, set elsewhere 
-        public static Dictionary<KeyCode, Command> kbDict;
+        public static List<KeyBind> _kbList;
 
         // KeyMap properties
-        public static Dictionary<KeyCode, Command> Dict
+        public static List<KeyBind> Binds
         {
-            get { return kbDict; }
-            protected set { /* This space intentionally left blank */ }
+            get { return _kbList; }
         }
 
         // KeyMap methods
         public KeyMap()
         {
-            kbDict = new Dictionary<KeyCode, Command>();
+            _kbList = new List<KeyBind>();
             SetDefaults();
         }
 
         public static void SetDefaults()
         {
-            kbDict.Clear();
-            kbDict.Add(KeyCode.None, Command.None);
-            kbDict.Add(KeyCode.Return, Command.Submit);
+            _kbList.Clear();
+
+            // General
+            _kbList.Add(new KeyBind(KeyCode.None, Command.None));
+            _kbList.Add(new KeyBind(KeyCode.Return, Command.Submit));
+            _kbList.Add(new KeyBind(KeyCode.Mouse0, Command.InteractA));
+            _kbList.Add(new KeyBind(KeyCode.Mouse1, Command.InteractB));
 
             // Basic movement
-            kbDict.Add(KeyCode.W, Command.MoveF);
-            kbDict.Add(KeyCode.S, Command.MoveB);
-            kbDict.Add(KeyCode.A, Command.MoveL);
-            kbDict.Add(KeyCode.D, Command.MoveR);
-            kbDict.Add(KeyCode.Q, Command.RotLeft);
-            kbDict.Add(KeyCode.E, Command.RotRight);
-            kbDict.Add(KeyCode.Space, Command.Jump);
-            kbDict.Add(KeyCode.LeftShift, Command.RunHold);
-            kbDict.Add(KeyCode.LeftControl, Command.CrouchHold);
+            _kbList.Add(new KeyBind(KeyCode.W, Command.MoveF));
+            _kbList.Add(new KeyBind(KeyCode.S, Command.MoveB));
+            _kbList.Add(new KeyBind(KeyCode.A, Command.MoveL));
+            _kbList.Add(new KeyBind(KeyCode.D, Command.MoveR));
+            _kbList.Add(new KeyBind(KeyCode.Q, Command.RotLeft));
+            _kbList.Add(new KeyBind(KeyCode.E, Command.RotRight));
+            _kbList.Add(new KeyBind(KeyCode.Space, Command.Jump));
+            _kbList.Add(new KeyBind(KeyCode.LeftShift, Command.RunHold));
+            _kbList.Add(new KeyBind(KeyCode.LeftControl, Command.CrouchHold));
 
             // Weapons
-            kbDict.Add(KeyCode.Alpha1, Command.Slot1);
-            kbDict.Add(KeyCode.Alpha2, Command.Slot2);
-            kbDict.Add(KeyCode.Alpha3, Command.Slot3);
-            kbDict.Add(KeyCode.Alpha4, Command.Slot4);
+            _kbList.Add(new KeyBind(KeyCode.Alpha1, Command.Slot1));
+            _kbList.Add(new KeyBind(KeyCode.Alpha2, Command.Slot2));
+            _kbList.Add(new KeyBind(KeyCode.Alpha3, Command.Slot3));
+            _kbList.Add(new KeyBind(KeyCode.Alpha4, Command.Slot4));
 
             // Multiplayer
-            kbDict.Add(KeyCode.V, Command.ChatPublic);
-            kbDict.Add(KeyCode.B, Command.ChatPrivate);
+            _kbList.Add(new KeyBind(KeyCode.V, Command.ChatPublic));
+            _kbList.Add(new KeyBind(KeyCode.B, Command.ChatPrivate));
 
             // Console and console-only cmds
-            kbDict.Add(KeyCode.BackQuote, Command.Console); // KeyCode.BackQuote is the ~/` (Tilde) key
+            _kbList.Add(new KeyBind(KeyCode.BackQuote, Command.Console)); // KeyCode.BackQuote is the ~/` (Tilde) key
 
             // FreeLook specific
-            kbDict.Add(KeyCode.LeftArrow, Command.RotLeft);
-            kbDict.Add(KeyCode.RightArrow, Command.RotRight);
+            _kbList.Add(new KeyBind(KeyCode.LeftArrow, Command.RotLeft));
+            _kbList.Add(new KeyBind(KeyCode.RightArrow, Command.RotRight));
+
+            _kbList.Sort(); // Sorted in case we need to perform a binary search or some such eventually. KeyBind.CompareTo checks the KeyCode.
         }
 
         public static Command CheckKeyCmd(KeyCode kcKey)
         {
-            Command cmd;
-            if (kbDict.TryGetValue(kcKey, out cmd))
-                return cmd;
+            KeyBind bind = _kbList.Find(x => x.Key == kcKey);   // Find the first (only) instance of KeyBind x such that x.Key is equal to kcKey
+
+            if (bind != null)
+            {
+                return bind.Cmd;
+            }
             else
+            {
                 return Command.None;
+            }
         }
     }
 }

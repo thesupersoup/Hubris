@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Hubris
 {
-    public class RTSControl : Player
+    public class RTSControl : HubrisPlayer
     {
         // Temporary vars for test
         private float h = 0.0f;
@@ -20,12 +20,30 @@ namespace Hubris
 
 
         // RTSControl methods
+        public override void InteractA()   // For RTSControl, InteractA is contextually select or move
+        {
+            if(_pCam != null)
+            {
+                RaycastHit hit;
+
+                if(Physics.Raycast(_pCam.ScreenPointToRay(UnityEngine.Input.mousePosition), out hit))
+                {
+                    // Implement unit selection here
+                }
+            }
+        }
+
+        public override void InteractB()   // For RTSControl, InteractB is deselect
+        {
+            // Implement unit deselection here
+        }
+
         public override void Move(InputManager.Axis ax, float val)
         {
             if(Active)
             {
-                _gObj.transform.Translate(GetMoveAsVector(ax, val, true), Space.World);
-                PhysForce(move * _spd);
+                _gObj.transform.Translate(GetMoveAsVector(ax, val * _spd, true), Space.World);
+                // PhysForce(_move * _spd);
             }
         }
 
@@ -52,7 +70,7 @@ namespace Hubris
 
         protected override void SetSpecifics()
         {
-            Speed = 3.0f;
+            Speed = 0.25f;
         }
 
         void OnEnable()

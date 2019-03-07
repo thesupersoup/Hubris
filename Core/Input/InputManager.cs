@@ -4,22 +4,15 @@ using UnityEngine;
 
 namespace Hubris
 {
-    public class InputManager : Base
+    public class InputManager : Entity
     {
         public enum Axis { X, Y, Z, M_X, M_Y, NUM_AXIS }
 
-        // InputManager variables
-        private bool _active = true;
+        // InputManager instance variables
         private KeyMap _km;
-        private Player.PType _type = Player.PType.NONE;
+        private HubrisPlayer.PType _type = HubrisPlayer.PType.NONE;
 
         // InputManager properties
-        public bool Active
-        {
-            get { return _active; }
-            protected set { _active = value; }
-        }
-
         public KeyMap KeyMap
         {
             get { return _km; }
@@ -28,7 +21,7 @@ namespace Hubris
 
         public static InputManager Instance
         {
-            get { return Player.Input; }
+            get { return HubrisPlayer.Input; }
             protected set { }
         }
 
@@ -40,14 +33,14 @@ namespace Hubris
             Active = nAct;
         }
 
-        public void Init(Player.PType nType)
+        public void Init(HubrisPlayer.PType nType)
         {
             _type = nType;
             KeyMap = new KeyMap();
             if (LocalConsole.Instance == null)
             {
                 Debug.LogError("InputManager Start(): LocalConsole.Instance is null");
-                _active = false;
+                Active = false;
             }
         }
 
@@ -57,13 +50,13 @@ namespace Hubris
 
             switch(_type)
             {
-                case Player.PType.FPS:
+                case HubrisPlayer.PType.FPS:
                     valid = true;
                     break;
-                case Player.PType.FL:
+                case HubrisPlayer.PType.FL:
                     valid = true;
                     break;
-                case Player.PType.RTS:
+                case HubrisPlayer.PType.RTS:
                     switch(nCmd.Type)
                     {
                         case Command.CmdType.Jump:

@@ -2,22 +2,6 @@
 
 namespace Hubris
 {
-    public class Base
-    {
-        // Base methods
-        public void Tick()
-        {
-            // Should be called with Update()
-            // Use with new definition in derived class
-        }
-
-        public void LateTick()
-        {
-            // Should be called with LateUpdate()
-            // Use with new definition in derived class
-        }
-    }
-
     public class Core : MonoBehaviour
     {
         // Singleton instance

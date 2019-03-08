@@ -32,7 +32,7 @@ namespace Hubris
 
         // Core instance vars
         [SerializeField]
-        private string _version = "v0.0.6";
+        private string _version = "v0.0.8";
         [SerializeField]
         private string _netLibType = "Telepathy.Client";    // Fully qualified networking class name
         [SerializeField]

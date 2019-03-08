@@ -44,7 +44,20 @@ namespace Hubris
         [SerializeField]
         private Canvas _conCan = null;
         [SerializeField]
+        private Canvas _evCan = null;
+        [SerializeField]
+        private Transform _evPanel = null; 
+        [SerializeField]
+        private GameObject _evTemp = null;
+        [SerializeField]
         private Canvas _devCan = null;
+        [SerializeField]
+        private Canvas _essCan = null;
+        [SerializeField]
+        private TextMeshProUGUI[] _essTxtArr = new TextMeshProUGUI[(int)Peeple.Essential.Type.NUM_TYPES];
+        [SerializeField]
+        private TextMeshProUGUI[] _essTitleArr = new TextMeshProUGUI[(int)Peeple.Essential.Type.NUM_TYPES];
+        private List<GameObject> _evList = new List<GameObject>();
         private string _input = null;
 
 
@@ -67,6 +80,11 @@ namespace Hubris
         public Canvas DevCanvas
         {
             get { return _devCan; }
+        }
+
+        public Canvas EssCanvas
+        {
+            get { return _essCan; }
         }
 
 
@@ -112,7 +130,7 @@ namespace Hubris
                 }
 
                 if (InputManager.Instance != null)
-                    InputManager.Instance.SetActive(!act);
+                    InputManager.Instance.SetReady(!act);
 
                 if (_conIn != null)
                 {
@@ -190,6 +208,43 @@ namespace Hubris
                         ClearExcess(trimLen);
 
                     _conTxt.text += nMsgs[i].Txt + "\n";
+                }
+            }
+        }
+
+        public void UpdateEssentialNames(string[] nNames)
+        {
+            if (_essTitleArr != null && _essTitleArr.Length == (int)Peeple.Essential.Type.NUM_TYPES)
+            {
+                for (int i = 0; i < nNames.Length; i++)
+                {
+                    _essTitleArr[i].text = nNames[i].ToString() + ":";
+                }
+            }
+        }
+
+        public void UpdateEssentialVals(int[] nVals)
+        {
+            if (_essTxtArr != null && _essTxtArr.Length == (int)Peeple.Essential.Type.NUM_TYPES)
+            {
+                for(int i = 0; i < nVals.Length; i++)
+                {
+                    _essTxtArr[i].text = nVals[i].ToString();
+                }
+            }
+        }
+
+        public void AddEvent(Peeple.Peep nOwner)
+        {
+            if (_evList != null)
+            {
+                if (_evPanel != null)
+                {
+                    if (_evTemp != null)
+                    {
+                        GameObject tempObj = Instantiate(_evTemp, _evPanel);
+                        tempObj.GetComponent<Peeple.Event>().SetEventDetails(0, nOwner);
+                    }
                 }
             }
         }

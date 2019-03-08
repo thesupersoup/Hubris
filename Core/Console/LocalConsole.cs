@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Hubris
 {
-    public class LocalConsole : Entity
+    public class LocalConsole
     {
         public class Msg
         {
@@ -230,20 +230,17 @@ namespace Hubris
         // Tick is called once per frame with MonoBehaviour.Update()
         public new void Tick()
         {
-            if (Active)
+            if (Ready)
+                ProcessCommands();
+            else
             {
-                if (Ready)
-                    ProcessCommands();
-                else
-                {
 
-                    if (HubrisPlayer.Instance != null)
-                    {
-                        _pScript = HubrisPlayer.Instance;
-                        if (Core.Instance.Debug)
-                            Log("LocalConsole Update(): FPSControl.Player found, setting Ready = true", true);
-                        Ready = true;
-                    }
+                if (HubrisPlayer.Instance != null)
+                {
+                    _pScript = HubrisPlayer.Instance;
+                    if (Core.Instance.Debug)
+                        Log("LocalConsole Update(): FPSControl.Player found, setting Ready = true", true);
+                    Ready = true;
                 }
             }
         }
@@ -251,11 +248,8 @@ namespace Hubris
         // LateTick is called once per frame after Update() with MonoBehaviour.LateUpdate()
         public new void LateTick()
         {
-            if (Active)
-            {
-                if (Ready)
-                    ProcessMessages();
-            }
+            if (Ready)
+                ProcessMessages();
         }
 
         public void AddMsg(Msg nMsg)

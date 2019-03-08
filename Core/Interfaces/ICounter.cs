@@ -1,10 +1,7 @@
-﻿using UnityEngine;
-using System.Collections;
-
-namespace Hubris
+﻿namespace Hubris
 {
     /// <summary>
-    /// Interface for things that are to be incremented and decremented
+    /// Interface for Entities that are to be incremented and decremented
     /// </summary>
     interface ICounter
     {

@@ -1,13 +1,9 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-
-namespace Hubris
+﻿namespace Hubris
 {
     /// <summary>
-    /// Interface which provides functionality for use on each time interval (tick)
+    /// Interface which provides Entities with time interval (tick) functinoality
     /// </summary>
-    interface ITick
+    interface ITickable
     {
         void Tick();            // Use with Update() or FixedUpdate() on a given time interval
         void LateTick();        // Use with LateUpdate() on a given time interval

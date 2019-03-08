@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Peeple;
 
 namespace Hubris
 {
@@ -28,14 +29,25 @@ namespace Hubris
 
                 if(Physics.Raycast(_pCam.ScreenPointToRay(UnityEngine.Input.mousePosition), out hit))
                 {
-                    // Implement unit selection here
+                    if (!GameManager.Instance.CheckSelected)
+                    {
+                        Component chkComp = hit.collider.GetComponent<Peep>();
+                        if (chkComp != null)
+                        {
+                            GameManager.Instance.SetSelected((Peep)chkComp);
+                        }
+                    }
+                    else
+                    {
+                        GameManager.Instance.MoveSelected(hit.point);
+                    }
                 }
             }
         }
 
         public override void InteractB()   // For RTSControl, InteractB is deselect
         {
-            // Implement unit deselection here
+            GameManager.Instance.Deselect();
         }
 
         public override void Move(InputManager.Axis ax, float val)

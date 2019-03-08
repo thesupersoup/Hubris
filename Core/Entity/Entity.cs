@@ -6,7 +6,7 @@ namespace Hubris
     /// <summary>
     /// Abstract class for deriving logical or real in-game objects, with optional Tick() and LateTick() implementation
     /// </summary>
-    public abstract class Entity : MonoBehaviour, ITick
+    public abstract class Entity : MonoBehaviour, ITickable
     {
         // PGameObject instance vars 
         [SerializeField]

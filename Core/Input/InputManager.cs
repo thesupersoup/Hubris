@@ -4,15 +4,22 @@ using UnityEngine;
 
 namespace Hubris
 {
-    public class InputManager : Entity
+    public class InputManager : ITickable
     {
         public enum Axis { X, Y, Z, M_X, M_Y, NUM_AXIS }
 
         // InputManager instance variables
+        private bool _ready = false;
         private KeyMap _km;
         private HubrisPlayer.PType _type = HubrisPlayer.PType.NONE;
 
         // InputManager properties
+        public bool Ready
+        {
+            get { return _ready; }
+            protected set { _ready = value; }
+        }
+
         public KeyMap KeyMap
         {
             get { return _km; }
@@ -26,21 +33,25 @@ namespace Hubris
         }
 
         // InputManager methods
-        public void SetActive(bool nAct)
+        public void SetReady(bool nRdy)
         {
             if (Core.Instance.Debug)
-                LocalConsole.Instance.Log("Setting InputManager Active to " + nAct, true);
-            Active = nAct;
+                LocalConsole.Instance.Log("Setting InputManager Active to " + nRdy, true);
+            Ready = nRdy;
         }
 
         public void Init(HubrisPlayer.PType nType)
         {
             _type = nType;
-            KeyMap = new KeyMap();
             if (LocalConsole.Instance == null)
             {
                 Debug.LogError("InputManager Start(): LocalConsole.Instance is null");
-                Active = false;
+                Ready = false;
+            }
+            else
+            {
+                KeyMap = new KeyMap();
+                Ready = true;
             }
         }
 
@@ -77,9 +88,9 @@ namespace Hubris
             return valid;
         }
 
-        public new void Tick()
+        public void Tick()
         {
-            if (Active)
+            if (Ready)
             {
                 if (Input.anyKey)
                 {
@@ -137,6 +148,11 @@ namespace Hubris
                     }
                 }
             }
+        }
+
+        public void LateTick()
+        {
+            // This space intentionally left blank... for now.
         }
     }
 }

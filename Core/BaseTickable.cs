@@ -7,7 +7,7 @@ namespace Hubris
     /// <summary>
     /// Abstract class for deriving Tickable objects
     /// </summary>
-    public abstract class BaseTickable : ITick, ICounter
+    public abstract class BaseTickable : ITickable, ICounter
     {
         // BaseTickable constants
         public static int DEF_VAL = 5000;   // Default value

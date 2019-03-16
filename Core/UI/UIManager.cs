@@ -234,7 +234,7 @@ namespace Hubris
             }
         }
 
-        public void AddEvent(Peeple.Peep nOwner)
+        public void AddEvent(Peeple.PlayerPeep nOwner)
         {
             if (_evList != null)
             {

@@ -10,7 +10,6 @@ namespace Hubris
         private KeyCode _key;
         private Command _cmd;
 
-
         // KeyBind properties
         public KeyCode Key
         {

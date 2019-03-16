@@ -1,14 +1,15 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System;
+using Hubris;
+using UnityEngine;
 
 namespace Hubris
 {
     /// <summary>
-    /// Abstract class for deriving tangible in-game objects, with virtual Tick() and LateTick() implementation
+    /// Class which represents logical in-game objects, with virtual Tick() and LateTick() implementation
     /// </summary>
-    public abstract class Entity : MonoBehaviour, ITickable
+    public class LogicalEntity : IDisposable, ITickable
     {
-        // Entity instance vars 
+        // LogicalEntity instance vars 
 
         /*  We want a seperate Active boolean instance var, so we can enable/disable Entities 
             without enabling/disabling corresponding GameObjects    */
@@ -17,7 +18,7 @@ namespace Hubris
         [SerializeField]
         protected string _name;
 
-        // Entity properties
+        // LogicalEntity properties
         public bool Active
         {
             get { return _act; }
@@ -30,7 +31,7 @@ namespace Hubris
             set { _name = value; }
         }
 
-        // Entity methods
+        // LogicalEntity methods
         protected virtual void SubTick()    // Subscribe to Tick/LateTick GameManager Actions
         {
             if (GameManager.Instance != null)
@@ -59,6 +60,16 @@ namespace Hubris
         {
             // To be called in response to GameManager event
             // Override in derived class with unique implementation
+        }
+
+        public virtual void Dispose()
+        {
+            UnsubTick();
+        }
+
+        public virtual void OnDestroy()
+        {
+            Dispose();
         }
     }
 }

@@ -7,7 +7,7 @@ namespace Hubris
     /// <summary>
     /// Class to derive RTS-style units, with animation, selection visuals, and generic behaviours
     /// </summary>
-    public abstract class RTSUnit : Entity, IUsable, ISelectable, IMovable
+    public abstract class RTSUnit : Entity, ISelectable, IMovable
     {
         // RTSUnit instance vars
         [SerializeField]
@@ -70,17 +70,5 @@ namespace Hubris
             _moving = false;
         }
 
-        public virtual bool TryUse()
-        {
-            if (Active)
-                return true;
-            else
-                return false;
-        }
-
-        public virtual void OnUse()
-        {
-
-        }
     }
 }

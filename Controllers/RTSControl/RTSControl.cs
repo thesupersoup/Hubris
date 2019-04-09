@@ -5,9 +5,6 @@ using Peeple;
 
 namespace Hubris
 {
-    /// <summary>
-    /// Provides basic RTS player functionality, to be used with an RTSGameManager
-    /// </summary>
     public class RTSControl : HubrisPlayer
     {
         // Temporary vars for test
@@ -32,25 +29,17 @@ namespace Hubris
 
                 if(Physics.Raycast(_pCam.ScreenPointToRay(UnityEngine.Input.mousePosition), out hit))
                 {
-                    if (!RTSGameManager.Instance.CheckSelected)
+                    if (!GameManager.Instance.CheckSelected)
                     {
-                        RTSUnit chkUnit = hit.collider.GetComponent<RTSUnit>();
-                        if (chkUnit != null)
+                        Component chkComp = hit.collider.GetComponent<Peep>();
+                        if (chkComp != null)
                         {
-                            RTSGameManager.Instance.SetSelected(chkUnit);
+                            GameManager.Instance.SetSelected((Peep)chkComp);
                         }
                     }
                     else
                     {
-                        EssObj chkDisp = hit.collider.GetComponent<EssObj>();
-                        if (chkDisp != null)
-                        {
-                            RTSGameManager.Instance.MoveSelected(chkDisp.AccPnt);
-                        }
-                        else
-                        {
-                            RTSGameManager.Instance.MoveSelected(hit.point);
-                        }
+                        GameManager.Instance.MoveSelected(hit.point);
                     }
                 }
             }
@@ -58,7 +47,7 @@ namespace Hubris
 
         public override void InteractB()   // For RTSControl, InteractB is deselect
         {
-            RTSGameManager.Instance.Deselect();
+            GameManager.Instance.Deselect();
         }
 
         public override void Move(InputManager.Axis ax, float val)

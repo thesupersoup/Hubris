@@ -4,20 +4,17 @@ using System.Collections;
 namespace Hubris
 {
     /// <summary>
-    /// Abstract class for deriving tangible in-game objects, with virtual Tick() and LateTick() implementation
+    /// Abstract class for deriving logical or real in-game objects, with optional Tick() and LateTick() implementation
     /// </summary>
     public abstract class Entity : MonoBehaviour, ITickable
     {
-        // Entity instance vars 
-
-        /*  We want a seperate Active boolean instance var, so we can enable/disable Entities 
-            without enabling/disabling corresponding GameObjects    */
+        // PGameObject instance vars 
         [SerializeField]
         protected bool _act = true;
         [SerializeField]
         protected string _name;
 
-        // Entity properties
+        // PGameObject properties
         public bool Active
         {
             get { return _act; }
@@ -30,25 +27,7 @@ namespace Hubris
             set { _name = value; }
         }
 
-        // Entity methods
-        protected virtual void SubTick()    // Subscribe to Tick/LateTick GameManager Actions
-        {
-            if (GameManager.Instance != null)
-            {
-                GameManager.Instance.AcTick += Tick;
-                GameManager.Instance.AcLateTick += LateTick;
-            }
-        }
-
-        protected virtual void UnsubTick()  // Unsubscribe to Tick/LateTick GameManager Actions
-        {
-            if (GameManager.Instance != null)
-            {
-                GameManager.Instance.AcTick -= Tick;
-                GameManager.Instance.AcLateTick -= LateTick;
-            }
-        }
-
+        // GameObject methods
         public virtual void Tick()
         {
             // To be called in response to GameManager event

@@ -68,17 +68,17 @@ namespace Hubris
 
                 if(Physics.Raycast(_pCam.ScreenPointToRay(UnityEngine.Input.mousePosition), out hit))
                 {
-                    if (!RTSGameManager.Instance.CheckSelected)
+                    if (!GameManager.Instance.CheckSelected)
                     {
-                        RTSUnit chkUnit = hit.collider.GetComponent<RTSUnit>();
-                        if (chkUnit != null)
+                        Component chkComp = hit.collider.GetComponent<Peep>();
+                        if (chkComp != null)
                         {
-                            RTSGameManager.Instance.SetSelected(chkUnit);
+                            GameManager.Instance.SetSelected((Peep)chkComp);
                         }
                     }
                     else
                     {
-
+                        GameManager.Instance.MoveSelected(hit.point);
                     }
                 }
             }
@@ -86,7 +86,7 @@ namespace Hubris
 
         public override void Interact1()   // For RTSPlayer, Interact1 is deselect
         {
-            RTSGameManager.Instance.Deselect();
+            GameManager.Instance.Deselect();
         }
 
         // Basic Movement

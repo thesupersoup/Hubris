@@ -5,15 +5,15 @@ namespace Hubris
 {
     /// <summary>
     /// Abstract class for deriving tangible in-game objects, with virtual ITickable and IActivatable implementation
-    /// </summary> 
+    /// </summary>
     public abstract class Entity : MonoBehaviour, ITickable, IActivatable
     {
         ///--------------------------------------------------------------------
         /// Entity instance vars
         ///--------------------------------------------------------------------
 
-        /*  We want a seperate Active boolean instance var, so we can enable/disable Hubris 
-         *  functionality without enabling/disabling corresponding GameObjects    
+        /*  We want a seperate Active boolean instance var, so we can enable/disable Hubris
+         *  functionality without enabling/disabling corresponding GameObjects
          */
 
         [SerializeField]

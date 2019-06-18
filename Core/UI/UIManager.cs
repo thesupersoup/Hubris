@@ -187,7 +187,7 @@ namespace Hubris
 
                     if (act)
                     {
-                        _conIn.ActivateInputField();    
+                        _conIn.ActivateInputField();
                     }
                     else
                     {
@@ -294,7 +294,7 @@ namespace Hubris
         {
             if (MsgList != null && MsgList.Count > 0)
                 AddConsoleText(MsgList.ToArray());
-            
+
             if(MsgList.Count > MSG_COUNT_MAX)
             {
                 int numToRemove = MsgList.Count - MSG_COUNT_MAX;

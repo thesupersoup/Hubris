@@ -4,16 +4,25 @@ using UnityEngine;
 
 namespace Hubris
 {
-    public class InputManager : ITickable
+    /// <summary>
+    /// Handles user input and mapping of input to Commands
+    /// </summary>
+    public class InputManager
     {
         public enum Axis { X, Y, Z, M_X, M_Y, NUM_AXIS }
 
-        // InputManager instance variables
+        ///--------------------------------------------------------------------
+        /// InputManager instance vars
+        ///--------------------------------------------------------------------
+
         private bool _ready = false;
         private KeyMap _km;
         private HubrisPlayer.PType _type = HubrisPlayer.PType.NONE;
 
-        // InputManager properties
+        ///--------------------------------------------------------------------
+        /// InputManager properties
+        ///--------------------------------------------------------------------
+
         public bool Ready
         {
             get { return _ready; }
@@ -29,13 +38,21 @@ namespace Hubris
         public static InputManager Instance
         {
             get { return HubrisPlayer.Input; }
-            protected set { }
         }
 
-        // InputManager methods
+        public bool MoveKey
+        {
+            get;
+            protected set;
+        }
+
+        ///--------------------------------------------------------------------
+        /// InputManager methods
+        ///--------------------------------------------------------------------
+
         public void SetReady(bool nRdy)
         {
-            if (Core.Instance.Debug)
+            if (HubrisCore.Instance.Debug)
                 LocalConsole.Instance.Log("Setting InputManager Active to " + nRdy, true);
             Ready = nRdy;
         }
@@ -45,16 +62,20 @@ namespace Hubris
             _type = nType;
             if (LocalConsole.Instance == null)
             {
-                Debug.LogError("InputManager Start(): LocalConsole.Instance is null");
-                Ready = false;
+                if (HubrisCore.Instance.Debug)
+                    Debug.LogError("InputManager Start(): LocalConsole.Instance is null");
+                SetReady(false);
             }
             else
             {
                 KeyMap = new KeyMap();
-                Ready = true;
+                SetReady(true);
             }
         }
 
+        /// <summary>
+        /// Check if the passed Command is valid for a particular player type; return bool
+        /// </summary>
         private bool CheckValidForType(Command nCmd)
         {
             bool valid;
@@ -88,25 +109,57 @@ namespace Hubris
             return valid;
         }
 
-        public void Tick()
+
+        /// <summary>
+        /// Check if a movement key is active as of the current frame; return bool
+        /// </summary>
+        private bool CheckMoveKey(Command nCmd)
         {
+            switch (nCmd.Type)
+            {
+                case Command.CmdType.MoveF:
+                case Command.CmdType.MoveB:
+                case Command.CmdType.MoveL:
+                case Command.CmdType.MoveR:
+                    MoveKey = true;
+                    break;
+            }
+
+            return MoveKey;
+        }
+
+        public void FixedUpdate()
+        {
+
+        }
+
+        // Process user input on each frame for accuracy
+        public void Update()
+        {
+            // Keep MoveKey = false out here to prevent moving with console open bug
+            // Will be checked and set appropriately if InputManager is Ready
+            MoveKey = false;    
+
             if (Ready)
             {
                 if (Input.anyKey)
                 {
-                    foreach (KeyCode kc in System.Enum.GetValues(typeof(KeyCode)))
+                    for (int i = 0; i < KeyMap.KeysInUse.Length; i++)
                     {
+                        KeyCode kc = KeyMap.KeysInUse[i];
+                        Command cmd = KeyMap.CheckKeyCmd(kc);
+
                         if (Input.GetKey(kc))
                         {
-                            Command cmd = KeyMap.CheckKeyCmd(kc);
-
                             if (cmd != Command.None)
                             {
                                 if (CheckValidForType(cmd))
                                 {
+                                    CheckMoveKey(cmd);
+
                                     if (cmd.Continuous)
                                     {
-                                        LocalConsole.Instance.AddToQueue(cmd);
+                                        LocalConsole.Instance.AddToQueue(cmd); 
                                     }
                                     else
                                     {
@@ -118,9 +171,41 @@ namespace Hubris
                                 }
                                 else
                                 {
-                                    if (Core.Instance.Debug)
+                                    if (HubrisCore.Instance.Debug)
                                         LocalConsole.Instance.LogWarning("InputManager Tick(): CheckValidForType(" + cmd.CmdName + ") returned false", true);
                                 }
+                            }
+                        }
+                        else
+                        {
+                            if (Input.GetKeyUp(kc))
+                            {
+                                // if (Core.Instance.Debug)
+                                   // LocalConsole.Instance.Log("Key " + kc + " up this frame", true);
+
+                                if (cmd.Continuous)
+                                {
+                                    LocalConsole.Instance.AddToQueue(cmd);
+                                }
+                            }
+                        }
+                    }
+                }
+                else    // No keys pressed this tick, so check for any keys released
+                {
+                    for (int i = 0; i < KeyMap.KeysInUse.Length; i++)
+                    {
+                        KeyCode kc = KeyMap.KeysInUse[i];
+                        Command cmd = KeyMap.CheckKeyCmd(kc);
+
+                        if (Input.GetKeyUp(kc))
+                        {
+                            if (HubrisCore.Instance.Debug)
+                                LocalConsole.Instance.Log("Key " + kc + " up on previous frame", true);
+
+                            if (cmd.Continuous)
+                            {
+                                LocalConsole.Instance.AddToQueue(cmd);
                             }
                         }
                     }
@@ -131,17 +216,19 @@ namespace Hubris
                 // Only accept input for the following specific keys when the InputManager is inactive
                 if (Input.anyKey)
                 {
-                    foreach (KeyCode kc in System.Enum.GetValues(typeof(KeyCode)))
+                    for (int i = 0; i < KeyMap.KeysInUse.Length; i++)
                     {
+                        KeyCode kc = KeyMap.KeysInUse[i];
+
                         if (Input.GetKey(kc))
                         {
                             Command cmd = KeyMap.CheckKeyCmd(kc);
 
-                            if (cmd == Command.Console || cmd == Command.Submit)
+                            if (cmd == Command.Console || cmd == Command.Submit || cmd == Command.PrevCmd || cmd == Command.NextCmd)
                             {
                                 if (Input.GetKeyDown(kc))
                                 {
-                                    LocalConsole.Instance.AddToQueue(cmd);
+                                    LocalConsole.Instance.AddToQueue(cmd);  // Key is down, state is true
                                 }
                             }
                         }
@@ -150,9 +237,9 @@ namespace Hubris
             }
         }
 
-        public void LateTick()
+        public void LateUpdate()
         {
-            // This space intentionally left blank... for now.
+
         }
     }
 }

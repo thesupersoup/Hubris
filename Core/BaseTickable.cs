@@ -7,7 +7,7 @@ namespace Hubris
     /// <summary>
     /// Abstract class for deriving Tickable objects
     /// </summary>
-    public abstract class BaseTickable : ITickable, ICounter
+    public abstract class BaseTickable : LogicalEntity, ITickable, ICounter, ITimer
     {
         // BaseTickable constants
         public static int DEF_VAL = 5000;   // Default value
@@ -17,7 +17,6 @@ namespace Hubris
         public static int MIN_MOD = 1;      // Minimum increment per timestep
 
         // BaseTickable instance vars
-        private string _name;   // Name of BaseTickable as string
         private bool _dec;      // Is this BaseTickable decaying?
         private bool _sus;      // Is this BaseTickable suspended (prevented from changing on tick)?
         private int _val;       // Current value of BaseTickable, never lower than min or higher than max
@@ -26,12 +25,6 @@ namespace Hubris
         private int _mod;       // Amount to modify Value per timestep. Improvement or Decay of a need is a function of the Essential's mod * Interest mod.
 
         // BaseTickable properties
-        public string Name
-        {
-            get { return _name; }
-            set { _name = value; }
-        }
-
         public bool Decay
         {
             get { return _dec; }
@@ -90,13 +83,69 @@ namespace Hubris
             Max = MAX_VAL;
             Min = MIN_VAL;
             Mod = MIN_MOD;
+            Suspended = false;
+            Decay = true;
         }
 
-        public BaseTickable(int nMax, int nMin, int nMod)
+        public BaseTickable(int nMax, int nMin, int nMod, bool nSus = false, bool nDecay = true)
         {
             Max = nMax;
             Min = nMin;
             Mod = nMod;
+            Suspended = nSus;
+            Decay = nDecay;
+        }
+
+        public bool Start(int nAmt = 1)
+        {
+            bool success = false;
+
+            if (Suspended)
+            {
+                Suspended = false;
+                success = true;
+                if (!Inc(nAmt))
+                {
+                    if (HubrisCore.Instance.Debug)
+                    {
+                        LocalConsole.Instance.Log(Name + " set to max", true);
+                    }
+                }
+            }
+            else
+            {
+                if (HubrisCore.Instance.Debug)
+                {
+                    LocalConsole.Instance.Log("Tried to start a " + Name + " that has already started", true);
+                }
+            }
+
+            return success;
+        }
+
+        public bool Stop(bool nReset = true)
+        {
+            bool success = false;
+
+            if (!Suspended)
+            {
+                Suspended = true;
+                success = true;
+
+                if (nReset)
+                {
+                    Value = Min;
+                }
+            }
+            else
+            {
+                if (HubrisCore.Instance.Debug)
+                {
+                    LocalConsole.Instance.Log("Tried to stop a " + Name + " that is not started", true);
+                }
+            }
+
+            return success;
         }
 
         public bool Inc(int nAmt)
@@ -133,18 +182,26 @@ namespace Hubris
             return success;
         }
 
-        public virtual void Tick()
+        public override void Tick()
         {
             if (!Suspended)
             {
                 if (Decay)
                 {
-                    Dec(Mod);
+                    if(!Dec(Mod))
+                    {
+                        Suspended = true;   // Value is at Min, suspend until restarted
+                    }
                 }
             }
         }
 
-        public virtual void LateTick()
+        public override void LateTick()
+        {
+
+        }
+
+        public override void FixedTick()
         {
 
         }

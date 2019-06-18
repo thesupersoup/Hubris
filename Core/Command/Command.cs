@@ -6,17 +6,26 @@ using System.Collections.Generic;
 
 namespace Hubris
 {
+    /// <summary>
+    /// Represents possible interactions between the player and the game. Mapped to a specific key in KeyMap.
+    /// Treat as a static class.
+    /// </summary>
     public class Command
     {
-        // Command Type (CmdType) enum, of short type for smaller size if conveying over network
-        // Should have one-to-one parity with the Commands in the Command[] below and in the KeyMap
-        public enum CmdType : short
+        ///--------------------------------------------------------------------
+        /// 
+        /// Command Type (CmdType) enum
+        /// Should have one-to-one parity with the static Command array
+        /// 
+        ///--------------------------------------------------------------------
+
+        public enum CmdType
         {
             // General commands
             None = 0,
             Submit,
-            InteractA,
-            InteractB,
+            Interact0,
+            Interact1,
 
             // Basic movement commands
             MoveF,
@@ -45,26 +54,37 @@ namespace Hubris
             Disconnect,
             Quit,
             ConClear,
+            SetVar,
+            PrevCmd,
+            NextCmd,
 
             // FreeLook commands
             RotLeft,
             RotRight,
 
-            // Network testing commands
+            // Network commands
             Net_Send,
+            Net_Send_Udp,
+            Net_Send_Tcp,
+            Net_Connect,
+            Net_Disconnect,
 
             // Developer commands
             Version,
-            Debug,
             Net_Info,
 
             Num_Cmds    // Keep at the end for handy enum length hack
         }
 
-        // Static array of Commands, individual commands initialized in InitCmds()
-        // Should have one-to-one parity with the CmdType enum above
-        [SerializeField]
-        public static Command[] cmdArr = InitCmds();
+        #region CommandArray
+        ///--------------------------------------------------------------------
+        ///
+        /// Static array of Commands, individual commands initialized in 
+        /// InitCmds(). Should have one-to-one parity with the CmdType enum.
+        /// 
+        ///--------------------------------------------------------------------
+
+        private static Command[] cmdArr = InitCmds();
 
         [ExecuteInEditMode]
         private static Command[] InitCmds()
@@ -73,71 +93,90 @@ namespace Hubris
 
             // General commands
             cmds[(int)CmdType.None] = new Command("Null", "none", CmdType.None);
-            cmds[(int)CmdType.Submit] = new Command("Submit", "submit", CmdType.Submit, null, false);
-            cmds[(int)CmdType.InteractA] = new Command("Select", "intera", CmdType.InteractA, null, false);
-            cmds[(int)CmdType.InteractB] = new Command("Deselect", "interb", CmdType.InteractB, null, false);
+            cmds[(int)CmdType.Submit] = new Command("Submit", "submit", CmdType.Submit, false);
+            cmds[(int)CmdType.Interact0] = new Command("Interact0", "inter0", CmdType.Interact0, false);
+            cmds[(int)CmdType.Interact1] = new Command("Interact1", "inter1", CmdType.Interact1, false);
 
             // Basic movement commands
-            cmds[(int)CmdType.MoveF] = new Command("Move Forward", "movef", CmdType.MoveF, null, true);
-            cmds[(int)CmdType.MoveB] = new Command("Move Backward", "moveb", CmdType.MoveB, null, true);
-            cmds[(int)CmdType.MoveL] = new Command("Strafe Left", "movel", CmdType.MoveL, null, true);
-            cmds[(int)CmdType.MoveR] = new Command("Strafe Right", "mover", CmdType.MoveR, null, true);
-            cmds[(int)CmdType.Jump] = new Command("Jump", "jump", CmdType.Jump, null, false);
-            cmds[(int)CmdType.RunHold] = new Command("Run (hold)", "runhold", CmdType.RunHold);
+            cmds[(int)CmdType.MoveF] = new Command("Move Forward", "movef", CmdType.MoveF, true);
+            cmds[(int)CmdType.MoveB] = new Command("Move Backward", "moveb", CmdType.MoveB, true);
+            cmds[(int)CmdType.MoveL] = new Command("Strafe Left", "movel", CmdType.MoveL, true);
+            cmds[(int)CmdType.MoveR] = new Command("Strafe Right", "mover", CmdType.MoveR, true);
+            cmds[(int)CmdType.Jump] = new Command("Jump", "jump", CmdType.Jump, false);
+            cmds[(int)CmdType.RunHold] = new Command("Run (hold)", "runhold", CmdType.RunHold, true);
             cmds[(int)CmdType.RunToggle] = new Command("Run (toggle)", "runtoggle", CmdType.RunToggle);
             cmds[(int)CmdType.CrouchHold] = new Command("Crouch (hold)", "crouchhold", CmdType.CrouchHold);
             cmds[(int)CmdType.CrouchToggle] = new Command("Crouch (toggle)", "crouchtoggle", CmdType.CrouchToggle);
 
             // Weapons commands
-            cmds[(int)CmdType.Slot1] = new Command("Weapon Slot - Primary", "slot1", CmdType.Slot1, null, false);
-            cmds[(int)CmdType.Slot2] = new Command("Weapon Slot - Secondary", "slot2", CmdType.Slot2, null, false);
-            cmds[(int)CmdType.Slot3] = new Command("Weapon Slot - Melee", "slot3", CmdType.Slot3, null, false);
-            cmds[(int)CmdType.Slot4] = new Command("Weapon Slot - Special", "slot4", CmdType.Slot4, null, false);
+            cmds[(int)CmdType.Slot1] = new Command("Weapon Slot - Primary", "slot1", CmdType.Slot1, false);
+            cmds[(int)CmdType.Slot2] = new Command("Weapon Slot - Secondary", "slot2", CmdType.Slot2, false);
+            cmds[(int)CmdType.Slot3] = new Command("Weapon Slot - Melee", "slot3", CmdType.Slot3, false);
+            cmds[(int)CmdType.Slot4] = new Command("Weapon Slot - Special", "slot4", CmdType.Slot4, false);
 
             // Multiplayer commands
-            cmds[(int)CmdType.ChatPublic] = new Command("Chat (all)", "chatall", CmdType.ChatPublic, null, false);
-            cmds[(int)CmdType.ChatPrivate] = new Command("Chat (team)", "chatteam", CmdType.ChatPrivate, null, false);
+            cmds[(int)CmdType.ChatPublic] = new Command("Chat (all)", "chatall", CmdType.ChatPublic, false);
+            cmds[(int)CmdType.ChatPrivate] = new Command("Chat (team)", "chatteam", CmdType.ChatPrivate, false);
 
             // Console and console-only cmds
-            cmds[(int)CmdType.Console] = new Command("Open Console", "console", CmdType.Console, null, false);
+            cmds[(int)CmdType.Console] = new Command("Open Console", "console", CmdType.Console, false);
             cmds[(int)CmdType.MapKey] = new Command("Map Key to Command", "mapkey", CmdType.MapKey);
-            cmds[(int)CmdType.Disconnect] = new Command("Disconnect from server", "disconnect", CmdType.Disconnect, null, false);
-            cmds[(int)CmdType.Quit] = new Command("Quit to desktop", "quit", CmdType.Quit, null, false);
-            cmds[(int)CmdType.ConClear] = new Command("Clear Console text", "clr", CmdType.ConClear, null, false);
+            cmds[(int)CmdType.Disconnect] = new Command("Disconnect from server", "disconnect", CmdType.Disconnect, false);
+            cmds[(int)CmdType.Quit] = new Command("Quit to desktop", "quit", CmdType.Quit, false);
+            cmds[(int)CmdType.ConClear] = new Command("Clear Console text", "clr", CmdType.ConClear, false);
+            cmds[(int)CmdType.SetVar] = new Command("Set specified variable to value", "setvar", CmdType.SetVar, false);
+            cmds[(int)CmdType.PrevCmd] = new Command("See previous command", "prevcmd", CmdType.PrevCmd, false);
+            cmds[(int)CmdType.NextCmd] = new Command("See next command", "nextcmd", CmdType.NextCmd, false);
 
             // FreeLook commands
-            cmds[(int)CmdType.RotLeft] = new Command("Rotate Camera Left", "rotleft", CmdType.RotLeft, null, true);
-            cmds[(int)CmdType.RotRight] = new Command("Rotate Camera Right", "rotright", CmdType.RotRight, null, true);
+            cmds[(int)CmdType.RotLeft] = new Command("Rotate Camera Left", "rotleft", CmdType.RotLeft, true);
+            cmds[(int)CmdType.RotRight] = new Command("Rotate Camera Right", "rotright", CmdType.RotRight, true);
 
-            // Network testing commands
-            cmds[(int)CmdType.Net_Send] = new Command("Send data to server", "net_send", CmdType.Net_Send, null, false);
+            // Network commands
+            cmds[(int)CmdType.Net_Send] = new Command("Send data to server via default protocol", "net_send", CmdType.Net_Send, false);
+            cmds[(int)CmdType.Net_Send_Udp] = new Command("Send data to server via UDP", "net_send_udp", CmdType.Net_Send_Udp, false);
+            cmds[(int)CmdType.Net_Send_Tcp] = new Command("Send data to server via TCP", "net_send_tcp", CmdType.Net_Send_Tcp, false);
+            cmds[(int)CmdType.Net_Connect] = new Command("Connect to the specified IP", "net_connect", CmdType.Net_Connect, false);
+            cmds[(int)CmdType.Net_Disconnect] = new Command("Disconnect active connection", "net_disconnect", CmdType.Net_Disconnect, false);
 
             // Developer commands
-            cmds[(int)CmdType.Version] = new Command("Display version info", "version", CmdType.Version, null, false);
-            cmds[(int)CmdType.Debug] = new Command("Debug mode toggle", "debug", CmdType.Debug, null, false);
-            cmds[(int)CmdType.Net_Info] = new Command("Display networking info", "net_info", CmdType.Net_Info, null, false);
+            cmds[(int)CmdType.Version] = new Command("Display version info", "version", CmdType.Version, false);
+            cmds[(int)CmdType.Net_Info] = new Command("Display networking info", "net_info", CmdType.Net_Info, false);
+
+            // SetVar commands
 
             return cmds;
         }
+        #endregion CommandArray
 
-        // Command instance variables
+        ///---------------------------------------------------------------------
+        ///
+        /// Command Instance variables
+        /// 
+        ///--------------------------------------------------------------------- 
+
         private string _uiName;     // Name to be used in UI and other human-readable contexts
         private string _cmdName;    // Name to be used when invoking the Command in console or config. Should always be lowercase
         private CmdType _type;      // What type of Command is it? See CmdType enum
-        private string _data;       // Data included with command, used for providing setting values or sending associated data
-        private bool _cont;         // Continuous key (true), or only on key down (false)?
+        private bool _cont;         // Continuous key (true), or only on keypress (false)?
 
-        // Command properties
+
+        ///---------------------------------------------------------------------
+        ///
+        /// Command properties
+        /// 
+        ///---------------------------------------------------------------------
+        
         public string UIName
         {
             get { return _uiName; }
             protected set { _uiName = value; }
         }
 
-        public string CmdName
+        public string CmdName   // CmdName should always be lowercase
         {
-            get { return _cmdName; }
-            protected set { _cmdName = value; }
+            get { return _cmdName.ToLower(); }
+            protected set { _cmdName = value.ToLower(); }
         }
 
         public CmdType Type
@@ -146,22 +185,19 @@ namespace Hubris
             protected set { if (value >= CmdType.None && value < CmdType.Num_Cmds) { _type = value; } else { _type = CmdType.None; } }
         }
 
-        public string Data
-        {
-            get { return _data; }
-            protected set { _data = value; } 
-        }
-
         public bool Continuous
         {
             get { return _cont; }
             protected set { _cont = value; }
         }
 
-        public void SetData(string nData)
-        {
-            _data = nData;
-        }
+
+        ///---------------------------------------------------------------------
+        /// 
+        /// Static Command methods for fetching commands by index, type, or 
+        /// specific properties for each command
+        /// 
+        ///---------------------------------------------------------------------
 
         public static Command None
         {
@@ -173,14 +209,14 @@ namespace Hubris
             get { return cmdArr[(int)CmdType.Submit]; }
         }
 
-        public static Command InteractA
+        public static Command Interact0
         {
-            get { return cmdArr[(int)CmdType.InteractA]; }
+            get { return cmdArr[(int)CmdType.Interact0]; }
         }
 
-        public static Command InteractB
+        public static Command Interact1
         {
-            get { return cmdArr[(int)CmdType.InteractB]; }
+            get { return cmdArr[(int)CmdType.Interact1]; }
         }
 
         public static Command MoveF
@@ -283,6 +319,21 @@ namespace Hubris
             get { return cmdArr[(int)CmdType.ConClear]; }
         }
 
+        public static Command SetVar
+        {
+            get { return cmdArr[(int)CmdType.SetVar]; }
+        }
+
+        public static Command PrevCmd
+        {
+            get { return cmdArr[(int)CmdType.PrevCmd]; }
+        }
+
+        public static Command NextCmd
+        {
+            get { return cmdArr[(int)CmdType.NextCmd]; }
+        }
+
         public static Command RotLeft
         {
             get { return cmdArr[(int)CmdType.RotLeft]; }
@@ -298,14 +349,24 @@ namespace Hubris
             get { return cmdArr[(int)CmdType.Net_Send]; }
         }
 
+        public static Command Net_Send_Udp
+        { 
+            get { return cmdArr[(int)CmdType.Net_Send_Udp]; }
+        }
+
+        public static Command Net_Send_Tcp
+        {
+            get { return cmdArr[(int)CmdType.Net_Send_Tcp]; }
+        }
+
+        public static Command Net_Connect
+        {
+            get { return cmdArr[(int)CmdType.Net_Connect]; }
+        }
+
         public static Command Version
         {
             get { return cmdArr[(int)CmdType.Version]; }
-        }
-
-        public static Command Debug
-        {
-            get { return cmdArr[(int)CmdType.Debug]; }
         }
 
         public static Command Net_Info
@@ -313,50 +374,68 @@ namespace Hubris
             get { return cmdArr[(int)CmdType.Net_Info]; }
         }
 
-        public static short Num_Cmds
+        public static int Num_Cmds
         {
-            get { return (short)CmdType.Num_Cmds; }
+            get { return (int)CmdType.Num_Cmds; }
         }
 
-        // Command methods
-        public Command()
+        private Command()
         {
             _uiName = "DefaultUIName";
-            _cmdName = "DefaultCmdName";
+            _cmdName = "DefaultCmdName".ToLower();
             _type = CmdType.None;
-            _data = null;
             _cont = true;
         }
 
-        public Command(string sUI = "DefaultUIName", string sCmd = "DefaultCmdName", CmdType eType = CmdType.None, string sData = null, bool bCont = true)
+        private Command(string sUI = "DefaultUIName", string sCmd = "DefaultCmdName", CmdType eType = CmdType.None, bool bCont = true)
         {
             _uiName = sUI;
-            _cmdName = sCmd;
+            _cmdName = sCmd.ToLower();
             _type = eType;
-            _data = sData;
             _cont = bCont;
         }
 
-        public void ClearData()
+        public static Command GetCommand(int index)
         {
-            _data = null;
+            if (index >= 0 && index < cmdArr.Length)
+                return cmdArr[index];
+            else
+            {
+                LocalConsole.Instance.LogError("Command GetCommand(): Invalid index requested, returning Command.None");
+                return cmdArr[(int)CmdType.None];
+            }
         }
 
-        public static Command CheckCmdName(string nName)
+        public static Command GetCommand(CmdType type)
         {
-            Command cmd = Command.None;
+            int index = (int)type;
+            if (index >= 0 && index < cmdArr.Length)
+                return cmdArr[index];
+            else
+            {
+                LocalConsole.Instance.LogError("Command GetCommand(): Invalid index requested, returning Command.None");
+                return cmdArr[(int)CmdType.None];
+            }
+        }
+
+        /// <summary>
+        /// Searches for a command by name (string param), non-case-sensitive
+        /// </summary>
+        public static Command GetCmdByName(string nName)
+        {
+            Command cmdObj = cmdArr[(int)CmdType.None];
             string cmdLower = nName.ToLower();
 
             for (int i = 0; i < cmdArr.Length; i++)
             {
-                if (cmdArr[i].CmdName == cmdLower)
+                if (cmdArr[i].CmdName.Equals(cmdLower))
                 {
-                    cmd = cmdArr[i];
+                    cmdObj = cmdArr[i];
                     break;  // Found it, don't need to keep searching
                 }
             }
 
-            return cmd;
+            return cmdObj;
         }
     }
 }

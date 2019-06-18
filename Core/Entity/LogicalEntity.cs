@@ -7,7 +7,7 @@ namespace Hubris
     /// <summary>
     /// Class which represents logical in-game objects, with virtual Tick() and LateTick() implementation
     /// </summary>
-    public class LogicalEntity : IDisposable, ITickable
+    public class LogicalEntity : ITickable, IActivatable
     {
         // LogicalEntity instance vars 
 
@@ -17,6 +17,8 @@ namespace Hubris
         protected bool _act = true;
         [SerializeField]
         protected string _name;
+
+        protected bool _disposed = false; // Has this LogicalEntity had Dispose() called?
 
         // LogicalEntity properties
         public bool Active
@@ -31,22 +33,70 @@ namespace Hubris
             set { _name = value; }
         }
 
-        // LogicalEntity methods
-        protected virtual void SubTick()    // Subscribe to Tick/LateTick GameManager Actions
+        ///--------------------------------------------------------------------
+        /// LogicalEntity methods
+        ///--------------------------------------------------------------------
+
+        public virtual void Init()
         {
-            if (GameManager.Instance != null)
+            /* IMPORTANT! */
+            // Include SubTick() in all derived/overridden Init() (or similar) methods for Hubris Tick-based behavior
+            // and include UnsubTick() in CleanUp()
+            SubTick();
+        }
+
+        /// <summary>
+        /// Enables Hubris functionality
+        /// </summary>
+        public void Activate()
+        {
+            _act = true;
+        }
+
+        /// <summary>
+        /// Disables Hubris functionality
+        /// </summary>
+        public void Deactivate()
+        {
+            _act = false;
+        }
+
+        /// <summary>
+        /// Set whether the Entity is active or not; virtual for unique functionality in derived classes
+        /// </summary>
+        public virtual void SetActive(bool nActive)
+        {
+            if (nActive)
+                Activate();
+            else
+                Deactivate();
+        }
+
+        /// <summary>
+        /// Subscribe to Hubris Tick-based Actions
+        /// Once subscribed, an object must ALWAYS unsubscribe in the process of being cleaned up or destroyed
+        /// </summary>
+        protected virtual void SubTick()
+        {
+            if (HubrisCore.Instance != null)
             {
-                GameManager.Instance.AcTick += Tick;
-                GameManager.Instance.AcLateTick += LateTick;
+                HubrisCore.Instance.AcTick += Tick;
+                HubrisCore.Instance.AcLateTick += LateTick;
+                HubrisCore.Instance.AcFixedTick += FixedTick;
             }
         }
 
-        protected virtual void UnsubTick()  // Unsubscribe to Tick/LateTick GameManager Actions
+        /// <summary>
+        /// Unsubscribe to Hubris Tick-based Actions
+        /// Once subscribed, an object must ALWAYS unsubscribe in the process of being cleaned up or destroyed
+        /// </summary>
+        protected virtual void UnsubTick()
         {
-            if (GameManager.Instance != null)
+            if (HubrisCore.Instance != null)
             {
-                GameManager.Instance.AcTick -= Tick;
-                GameManager.Instance.AcLateTick -= LateTick;
+                HubrisCore.Instance.AcTick -= Tick;
+                HubrisCore.Instance.AcLateTick -= LateTick;
+                HubrisCore.Instance.AcFixedTick -= FixedTick;
             }
         }
 
@@ -62,14 +112,25 @@ namespace Hubris
             // Override in derived class with unique implementation
         }
 
-        public virtual void Dispose()
+        public virtual void FixedTick()
         {
-            UnsubTick();
+            // To be called in response to GameManager event
+            // Override in derived class with unique implementation
         }
 
-        public virtual void OnDestroy()
+        public virtual void CleanUp(bool full = true)
         {
-            Dispose();
+            if (!this._disposed)
+            {
+                if (full)
+                {
+                    _act = false;
+                    _name = null;
+                }
+
+                UnsubTick();    // Need to Unsubscribe from Tick Event to prevent errors
+                _disposed = true;
+            }
         }
     }
 }

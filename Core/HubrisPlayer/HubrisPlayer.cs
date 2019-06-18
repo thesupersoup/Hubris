@@ -5,17 +5,16 @@ using UnityEngine;
 
 namespace Hubris
 {
-    public abstract class HubrisPlayer : Entity
+    public abstract class HubrisPlayer : LiveEntity
     {
         // HubrisPlayer constants
-        public const float DIST_CHK_GROUND = 2.0f;
+        public const float DIST_CHK_GROUND = 2.0f, ACCEL_THRESHOLD = 0.1f, DOT_THRESHOLD = -0.75f;
 
-        // HubrisPlayer type enum, whether First Person, Free Look, or others
-        public enum PType : byte { NONE = 0, FPS, FL, RTS, NUM_TYPES };
+        // Player Type; whether First Person, Free Look, or others
+        public enum PType { NONE = 0, FPS, FL, RTS, NUM_TYPES };       
 
-        // HubrisPlayer state enum, see bool states below
-        public enum PState : byte { NONE = 0, STAND, GRAV, GROUND, DEMIGOD, ROTATE, NUM_STATES };
-
+        // Special Movement Type
+        public enum SpecMoveType { NONE = 0, JUMP, CROUCH, NUM_TYPES}
 
         // Singleton instance, to be populated by the derived class
         private static HubrisPlayer _i = null;
@@ -37,57 +36,71 @@ namespace Hubris
             {
                 lock (_lock)
                 {
-                    if (_i == null)
+                    if(_i == null)
                         _i = value;
                 }
             }
         }
 
-        // Networking Type instance, to be populated at runtime (See GetNetInstance())
-        private object _netInstance = null;
-        private System.Type _netType = null;
-        private System.Reflection.MethodInfo _netSendMethod = null;
-
         // Player states, use properties to interact
-        private bool _stand = true;     // Is the player standing?
-        private bool _grav = true;      // Is the player affected by gravity
-        private bool _ground = true;    // Is the player grounded?
-        private bool _demigod = false;  // Is the player invulnerable?
-        private bool _rotate = false;   // Is the player currently rotating (keypress)?
-        private bool _canJump = true;   // Is the player allowed to jump?
+        protected bool _canModSpdTgt = true;
+        protected bool _prevGrounded = false;
+        protected bool _moving = false;
+        protected bool _fastMove = false;
 
         // Player instance variables
+        [Header("Player type and components")]
         [SerializeField]
-        protected PType _type = PType.FPS;
+        protected PType _pType = PType.FPS;
         [SerializeField]
         protected GameObject _gObj = null;
         [SerializeField]
+        protected CharacterController _pCon = null;
+        [SerializeField]
         protected Rigidbody _pBod = null;
         [SerializeField]
-        protected Collider _pCol = null;
-        [SerializeField]
         protected Camera _pCam = null;
-        protected Vector3 _move = Vector3.zero;
+
+        [Header("Mouse parameters")]
+        [Tooltip("Sensitivity")]
+        [SerializeField]
         protected float _sens = 2.0f;
-        protected float _spd = 2.0f;
-        protected float _acc = 2.0f;
-        protected float _jumpSpd = 10.0f;
+        [Tooltip("Mouse smoothing")]
+        [SerializeField]
+        protected bool _mSmooth = false;
+        [Tooltip("Mouse smoothing factor")]
+        [SerializeField]
+        protected float _mSmoothAmt = 1.0f;
+
+        [SerializeField]
+        protected MoveParams _moveParams = null;
+
+        protected float _spd = 0.0f;
+        protected float _spdTar = 0.0f;
+
+        [SerializeField]
+        protected Inventory _inv = new Inventory();
+
+        protected PlayerState _pState = new PlayerState();
+        protected Vector3 _gravVector = Vector3.zero;
+        protected Vector3 _move = Vector3.zero;
+        protected Vector3 _prevMove = Vector3.zero;
+        protected CollisionFlags _flags;
+        protected RaycastHit _grndChk;
+        protected float _slopeChk;
         protected float _fallAng = 59.0f;   // The angle of the slope at which the player can no longer walk forward or jump
-        protected float _fallSpd = 20.0f;
-        protected float _baseSpd = 0.1f;
         protected static InputManager _im = null;
-        protected MouseLook _mLook = null;
+        protected static MouseLook _mLook = null;
 
         // Player properties
-        public Vector3 Velocity
+        public Camera PlayerCam
         {
-            get {  if(_pBod != null) { return _pBod.velocity; } else { return Vector3.zero; } }
+            get { return _pCam; }
         }
 
-        public byte Type
+        public MoveParams Movement
         {
-            get { return (byte)_type; }
-            protected set { if (value > (byte)PType.NONE && value < (byte)PType.NUM_TYPES) { _type = (PType)value; } else { _type = PType.FPS; } }
+            get { return _moveParams; }
         }
 
         public float Speed
@@ -96,52 +109,79 @@ namespace Hubris
             protected set { _spd = value; }
         }
 
-        public float Accel
+        public float SpeedTarget
         {
-            get { return _acc; }
-            protected set { _acc = value; }
+            get { return _spdTar; }
+            protected set { _spdTar = value; }
         }
 
-        public float JumpSpd
+        public Inventory PlayerInv
         {
-            get { return _jumpSpd; }
-            protected set { _jumpSpd = value; }
+            get { return _inv; }
         }
 
-        public bool Standing
+        public PlayerState State
         {
-            get { return _stand; }
-            protected set { _stand = value; }
+            get { return _pState; }
         }
 
-        public bool Gravity
+        public bool IsGrounded
         {
-            get { return _grav; }
-            protected set { _grav = value; }
+            get { return _pCon.isGrounded; }
         }
 
-        public bool Grounded
+        public Vector3 Velocity
         {
-            get { return _ground; }
-            protected set { _ground = value;}
+            get {  if(_pBod != null) { return _pBod.velocity; } else { return Vector3.zero; } }
         }
 
-        public bool Demigod
+        public byte PlayerType
         {
-            get { return _demigod; }
-            protected set { _demigod = value; }
+            get { return (byte)_pType; }
+            protected set
+            {
+                if (value > (byte)PType.NONE && value < (byte)PType.NUM_TYPES)
+                {
+                    _pType = (PType)value;
+                }
+                else
+                {
+                    _pType = PType.FPS;
+                }
+            }
         }
 
-        public bool Rotating
+        public bool MSmooth
         {
-            get { return _rotate; }
-            protected set { _rotate = value; }
+            get { return _mSmooth; }
+            set
+            {
+                _mSmooth = value;
+                _mLook.EnableMouseSmooth(value);
+            }
         }
 
-        public bool CanJump
+        public float MSmoothAmt
         {
-            get { return _canJump; }
-            protected set { _canJump = value; }
+            get { return _mSmoothAmt; }
+            set
+            {
+                _mSmoothAmt = value;
+                _mLook.SetSmoothAmt(value);
+            }
+        }
+
+        public float Sensitivity
+        {
+            get { return _sens; }
+            set
+            {
+                if (value >= 0.0f)
+                {
+                    _sens = value;
+                    _mLook.SetSensitivity(value);
+                }
+            }
         }
 
         public static InputManager Input
@@ -151,47 +191,35 @@ namespace Hubris
         }
 
         // Player methods
-        public abstract void InteractA();
-        public abstract void InteractB();
+        public abstract void Interact0();
+        public abstract void Interact1();
         public abstract void Move(InputManager.Axis ax, float val);
+        public abstract void SpecMove(SpecMoveType nType, InputManager.Axis ax, float val);
         public abstract void Rotate(InputManager.Axis ax, float val);
-        protected abstract void SetSpecifics();
-        protected abstract void ProcessState();
 
-        protected void Init()
+        protected override void Init()
         {
+            EntType = LiveEntity.EType.PLAYER;
+            Stats = EntStats.Create(EntType);
             _im = new InputManager();
-            _im.Init(_type);
-            TrySetNetVars();
+            _im.Init(_pType);
+            SpeedTarget = Movement.SpeedLow;
         }
 
-        public void ChangeSpeed(float fSpdNew)
+        public void SetActiveSlot(int nSlot)
         {
-            _spd = fSpdNew;
+            PlayerInv.SetActiveSlot(nSlot);
         }
 
-        public void PhysAccel(Vector3 dir)
+        public void SetSpeedTarget(float nTar)
         {
-            _pBod.AddForce(dir, ForceMode.Acceleration);
+            SpeedTarget = nTar;
         }
 
-        public void PhysForce(Vector3 dir)
-        {
-            _pBod.AddForce(dir, ForceMode.Force);
-        }
-
-        public void PhysImpulse(Vector3 dir)
-        {
-            _pBod.AddForce(dir, ForceMode.Impulse);
-        }
-
-        public void PhysTorque(Vector3 dir)
-        {
-            _pBod.AddTorque(dir, ForceMode.Acceleration);
-        }
-
-
-        protected Vector3 GetMoveAsVector(InputManager.Axis ax, float val, bool relative = false)
+        /// <summary>
+        /// Returns a normalized direction vector along the specified axis. Can be relative to current rotation.
+        /// </summary>
+        public Vector3 GetMoveAsVector(InputManager.Axis ax, float val, bool relative = false)
         {
             Vector3 dir = Vector3.zero;
 
@@ -205,7 +233,7 @@ namespace Hubris
                     dir = new Vector3(0, 0, val);
                 else
                 {
-                    if (Core.Instance.Debug)
+                    if (HubrisCore.Instance.Debug)
                         LocalConsole.Instance.LogError("InputManager GetMoveAsVector(): Invalid Axis Vector requested", true);
                 }
             }
@@ -219,55 +247,47 @@ namespace Hubris
                     dir = _gObj.transform.forward * val;
                 else
                 {
-                    if (Core.Instance.Debug)
+                    if (HubrisCore.Instance.Debug)
                         LocalConsole.Instance.LogError("InputManager GetMoveAsVector(): Invalid Axis Vector requested", true);
                 }
-
-                dir.y = 0;
             }
             
-            return dir;
+            return dir.normalized;
         }
 
-        protected void CheckCollisions()
+        protected virtual void ProcessGravity()
         {
-            CheckGround();
-        }
-
-        private void CheckGround()
-        {
-            RaycastHit hit;
-
-            if (Physics.Raycast(_gObj.transform.position, Vector3.down, out hit, DIST_CHK_GROUND))
+            if(Active)
             {
-                float angle = Vector3.Angle(Vector3.up, hit.normal);
-
-                if (angle > _fallAng)
+                if (!IsGrounded)
                 {
-                    Grounded = false;
-                    CanJump = false;
+                    _gravVector = Physics.gravity * Movement.GravFactor * Time.fixedDeltaTime;
                 }
                 else
                 {
-                    CanJump = true;
+                    _gravVector = Vector3.zero;
+                    _gravVector.y = -Movement.GravBase;
                 }
             }
-            else
+        }
+
+        protected virtual void ProcessDeltas()
+        {
+            if (Movement.UseAccel)
             {
-                Grounded = false;
-                CanJump = false;
+                if (Movement.Decay < 1.0f)
+                {
+                    Speed -= (Speed * Movement.Decay);
+                }
             }
         }
 
-        protected void ProcessGravity()
+        protected virtual void ProcessState()
         {
-            if (!Grounded)
-                PhysForce(Vector3.down * _fallSpd);
-        }
+            ProcessGravity();
+            ProcessDeltas();
 
-        protected void ProcessDeltas()
-        {
-
+            _prevGrounded = _pCon.isGrounded;
         }
 
         protected void UpdateMouse()
@@ -293,159 +313,51 @@ namespace Hubris
             return _mLook.CursorLock;
         }
 
-        public void TrySetNetVars()
+        protected virtual void Update()
         {
-            System.Type chkType = System.Type.GetType(Core.Instance.NetLibType); // Check if our specified networking Type.Class exists
+            /* IMPORTANT! */
+            // Include InputManager.Update() in all derived/overridden Update() methods or call base.Update()
+            _im.Update(); 
+        }
 
-            if (chkType != null)
+        protected virtual void LateUpdate()
+        {
+            /* IMPORTANT! */
+            // Include InputManager.LateUpdate() in all derived/overridden Update() methods or call base.LateUpdate()
+            _im.LateUpdate();
+        }
+
+        protected virtual void FixedUpdate()
+        {
+            /* IMPORTANT! */
+            // Include InputManager.FixedUpdate() in all derived/overridden Update() methods or call base.FixedUpdate()
+            _im.FixedUpdate();
+        }
+
+        public override void CleanUp(bool full = true)
+        {
+            if (!this._disposed)
             {
-                System.Reflection.MethodInfo chkMethod = chkType.GetMethod(Core.Instance.NetSendMethod); // Check if the specified method exists
+                _disposing = true;
 
-                if (chkMethod != null)   // We have the method we need to send data
+                if (full)
                 {
-                    _netInstance = Activator.CreateInstance(chkType);
-                    _netType = chkType;
-                    _netSendMethod = chkMethod;
-                    if (Core.Instance.Debug)
-                        LocalConsole.Instance.Log("Player TrySetNetVars(): All network variables successfully set", true);
+                    Instance = null;
+                    Input = null;
+                    _mLook = null;
+                    _gObj = null;
+                    _pCon = null;
+                    _pBod = null;
+                    _pCam = null;
+
+                    // Inherited instance vars
+                    _act = false;
+                    _name = null;
                 }
-                else
-                {
-                    if (Core.Instance.Debug)
-                        LocalConsole.Instance.LogError("Player TrySetNetVars(): The specified method (" + Core.Instance.NetSendMethod + ") can't be found on " + Core.Instance.NetLibType + ", networking disabled", true);
-                }
+
+                UnsubTick();    // Need to Unsubscribe from Tick Event to prevent errors
+                _disposed = true;
             }
-            else
-            {
-                if (Core.Instance.Debug)
-                    LocalConsole.Instance.LogError("Player TrySetNetVars(): The specified networking library (" + Core.Instance.NetLibType + ") can't be found, networking disabled", true);
-            }
-        }
-
-        public void SendData(string nData)
-        {
-            if (_netInstance != null)
-            {
-                if (nData != null)
-                {
-                    if (Core.Instance.Debug)
-                        LocalConsole.Instance.Log("Player SendData(): Sending \'" + nData + "\'", true);
-                    else
-                        LocalConsole.Instance.Log("net_data \"" + nData + "\"");
-
-                    try
-                    {
-                        _netSendMethod.Invoke(_netInstance, new object[] { System.Text.Encoding.ASCII.GetBytes(nData) });  // Rewrite for specific invocation or return handling
-                    }
-                    catch (Exception e)
-                    {
-                        if (Core.Instance.Debug)
-                            LocalConsole.Instance.LogError("Player SendData(): Exception while invoking network send method");
-                    }
-                }
-                else
-                {
-                    if (Core.Instance.Debug)
-                        LocalConsole.Instance.LogError("Player SendData(): Data to send is null", true);
-                }
-            }
-            else
-            {
-                if (Core.Instance.Debug)
-                    LocalConsole.Instance.LogError("Player SendData(): The specified networking library (" + Core.Instance.NetLibType + ") can't be found, so no data can be sent", true);
-            }
-        }
-
-        void OnCollisionEnter(Collision collision)
-        {
-            RaycastHit hit;
-
-            if(Physics.Raycast(_gObj.transform.position, Vector3.down, out hit, DIST_CHK_GROUND))
-            {
-                Grounded = true;
-            }
-            // Debug.Log("Col detected");
-        }
-
-        // CheckState(PState) returns 0 for false, 1 for true, and 2 for error
-        public byte CheckState(PState ps)
-        {
-            byte check;
-
-            switch (ps)
-            {
-                case PState.STAND:
-                    if (_stand)
-                        check = 1;
-                    else
-                        check = 0;
-                    break;
-                case PState.GRAV:
-                    if (_grav)
-                        check = 1;
-                    else
-                        check = 0;
-                    break;
-                case PState.GROUND:
-                    if (_ground)
-                        check = 1;
-                    else
-                        check = 0;
-                    break;
-                case PState.DEMIGOD:
-                    if (_demigod)
-                        check = 1;
-                    else
-                        check = 0;
-                    break;
-                case PState.ROTATE:
-                    if (_rotate)
-                        check = 1;
-                    else
-                        check = 0;
-                    break;
-                default:        // Can't check the state of something that doesn't exist, and returning false doesn't notify of that
-                    check = 2;  // Error
-                    break;
-            }
-
-            return check;
-        }
-
-        public void SetState(PState ps, bool bVal)
-        {
-            switch (ps)
-            {
-                case PState.STAND:
-                    _stand = bVal;
-                    break;
-                case PState.GRAV:
-                    _grav = bVal;
-                    break;
-                case PState.GROUND:
-                    _ground = bVal;
-                    break;
-                case PState.DEMIGOD:
-                    _demigod = bVal;
-                    break;
-                case PState.ROTATE:
-                    _rotate = bVal;
-                    break;
-                default:
-                    if (Core.Instance.Debug)
-                        LocalConsole.Instance.LogError("Player SetState(): Invalid PState specified...", true);
-                    break;
-            }
-        }
-
-        protected void Update()
-        {
-            _im.Tick(); // Process input on each frame for accuracy
-        }
-
-        protected void LateUpdate()
-        {
-            _im.LateTick();
         }
     }
 }

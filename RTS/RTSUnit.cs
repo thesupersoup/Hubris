@@ -7,22 +7,16 @@ namespace Hubris
     /// <summary>
     /// Class to derive RTS-style units, with animation, selection visuals, and generic behaviours
     /// </summary>
-    public abstract class RTSUnit : Entity, IUsable, ISelectable, IMovable
+    public abstract class RTSUnit : Npc, IUsable, ISelectable, IPointClick
     {
         // RTSUnit instance vars
         [SerializeField]
         protected Animator _anim = null;
         [SerializeField]
         protected MeshRenderer _select = null;    // Object to visually show selection, change to desired type
-        protected Vector3 _target = Vector3.zero; // Target position for Unit
         protected bool _moving = false;           // Is the unit currently moving?
 
         // RTSUnit properties
-        public Vector3 TargetPos
-        {
-            get { return _target; }
-        }
-
         public bool Moving
         {
             get { return _moving; }
@@ -51,14 +45,19 @@ namespace Hubris
             }
         }
 
-        public virtual void SetTargetPos(Vector3 nPos)
+        public virtual void SetTarget(GameObject nObj)
         {
-            _target = nPos;
+            TargetObj = nObj;
+        }
+
+        public virtual void SetMovePos(Vector3 nPos)
+        {
+            MovePos = nPos;
         }
 
         public virtual void CheckMove()
         {
-            if (_target != Vector3.zero)
+            if (MovePos != Vector3.zero)
             {
                 _moving = true;
             }
@@ -66,7 +65,7 @@ namespace Hubris
 
         public virtual void CancelMove()
         {
-            _target = Vector3.zero;
+            MovePos = Vector3.zero;
             _moving = false;
         }
 

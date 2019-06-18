@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89d1aba2f731e5c4b864150954ec1764, type: 3}
+  m_Name: Default
+  m_EditorClassIdentifier: 
+  _awareMax: 80
+  _awareMed: 50
+  _awareClose: 25
+  _atkDist: 4.25
+  _stopDist: 2.5
+  _chkIdle: 0.5
+  _chkAlert: 0.33
+  _moveSpd: 14
+  _moveWalk: 0.25
+  _roam: 1
+  _roamDist: 20
+  _roamTime: 10
+  _roamPts: 5
+  _retarget: 1
+  _proxPct: 0.8
+  _rotSpd: 0.065
+  _rotAngle: 50
+  _animDelay: 5
+  _atkInit: 0.6
+  _atkEnd: 1.8
+  _awareMod: 1
+  _rotAngleMod: 1

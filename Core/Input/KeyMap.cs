@@ -6,20 +6,47 @@ namespace Hubris
 {
     public class KeyMap
     {
-        // Static array of KeyBinds, set elsewhere 
+        ///--------------------------------------------------------------------
+        /// Static array of keybinds, set elsewhere
+        ///--------------------------------------------------------------------
+
+        public static KeyCode[] _kcArr;     // Array of used KeyCodes to speed up KeyCode checks (just check against this arr instead of all KeyCodes)
         public static List<KeyBind> _kbList;
 
-        // KeyMap properties
+        ///--------------------------------------------------------------------
+        /// KeyMap properties
+        ///--------------------------------------------------------------------
+
+        public static KeyCode[] KeysInUse
+        {
+            get { return _kcArr; }
+        }
+
         public static List<KeyBind> Binds
         {
             get { return _kbList; }
         }
 
-        // KeyMap methods
+        ///--------------------------------------------------------------------
+        /// KeyMap methods
+        ///--------------------------------------------------------------------
+
         public KeyMap()
         {
+            _kcArr = null;
             _kbList = new List<KeyBind>();
             SetDefaults();
+            RefreshKeysInUse();    
+        }
+
+        public static void RefreshKeysInUse()  // Refresh the array of used KeyCodes and array of indicies
+        {
+            _kcArr = new KeyCode[_kbList.Count];    // _kcArr should always match the _kbList size
+
+            for(int i = 0; i < _kbList.Count; i++)
+            {
+                _kcArr[i] = _kbList[i].Key;
+            }
         }
 
         public static void SetDefaults()
@@ -29,8 +56,8 @@ namespace Hubris
             // General
             _kbList.Add(new KeyBind(KeyCode.None, Command.None));
             _kbList.Add(new KeyBind(KeyCode.Return, Command.Submit));
-            _kbList.Add(new KeyBind(KeyCode.Mouse0, Command.InteractA));
-            _kbList.Add(new KeyBind(KeyCode.Mouse1, Command.InteractB));
+            _kbList.Add(new KeyBind(KeyCode.Mouse0, Command.Interact0));
+            _kbList.Add(new KeyBind(KeyCode.Mouse1, Command.Interact1));
 
             // Basic movement
             _kbList.Add(new KeyBind(KeyCode.W, Command.MoveF));
@@ -55,26 +82,26 @@ namespace Hubris
 
             // Console and console-only cmds
             _kbList.Add(new KeyBind(KeyCode.BackQuote, Command.Console)); // KeyCode.BackQuote is the ~/` (Tilde) key
+            _kbList.Add(new KeyBind(KeyCode.UpArrow, Command.PrevCmd));
+            _kbList.Add(new KeyBind(KeyCode.DownArrow, Command.NextCmd));
 
             // FreeLook specific
             _kbList.Add(new KeyBind(KeyCode.LeftArrow, Command.RotLeft));
             _kbList.Add(new KeyBind(KeyCode.RightArrow, Command.RotRight));
 
-            _kbList.Sort(); // Sorted in case we need to perform a binary search or some such eventually. KeyBind.CompareTo checks the KeyCode.
+            _kbList.Sort(); // Sorted in case we need to perform a binary search or some such eventually. KeyBind.CompareTo compares the KeyCode value.
         }
 
         public static Command CheckKeyCmd(KeyCode kcKey)
         {
-            KeyBind bind = _kbList.Find(x => x.Key == kcKey);   // Find the first (only) instance of KeyBind x such that x.Key is equal to kcKey
+            // Return the Cmd where KeyBind.Key is equal to kcKey
+            for(int i = 0; i < _kbList.Count; i++)
+            {
+                if (_kbList[i].Key == kcKey)
+                    return _kbList[i].Cmd;
+            }
 
-            if (bind != null)
-            {
-                return bind.Cmd;
-            }
-            else
-            {
-                return Command.None;
-            }
+            return Command.None;
         }
     }
 }

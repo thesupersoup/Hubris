@@ -5,10 +5,15 @@ using UnityEngine;
 
 namespace Hubris
 {
-    public class UIManager : Entity
+    /// <summary>
+    /// Partial HubrisEntity derived class to control any visible UI elements and events
+    /// </summary>
+    public partial class UIManager : Entity
     {
+        /* Create another partial Hubris.UIManager to add unique methods and implementation */
+
         // UIManager consts
-        private const int CON_LENGTH_MAX = 2056;
+        private const int CON_LENGTH_MAX = 2056, MSG_COUNT_MAX = 64, CMD_COUNT_MAX = 64;
 
         // UIManager singleton
         private static UIManager _ui = null;
@@ -23,7 +28,9 @@ namespace Hubris
                 if (_disposing)
                     return null;
                 else
+                {
                     return _ui;
+                }
             }
 
             protected set
@@ -42,23 +49,16 @@ namespace Hubris
         [SerializeField]
         private TMP_InputField _conIn = null;
         [SerializeField]
-        private Canvas _conCan = null;
+        private GameObject _conCan = null;
         [SerializeField]
-        private Canvas _evCan = null;
+        private TextMeshProUGUI _devSpd = null;
         [SerializeField]
-        private Transform _evPanel = null; 
-        [SerializeField]
-        private GameObject _evTemp = null;
-        [SerializeField]
-        private Canvas _devCan = null;
-        [SerializeField]
-        private Canvas _essCan = null;
-        [SerializeField]
-        private TextMeshProUGUI[] _essTxtArr = new TextMeshProUGUI[(int)Peeple.Essential.Type.NUM_TYPES];
-        [SerializeField]
-        private TextMeshProUGUI[] _essTitleArr = new TextMeshProUGUI[(int)Peeple.Essential.Type.NUM_TYPES];
-        private List<GameObject> _evList = new List<GameObject>();
+        private GameObject _devCan = null;
         private string _input = null;
+        private List<Msg> _msgList;
+        private List<string> _inputList;
+        private int _inputIndex = 0;        // Last index of input list accessed
+        private int _msgCounter = 0;
 
 
         // UIManager properties
@@ -72,19 +72,41 @@ namespace Hubris
             get { return _conIn; }
         }
 
-        public Canvas ConCanvas
+        public GameObject ConCanvas
         {
             get { return _conCan; }
         }
 
-        public Canvas DevCanvas
+        public TextMeshProUGUI DevSpd
+        {
+            get { return _devSpd; }
+        }
+
+        public GameObject DevCanvas
         {
             get { return _devCan; }
         }
 
-        public Canvas EssCanvas
+        public List<Msg> MsgList
         {
-            get { return _essCan; }
+            get { return _msgList; }
+        }
+
+        public List<string> InputList
+        {
+            get { return _inputList; }
+        }
+
+        public int InputIndex
+        {
+            get { return _inputIndex; }
+            protected set { _inputIndex = value; }
+        }
+
+        public int MsgCounter
+        {
+            get { return _msgCounter; }
+            protected set { _msgCounter = value; }
         }
 
 
@@ -99,6 +121,17 @@ namespace Hubris
             {
                 Destroy(this.gameObject);
             }
+
+            if(Instance == this)
+            {
+                if(DevCanvas != null)
+                {
+                    DevCanvas.SetActive(HubrisCore.Instance.Debug);
+                }
+
+                _msgList = new List<Msg>();
+                _inputList = new List<string>();
+            }
         }
 
         private bool CheckActive(Behaviour b)
@@ -109,11 +142,27 @@ namespace Hubris
                 return false;
         }
 
+        public void DevSet(bool nAct)
+        {
+            if (_devCan != null)
+            {
+                _devCan.SetActive(nAct);
+            }
+        }
+
         public void DevToggle()
         {
             if(_devCan != null)
             {
-                _devCan.enabled = !CheckActive(_devCan);
+                _devCan.SetActive(!_devCan.activeSelf);
+            }
+        }
+
+        public void ConsoleSet(bool nAct)
+        {
+            if(_conCan != null)
+            {
+                _conCan.SetActive(nAct);
             }
         }
 
@@ -121,10 +170,10 @@ namespace Hubris
         {
             if (_conCan != null)
             {
-                bool act = !_conCan.enabled;
-                _conCan.enabled = act;
+                bool act = !_conCan.activeSelf;
+                _conCan.SetActive(act);
 
-                if (HubrisPlayer.Instance.Type == (byte)HubrisPlayer.PType.FPS)
+                if (HubrisPlayer.Instance.PlayerType == (byte)HubrisPlayer.PType.FPS)
                 {
                     HubrisPlayer.Instance.SetMouse(!act);
                 }
@@ -134,15 +183,32 @@ namespace Hubris
 
                 if (_conIn != null)
                 {
+                    _conIn.interactable = act;
+
                     if (act)
                     {
-                        _conIn.ActivateInputField();
+                        _conIn.ActivateInputField();    
                     }
                     else
                     {
                         _conIn.text = "";
                         _conIn.DeactivateInputField();
+                        if(InputList != null)
+                        {
+                            InputIndex = InputList.Count;
+                        }
                     }
+                }
+            }
+        }
+
+        public void SetInput(string nIn)
+        {
+            if(ConInput != null)
+            {
+                if (ConCanvas.activeSelf)
+                {
+                    ConInput.text = nIn;
                 }
             }
         }
@@ -155,7 +221,7 @@ namespace Hubris
                 {
                     if (LocalConsole.Instance != null)
                     {
-                        if (CheckActive(_conCan))
+                        if (_conCan.activeSelf)
                         {
                             _input = _conIn.text;
                             LocalConsole.Instance.ProcessInput(_input);
@@ -164,7 +230,7 @@ namespace Hubris
                         }
                         else
                         {
-                            if (Core.Instance.Debug)
+                            if (HubrisCore.Instance.Debug)
                                 LocalConsole.Instance.LogWarning("UIManager ConsoleSubmitInput(): Console is not active, cannot submit input from console", true);
                         }
                     }
@@ -182,10 +248,114 @@ namespace Hubris
             if (_conTxt != null)
             {
                 _conTxt.text = "";
+                InputList.Clear();
+                MsgList.Clear();
             }
         }
 
-        public void AddConsoleText(LocalConsole.Msg nMsg)
+        public void AddMsg(Msg nMsg)
+        {
+            if (_msgList != null)
+            {
+                _msgList.Add(nMsg);
+                _msgCounter++;
+            }
+        }
+
+        public void AddMsg(string nMsg)
+        {
+            if (_msgList != null)
+            {
+                _msgList.Add(new Msg(_msgCounter, nMsg));
+                _msgCounter++;
+            }
+        }
+
+        public void AddInput(string nInput)
+        {
+            if (nInput != null)
+            {
+                InputList.Add(nInput);
+
+                InputIndex = InputList.Count;
+
+                if (InputList.Count > CMD_COUNT_MAX)
+                {
+                    int numToRemove = InputList.Count - CMD_COUNT_MAX;
+                    for (int i = 0; i < numToRemove; i++)
+                    {
+                        InputList.RemoveRange(0, numToRemove);
+                    }
+                }
+            }
+        }
+
+        private void ProcessMessages()
+        {
+            if (MsgList != null && MsgList.Count > 0)
+                AddConsoleText(MsgList.ToArray());
+            
+            if(MsgList.Count > MSG_COUNT_MAX)
+            {
+                int numToRemove = MsgList.Count - MSG_COUNT_MAX;
+                for (int i = 0; i < numToRemove; i++)
+                {
+                    MsgList.RemoveRange(0, numToRemove);
+                }
+            }
+
+            MsgList.Clear();
+        }
+
+        public void CheckPrevCmd()
+        {
+            if (ConCanvas.activeSelf)
+            {
+                if (InputList != null && InputList.Count > 0)
+                {
+                    if (InputIndex >= 0 && InputIndex <= InputList.Count)
+                    {
+                        if (InputIndex > 0)
+                        {
+                            InputIndex--;
+                        }
+
+                        if (ConInput != null)
+                        {
+                            ConInput.text = InputList[InputIndex];
+                        }
+
+                        ConInput.MoveToEndOfLine(false, false);
+                    }
+                }
+            }
+        }
+
+        public void CheckNextCmd()
+        {
+            if (ConCanvas.activeSelf)
+            {
+                if (InputList != null && InputList.Count > 0)
+                {
+                    if (InputIndex >= 0 && InputIndex <= InputList.Count)
+                    {
+                        if (InputIndex < InputList.Count - 1)
+                        {
+                            InputIndex++;
+                        }
+
+                        if (ConInput != null)
+                        {
+                            ConInput.text = InputList[InputIndex];
+                        }
+
+                        ConInput.MoveToEndOfLine(false, false);
+                    }
+                }
+            }
+        }
+
+        public void AddConsoleText(Msg nMsg)
         {
             if (_conTxt != null)
             {
@@ -197,7 +367,7 @@ namespace Hubris
             }
         }
 
-        public void AddConsoleText(LocalConsole.Msg[] nMsgs)
+        public void AddConsoleText(Msg[] nMsgs)
         {
             if (_conTxt != null)
             {
@@ -212,59 +382,24 @@ namespace Hubris
             }
         }
 
-        public void UpdateEssentialNames(string[] nNames)
-        {
-            if (_essTitleArr != null && _essTitleArr.Length == (int)Peeple.Essential.Type.NUM_TYPES)
-            {
-                for (int i = 0; i < nNames.Length; i++)
-                {
-                    _essTitleArr[i].text = nNames[i].ToString() + ":";
-                }
-            }
-        }
-
-        public void UpdateEssentialVals(int[] nVals)
-        {
-            if (_essTxtArr != null && _essTxtArr.Length == (int)Peeple.Essential.Type.NUM_TYPES)
-            {
-                for(int i = 0; i < nVals.Length; i++)
-                {
-                    _essTxtArr[i].text = nVals[i].ToString();
-                }
-            }
-        }
-
-        public void AddEvent(Peeple.PlayerPeep nOwner)
-        {
-            if (_evList != null)
-            {
-                if (_evPanel != null)
-                {
-                    if (_evTemp != null)
-                    {
-                        GameObject tempObj = Instantiate(_evTemp, _evPanel);
-                        tempObj.GetComponent<Peeple.Event>().SetEventDetails(0, nOwner);
-                    }
-                }
-            }
-        }
-
         private void ClearExcess(int nLen)  // nLen is the num of chars to clear
         {
             _conTxt.text = _conTxt.text.Substring(nLen);    // Trim the oldest text first
         }
 
-        void Start()
-        {
-
-        }
-
-        // Update is called once per frame
         void Update()
         {
-            if(Core.Instance.Debug)
+            if(DevSpd != null && HubrisPlayer.Instance != null)
             {
-               
+                DevSpd.text = HubrisPlayer.Instance.Speed.ToString();
+            }
+        }
+
+        void LateUpdate()
+        {
+            if (Active)
+            {
+                ProcessMessages();
             }
         }
     }

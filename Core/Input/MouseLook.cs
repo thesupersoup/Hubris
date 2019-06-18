@@ -5,7 +5,13 @@ using Hubris;
 [Serializable]
 public class MouseLook
 {
-    // MouseLook instance vars
+    public const bool DEF_MSMOOTH = false;
+    public const float DEF_MSMOOTH_AMT = 1.0f;
+
+    ///--------------------------------------------------------------------
+    /// MouseLook instance vars
+    ///--------------------------------------------------------------------
+    
     private bool cursorLock = false;
     private float XSens = 1f;
     private float YSens = 1f;
@@ -13,39 +19,62 @@ public class MouseLook
     private float MinimumX = -90F;
     private float MaximumX = 90F;
     private bool smooth;
-    private float smoothTime = 5f;
+    private float smoothTime;
     private Quaternion m_CharacterTargetRot;
     private Quaternion m_CameraTargetRot;
+
+    ///--------------------------------------------------------------------
+    /// MouseLook properties
+    ///--------------------------------------------------------------------
 
     public Vector2 Sens
     {
         get { return new Vector2(XSens, YSens); }
     }
 
-    // MouseLook properties
     public bool CursorLock
     {
         get { return cursorLock; }
         set { cursorLock = value; }
     }
 
-    // MouseLook Methods
-    public MouseLook(Transform character, Transform camera, float nX = 0.0f, float nY = 0.0f)
+    ///--------------------------------------------------------------------
+    /// MouseLook methods
+    ///--------------------------------------------------------------------
+
+    public MouseLook(Transform character, Transform camera, float nX, float nY, bool mSmooth = DEF_MSMOOTH, float mSmoothAmt = DEF_MSMOOTH_AMT, bool nLock = true)
     {
-        Init(character, camera, nX, nY);
+        Init(character, camera, nX, nY, mSmooth, mSmoothAmt, nLock);
     }
 
-    public void Init(Transform character, Transform camera, float nX = 0.0f, float nY = 0.0f)
+    public void Init(Transform character, Transform camera, float nX, float nY, bool mSmooth = DEF_MSMOOTH, float mSmoothAmt = DEF_MSMOOTH_AMT, bool nLock = true)
     {
 		if(nX != 0.0f)
 			XSens = nX;
 		if(nY != 0.0f)
 			YSens = nY;
-        smooth = false;
+        smooth = mSmooth;
+        smoothTime = mSmoothAmt;
         m_CharacterTargetRot = character.localRotation;
         m_CameraTargetRot = camera.localRotation;
+        SetCursorLock(nLock);
     }
 
+    public void SetSensitivity(float nSens)
+    {
+        XSens = nSens;
+        YSens = nSens;
+    }
+
+    public void EnableMouseSmooth(bool nSmooth)
+    {
+        smooth = nSmooth;
+    }
+
+    public void SetSmoothAmt(float nAmt)
+    {
+        smoothTime = nAmt;
+    }
 
     public void LookRotation(Transform character, Transform camera)
     {
@@ -148,8 +177,15 @@ public class MouseLook
         }
         else if (Input.GetMouseButtonUp(0))
         {
-            if(UIManager.Instance.ConCanvas != null && !UIManager.Instance.ConCanvas.enabled)
+            if (UIManager.Instance != null)
+            {
+                if (UIManager.Instance.ConCanvas != null && !UIManager.Instance.ConCanvas.activeSelf)
+                    prevLock = true;
+            }
+            else
+            {
                 prevLock = true;
+            }
         }
 
         if (prevLock != CursorLock) 

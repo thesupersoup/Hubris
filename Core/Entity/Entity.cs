@@ -1,27 +1,35 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System;
+using UnityEngine;
 
 namespace Hubris
 {
     /// <summary>
-    /// Abstract class for deriving tangible in-game objects, with virtual Tick() and LateTick() implementation
-    /// </summary>
-    public abstract class Entity : MonoBehaviour, ITickable
+    /// Abstract class for deriving tangible in-game objects, with virtual ITickable and IActivatable implementation
+    /// </summary> 
+    public abstract class Entity : MonoBehaviour, ITickable, IActivatable
     {
-        // Entity instance vars 
+        ///--------------------------------------------------------------------
+        /// Entity instance vars
+        ///--------------------------------------------------------------------
 
-        /*  We want a seperate Active boolean instance var, so we can enable/disable Entities 
-            without enabling/disabling corresponding GameObjects    */
+        /*  We want a seperate Active boolean instance var, so we can enable/disable Hubris 
+         *  functionality without enabling/disabling corresponding GameObjects    
+         */
+
         [SerializeField]
         protected bool _act = true;
         [SerializeField]
         protected string _name;
 
-        // Entity properties
+        protected bool _disposed = false; // Has this Entity had Dispose() called?
+
+        ///--------------------------------------------------------------------
+        /// Entity properties
+        ///--------------------------------------------------------------------
+
         public bool Active
         {
             get { return _act; }
-            set { _act = value; }
         }
 
         public string Name
@@ -30,22 +38,70 @@ namespace Hubris
             set { _name = value; }
         }
 
-        // Entity methods
-        protected virtual void SubTick()    // Subscribe to Tick/LateTick GameManager Actions
+        ///--------------------------------------------------------------------
+        /// Entity methods
+        ///--------------------------------------------------------------------
+
+        /// <summary>
+        /// Enables Hubris functionality
+        /// </summary>
+        public void Activate()
         {
-            if (GameManager.Instance != null)
+            _act = true;
+        }
+
+        /// <summary>
+        /// Disables Hubris functionality
+        /// </summary>
+        public void Deactivate()
+        {
+            _act = false;
+        }
+
+        /// <summary>
+        /// Set whether the Entity is active or not; virtual for unique functionality in derived classes
+        /// </summary>
+        public virtual void SetActive(bool nActive)
+        {
+            if (nActive)
+                Activate();
+            else
+                Deactivate();
+        }
+
+        public virtual void OnEnable()
+        {
+            if (Name != null && Name.Length > 0)
             {
-                GameManager.Instance.AcTick += Tick;
-                GameManager.Instance.AcLateTick += LateTick;
+                // Set the GameObject name to match the Entity name
+                this.gameObject.name = Name;
+            }
+            else
+                Name = this.gameObject.name;
+
+            /* IMPORTANT! */
+            // Include SubTick() in all derived/overridden OnEnable() (or similar) methods for Hubris Tick-based behavior
+            // and include UnsubTick() in CleanUp()
+            SubTick();
+        }
+
+        protected virtual void SubTick()    // Subscribe to ITickable GameManager Actions
+        {
+            if (HubrisCore.Instance != null)
+            {
+                HubrisCore.Instance.AcTick += Tick;
+                HubrisCore.Instance.AcLateTick += LateTick;
+                HubrisCore.Instance.AcFixedTick += FixedTick;
             }
         }
 
-        protected virtual void UnsubTick()  // Unsubscribe to Tick/LateTick GameManager Actions
+        protected virtual void UnsubTick()  // Unsubscribe to ITickable GameManager Actions
         {
-            if (GameManager.Instance != null)
+            if (HubrisCore.Instance != null)
             {
-                GameManager.Instance.AcTick -= Tick;
-                GameManager.Instance.AcLateTick -= LateTick;
+                HubrisCore.Instance.AcTick -= Tick;
+                HubrisCore.Instance.AcLateTick -= LateTick;
+                HubrisCore.Instance.AcFixedTick -= FixedTick;
             }
         }
 
@@ -59,6 +115,32 @@ namespace Hubris
         {
             // To be called in response to GameManager event
             // Override in derived class with unique implementation
+        }
+
+        public virtual void FixedTick()
+        {
+            // To be called in response to GameManager event
+            // Override in derived class with unique implementation
+        }
+
+        public virtual void CleanUp(bool full = true)
+        {
+            if (!this._disposed)
+            {
+                if (full)
+                {
+                    _act = false;
+                    _name = null;
+                }
+
+                UnsubTick();    // Need to Unsubscribe from Tick Event to prevent errors
+                _disposed = true;
+            }
+        }
+
+        public virtual void OnDestroy()
+        {
+            CleanUp(true);
         }
     }
 }

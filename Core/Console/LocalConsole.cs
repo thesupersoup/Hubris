@@ -5,71 +5,66 @@ using UnityEngine;
 
 namespace Hubris
 {
-    public class LocalConsole
+    /// <summary>
+    /// The backend console which processes Commands placed into the queue by the InputManager and calls the appropriate methods
+    /// </summary>
+    public class LocalConsole : LogicalEntity
     {
-        public class Msg
-        {
-            // Msg instance variables
-            private int _id;        // ID # of Msg, for referencing specific Msgs when desired
-            private string _txt;    // The text of the message, to be displayed in the LocalConsole
-            private string _cmd;    // The command which generated the message, for debugging purposes
+        ///--------------------------------------------------------------------
+        /// LocalConsole constants
+        ///--------------------------------------------------------------------
 
-            // Msg properties
-            public int Id
-            {
-                get { return _id; }
-                protected set { _id = value; }  // Set in constructor, not to be changed
-            }
+        public const char HELP_CHAR = '?';  // Character which triggers printing of help text
+        public const int CMD_LIMIT = 16;    // Max number of commands to be processed per Tick
 
-            public string Txt
-            {
-                get { return _txt; }
-                protected set { _txt = value; } // Set in constructor, not to be changed
-            }
+        ///--------------------------------------------------------------------
+        /// LocalConsole instance vars
+        ///--------------------------------------------------------------------
 
-            public string Cmd
-            {
-                get { return _cmd; }
-                protected set { _cmd = value; } // Set in constructor, not to be changed
-            }
-
-            // Msg methods
-            public Msg(int nId, string nTxt, string nCmd)
-            {
-                _id = nId;
-                _txt = nTxt;
-                _cmd = nCmd;
-            }
-        }
-
-        // Console instance vars
-        private bool _ready = false;    // Ready to process commands
-        private List<Msg> _msgList;
-        private int _msgCounter = 0;
-        private List<Command> _cmdQueue;    
+        private bool _ready = false;        // Ready to process commands
+        private SettingsHub _settings;
+        private CmdQueue _cmdQueue;
         private List<string> _cmdData;
         private HubrisPlayer _pScript;
+        private Variable _setVarTemp;       // Temporary holding place for the variable being set with a SetVar command
 
+        ///--------------------------------------------------------------------
+        /// LocalConsole properties
+        ///--------------------------------------------------------------------
 
-        // Console properties
         public bool Ready
         {
             get { return _ready; }
             set { _ready = value; }
         }
 
-        public static LocalConsole Instance
+        public SettingsHub Settings
         {
-            get { return Core.Instance.Console; }    // Moved LocalConsole instance to Core class
-            protected set { }
+            get { return _settings; }
         }
 
-        // Console methods
-        public void Init()
+        public static LocalConsole Instance
         {
-            _msgList = new List<Msg>();
-            _cmdQueue = new List<Command>();
+            get { return HubrisCore.Instance.Console; }    // Moved LocalConsole instance to Core class
+        }
+
+        ///--------------------------------------------------------------------
+        /// LocalConsole methods
+        ///--------------------------------------------------------------------
+
+        public override void Init()
+        {
+            if (HubrisCore.Instance == null || HubrisCore.Instance.Console != this)
+            {
+                return;
+            }
+
+            SubTick();
+
+            _settings = new SettingsHub();
+            _cmdQueue = new CmdQueue();
             _cmdData = new List<string>();
+            _setVarTemp = Settings.None;
 
             if (HubrisPlayer.Instance != null)
             {
@@ -78,28 +73,40 @@ namespace Hubris
             }
             else
             {
-                if(Core.Instance.Debug)
-                    LogError("LocalConsole OnEnable(): Player.Instance is null", true);
+                if(HubrisCore.Instance.Debug)
+                    Log("LocalConsole OnEnable(): Waiting for Player.Instance...", true);
 
                 _pScript = null;
             }
         }
 
-        private void ProcessCommands()
+        private void ProcessInstructions()
         {
-            if (_cmdQueue != null && _cmdQueue.Count > 0)
+            if (_cmdQueue.HasNodes())
             {
-                for(int i = 0; i < _cmdQueue.Count; i++)
+                for(int i = 0; i < CMD_LIMIT && _cmdQueue.HasNodes(); i++)
                 {
-                    Command cmd = _cmdQueue[i];
+                    Command cmd = _cmdQueue.Dequeue(out string data);
 
                     switch (cmd.Type)
                     {
-                        case Command.CmdType.InteractA:
-                            HubrisPlayer.Instance.InteractA();
+                        case Command.CmdType.Interact0:
+                            HubrisPlayer.Instance.Interact0();
                             break;
-                        case Command.CmdType.InteractB:
-                            HubrisPlayer.Instance.InteractB();
+                        case Command.CmdType.Interact1:
+                            HubrisPlayer.Instance.Interact1();
+                            break;
+                        case Command.CmdType.Slot1:
+                            HubrisPlayer.Instance.SetActiveSlot(0);
+                            break;
+                        case Command.CmdType.Slot2:
+                            HubrisPlayer.Instance.SetActiveSlot(1);
+                            break;
+                        case Command.CmdType.Slot3:
+                            HubrisPlayer.Instance.SetActiveSlot(2);
+                            break;
+                        case Command.CmdType.Slot4:
+                            HubrisPlayer.Instance.SetActiveSlot(3);
                             break;
                         case Command.CmdType.Submit:
                             UIManager.Instance.ConsoleSubmitInput();
@@ -116,15 +123,32 @@ namespace Hubris
                         case Command.CmdType.MoveR:
                             HubrisPlayer.Instance.Move(InputManager.Axis.X, 1.0f);
                             break;
-                        case Command.CmdType.Jump:
-                            if(HubrisPlayer.Instance.Grounded)
-                                HubrisPlayer.Instance.PhysImpulse(Vector3.up * HubrisPlayer.Instance.JumpSpd);
+                        case Command.CmdType.Jump:  // Only valid for PType FPS
+                            if (HubrisPlayer.Instance.PlayerType == (byte)HubrisPlayer.PType.FPS)
+                            {
+                                HubrisPlayer.Instance.SpecMove(HubrisPlayer.SpecMoveType.JUMP, InputManager.Axis.Y, HubrisPlayer.Instance.Movement.JumpSpd);
+                            }
+                            break;
+                        case Command.CmdType.RunHold:
+                            HubrisPlayer.Instance.SetSpeedTarget(HubrisPlayer.Instance.Movement.SpeedHigh);
                             break;
                         case Command.CmdType.Console:
                             UIManager.Instance.ConsoleToggle();
                             break;
                         case Command.CmdType.ConClear:
                             UIManager.Instance.ConsoleClear();
+                            break;
+                        case Command.CmdType.SetVar:
+                            if(data != null)
+                                ProcessSetVar(data);
+                            else
+                                DisplayVarHelp(Settings.None);
+                            break;
+                        case Command.CmdType.PrevCmd:
+                            UIManager.Instance.CheckPrevCmd();
+                            break;
+                        case Command.CmdType.NextCmd:
+                            UIManager.Instance.CheckNextCmd();
                             break;
                         case Command.CmdType.RotLeft:
                             HubrisPlayer.Instance.Rotate(InputManager.Axis.Y, -1.0f);
@@ -133,35 +157,48 @@ namespace Hubris
                             HubrisPlayer.Instance.Rotate(InputManager.Axis.Y, 1.0f);
                             break;
                         case Command.CmdType.Net_Send:
-                            HubrisPlayer.Instance.SendData(_cmdQueue[i].Data);
+                        case Command.CmdType.Net_Send_Tcp:
+                        case Command.CmdType.Net_Send_Udp:
+                            bool reliable;
+
+                            if (cmd.Type == Command.CmdType.Net_Send_Udp)
+                                reliable = false;
+                            else
+                                reliable = true;
+
+                            if (data != null)
+                                SendData(data, reliable);
+                            else
+                                Log("Data to send is null");
+                            break;
+                        case Command.CmdType.Net_Connect:
+                            if (data != null)
+                                ConnectToIp(data);
+                            else
+                                Log("No IP address specified");
+                            break;
+                        case Command.CmdType.Net_Disconnect:
+                            Disconnect();
                             break;
                         case Command.CmdType.Version:
-                            Core.Instance.VersionPrint();
-                            break;
-                        case Command.CmdType.Debug:
-                            Core.Instance.DebugToggle();
-                            UIManager.Instance.DevToggle();
+                            HubrisCore.Instance.VersionPrint();
                             break;
                         case Command.CmdType.Net_Info:
-                            Core.Instance.NetInfoPrint();
+                            HubrisCore.Instance.NetInfoPrint();
                             break;
                         default:
                             break;
                     }
-
-                    cmd.ClearData();    // Clear out data from processed commands
                 }
 
-                _cmdQueue.Clear();      // Clear out cmdQueue for next update
+                if (HubrisCore.Instance.Debug)
+                {
+                    int left = _cmdQueue.NumNodes();    // Check if there's anything left in the queue
+
+                    if (left > 0)
+                        Debug.Log("LocalConsole ProcessInstructions(): Left in InsQueue: " + left);
+                }
             }
-        }
-
-        private void ProcessMessages()
-        {
-            if(UIManager.Instance != null && _msgList != null && _msgList.Count > 0)
-                UIManager.Instance.AddConsoleText(_msgList.ToArray());
-
-            _msgList.Clear();
         }
 
         public bool ProcessInput(string nIn)
@@ -169,49 +206,47 @@ namespace Hubris
             bool success = false;
             string[] strArr;
 
-            if (Core.Instance.Debug)
-                Log("LocalConsole ProcessInput(): Processing input \'" + nIn + "\'");
+            Log(nIn);
 
             if (nIn != null)
             {
                 strArr = nIn.Split(new char[] { ' ' }, 2); // Split at whitespace, max two strings (Cmd and data)
 
+                if(UIManager.Instance != null)
+                {
+                    UIManager.Instance.AddInput(nIn);
+                }
+
                 if (strArr != null && strArr.Length > 0)
                 {
-                    Command temp = Command.CheckCmdName(strArr[0]);
+                    Command temp = Command.GetCmdByName(strArr[0]);
+                    string data = null;
 
                     if (temp != Command.None)
                     {
-                        success = true;
-
                         if (strArr.Length > 1)
-                        {
-                            temp.SetData(strArr[1]);    // Assume the other string in the array is the data
-                            if (Core.Instance.Debug)
-                                Log("Calling " + temp.CmdName + " with data " + temp.Data);
-                        }
-                        else
-                        {
-                            if (Core.Instance.Debug)
-                                Log("Calling " + temp.CmdName);
-                        }
+                            data = strArr[1];
 
-                        if (temp.CmdName != Command.ConClear.CmdName)
-                        {
-                            if (temp.Data == null)
-                                Log(temp.CmdName);
-                            else
-                                Log(temp.CmdName + ": " + temp.Data);
-                        }
-
-                        AddToQueue(temp);
+                        success = true;
+                        AddToQueue(temp, data);
                     }
                     else
                     {
-                        if (Core.Instance.Debug)
-                            Log("LocalConsole ProcessInput(): Unrecognized command \'" + strArr[0] + "\'");
+                        _setVarTemp = Settings.GetVarByName(strArr[0]);
+                        if (_setVarTemp != Settings.None)
+                        {
+                            temp = Command.GetCommand(Command.CmdType.SetVar);
+
+                            success = true;
+                            AddToQueue(temp, nIn);
+                        }
                         else
-                            Log("Unrecognized command \"" + strArr[0] + "\"");
+                        {
+                            if (HubrisCore.Instance.Debug)
+                                Log("LocalConsole ProcessInput(): Unrecognized command \'" + strArr[0] + "\'", true);
+                            else
+                                Log("Unrecognized command \'" + strArr[0] + "\'");
+                        }
                     }
                 }
             }
@@ -219,109 +254,233 @@ namespace Hubris
             return success;
         }
 
-        public void AddToQueue(Command nAdd, string nData = null)
+        public void ProcessSetVar(string data)
         {
-            if (nData != null)
-                nAdd.SetData(nData);
+            string[] strArr = null;
 
-            _cmdQueue.Add(nAdd);
+            if (data != null)
+                strArr = data.Split(new char[] { ' ' }); // Split at whitespace
+            else
+                strArr = null;
+
+            if (strArr != null)
+            {
+                if (strArr.Length >= 2) // One string for the variable, one for the value
+                {
+                    if (_setVarTemp == Settings.None)   // If _setVarTemp hasn't been set yet, try to set it
+                        _setVarTemp = Settings.GetVarByName(strArr[0]);
+
+                    if (strArr[1] != null && strArr[1][0] != HELP_CHAR)
+                    {
+                        Settings.PushChanges(_setVarTemp.Type, strArr[1]);
+                        if (!Settings.GetVariable(_setVarTemp.Type).Dirty)
+                            Log("Invalid value [" + strArr[1] + "] provided for variable " + _setVarTemp.Name);
+                        else
+                            Settings.UpdateDirtyVar(_setVarTemp.Type);
+                    }
+                    else
+                        DisplayVarHelp(_setVarTemp);
+                }
+                else if (strArr.Length == 1)    // Only the value provided
+                {
+                    switch (_setVarTemp.DataType)
+                    {
+                        case Variable.VarData.BOOL:
+                            Settings.PushChanges(_setVarTemp.Type, !(bool)_setVarTemp.Data);   // Toggle if boolean
+                            if (!Settings.GetVariable(_setVarTemp.Type).Dirty)
+                                Log("Could not toggle variable " + _setVarTemp.Name);
+                            else
+                                Settings.UpdateDirtyVar(_setVarTemp.Type);
+                            break;
+                        default:
+                            Log("Invalid variable (or no value provided): " + strArr[0]);
+                            break;
+                    }
+                }
+                else
+                    Log("Unexpected data length");
+            }
+            else
+                Log("Invalid data");
+
+            _setVarTemp = Settings.None;    // Reset temp variable
         }
 
-        // Tick is called once per frame with MonoBehaviour.Update()
-        public new void Tick()
+        public void SendData(string nData, bool reliable)
         {
-            if (Ready)
-                ProcessCommands();
+            if (reliable)
+            {
+                if (HubrisNet.Instance != null)
+                    HubrisNet.Instance.SendMsgTcp(nData);
+            }
             else
             {
+                if (HubrisNet.Instance != null)
+                    HubrisNet.Instance.SendMsgUdp(nData);
+            }
+        }
 
-                if (HubrisPlayer.Instance != null)
+        public void ConnectToIp(string nData)
+        {
+            if(HubrisNet.Instance != null)
+            {
+                HubrisNet.Instance.ConnectToRemote(nData);
+            }
+        }
+
+        public void Disconnect()
+        {
+            if(HubrisNet.Instance != null)
+            {
+                HubrisNet.Instance.Disconnect();
+            }
+        }
+
+        public void AddToQueue(Command nAdd, string nData = null)
+        {
+            if (Active && Ready)
+                _cmdQueue.Enqueue(nAdd, nData);
+            else
+                Log("Attempted to add a command into the queue of LocalConsole when inactive/not ready");
+        }
+
+        // FixedTick is called once per fixed time interval with MonoBehaviour.FixedUpdate()
+        public override void FixedTick()
+        {
+            if (Active && Ready)
+                ProcessInstructions();
+            else
+            {
+                if (_pScript == null && HubrisPlayer.Instance != null)
                 {
                     _pScript = HubrisPlayer.Instance;
-                    if (Core.Instance.Debug)
+                    Settings.UpdateAllDirtyVars();
+                    if (HubrisCore.Instance.Debug)
                         Log("LocalConsole Update(): FPSControl.Player found, setting Ready = true", true);
                     Ready = true;
                 }
             }
         }
 
-        // LateTick is called once per frame after Update() with MonoBehaviour.LateUpdate()
-        public new void LateTick()
+        public void Log(string msg, bool unity = false)
         {
-            if (Ready)
-                ProcessMessages();
-        }
-
-        public void AddMsg(Msg nMsg)
-        {
-            if(_msgList != null)
-                _msgList.Add(nMsg);
-        }
-
-        public void Log(string msg, bool unity = false, Command cmd = null)
-        {
-            if (Instance != null)
+            if (Active)
             {
                 if (msg != null)
                 {
-                    string cmdName = null;
-                    if (cmd != null)
-                        cmdName = cmd.CmdName;
-
-                    AddMsg(new Msg(_msgCounter, msg, cmdName));
+                    if (UIManager.Instance != null)
+                    {
+                        UIManager.Instance.AddMsg(msg);
+                    }
 
                     if (unity)
                         UnityEngine.Debug.Log(msg);
-
-                    _msgCounter++;
                 }
             }
             else
                 UnityEngine.Debug.Log(msg);
         }
 
-        public void LogWarning(string msg, bool unity = false, Command cmd = null)
+        public void LogWarning(string msg, bool unity = false)
         {
-            if (Instance != null)
+            if (Active)
             {
                 if (msg != null)
                 {
-                    string cmdName = null;
-                    if (cmd != null)
-                        cmdName = cmd.CmdName;
-
-                    AddMsg(new Msg(_msgCounter, "*WARNING* " + msg, cmdName));
+                    if (UIManager.Instance != null)
+                    {
+                        UIManager.Instance.AddMsg("*WARNING* " + msg);
+                    }
 
                     if (unity)
                         UnityEngine.Debug.LogWarning(msg);
-
-                    _msgCounter++;
                 }
             }
             else
                 UnityEngine.Debug.LogWarning(msg);
         }
 
-        public void LogError(string msg, bool unity = false, Command cmd = null)
+        public void LogError(string msg, bool unity = false)
         {
-            if (Instance != null)
+            if (Active)
             {
                 if (msg != null)
                 {
-                    string cmdName = null;
-                    if (cmd != null)
-                        cmdName = cmd.CmdName;
-
-                    AddMsg(new Msg(_msgCounter, "*ERROR* " + msg, cmdName));
+                    if (UIManager.Instance != null)
+                    {
+                        UIManager.Instance.AddMsg("*ERROR* " + msg);
+                    }
 
                     if (unity)
                         UnityEngine.Debug.LogError(msg);
-
-                    _msgCounter++;
                 }
             }
             else
                 UnityEngine.Debug.LogError(msg);
+        }
+
+        public void DisplayVarHelp(Variable nVar)
+        {
+            string helpStr = "";
+
+            switch(nVar.Type)
+            {
+                case Variable.VarType.Sens:
+                    helpStr += "Mouse sensitivity, both X and Y";
+                    break;
+                case Variable.VarType.Useaccel:
+                    helpStr += "Enable acceleration values for player movement";
+                    break;
+                case Variable.VarType.Debug:
+                    helpStr += "Enable debug mode and verbose console logging";
+                    break;
+                default:
+                    helpStr += "Enter a variable name and value (e.g. \"setvar sens 1.5\")";
+                    break;
+            }
+
+            if (nVar.Type != Variable.VarType.None)
+            {
+                helpStr += " "; // Add space before data type
+
+                switch (nVar.DataType)
+                {
+                    case Variable.VarData.BOOL:
+                        helpStr += "[Boolean]";
+                        break;
+                    case Variable.VarData.FLOAT:
+                        helpStr += "[Float]";
+                        break;
+                    case Variable.VarData.INT:
+                        helpStr += "[Integer]";
+                        break;
+                    case Variable.VarData.STRING:
+                        helpStr += "[String]";
+                        break;
+                    case Variable.VarData.OBJECT:
+                        helpStr += "[Object]";
+                        break;
+                }
+            }
+
+            Log(helpStr);
+        }
+
+        public override void CleanUp(bool full = true)
+        {
+            if (!this._disposed)
+            {
+                if (full)
+                {
+                    _act = false;
+                    _name = null;
+                }
+
+                _pScript = null;
+
+                UnsubTick();    // Need to Unsubscribe from Tick Event to prevent errors
+                _disposed = true;
+            }
         }
     }
 }

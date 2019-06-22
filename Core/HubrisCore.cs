@@ -41,7 +41,7 @@ namespace Hubris
         ///--------------------------------------------------------------------
 
         [SerializeField]
-        private string _version = "v0.0.9";
+        private string _version = "v0.1.0";
         [SerializeField]
         private string _netLibType = "Telepathy.Client";    // Fully qualified networking class name
         [SerializeField]

@@ -21,7 +21,7 @@ namespace Hubris
         {
             get { return _key; }
         }
-
+       
         public Command Cmd
         {
             get { return _cmd; }

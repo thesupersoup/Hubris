@@ -69,5 +69,17 @@ namespace Hubris
             _moving = false;
         }
 
+        public virtual bool TryUse()
+        {
+            if (Active)
+                return true;
+            else
+                return false;
+        }
+
+        public virtual void OnUse()
+        {
+
+        }
     }
 }

@@ -40,6 +40,9 @@ namespace Hubris
             // Player settings 
             Sens,
             MSmooth,
+			AlwaysRun,
+			VolMaster,
+			VolMusic,
 
             // Dev settings
             Useaccel,

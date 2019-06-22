@@ -1,7 +1,7 @@
 ﻿namespace Hubris
 {
     /// <summary>
-    /// Interface for Entities that are to be incremented and decremented
+    /// Interface for objects that count things
     /// </summary>
     interface ICounter
     {

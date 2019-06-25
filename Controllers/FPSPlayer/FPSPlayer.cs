@@ -11,7 +11,7 @@ namespace Hubris
 		/// FPSPlayer instance vars
 		///--------------------------------------------------------------------
 
-		private bool _jumping = false;
+		private static bool _jumping = false;
 
 		[Header("FPSPlayer variables")]
 		[SerializeField]
@@ -31,8 +31,6 @@ namespace Hubris
 		[Range(0.0f, MoveParams.MAX_RANGE)]
 		protected float _stickiness = 0.55f;
 
-		[SerializeField]
-		protected WeaponManager _weaponMgr = new WeaponManager();
 
 		// Test variables
 		[SerializeField]
@@ -72,12 +70,6 @@ namespace Hubris
 			protected set { _stickiness = value; }
 		}
 
-		public WeaponManager WeaponMgr
-		{
-			get { return _weaponMgr; }
-			protected set { _weaponMgr = value; }
-		}
-
 		///--------------------------------------------------------------------
 		/// FPSPlayer methods
 		///--------------------------------------------------------------------
@@ -99,7 +91,9 @@ namespace Hubris
 		{
 			if (Instance == this)
 			{
-				PlayerType = (byte)PType.FPS;
+				PlayerType = PType.FPS;
+
+				base.Init();
 
 				if (_gObj == null)
 					_gObj = this.gameObject;
@@ -112,8 +106,6 @@ namespace Hubris
 
 				if (_pCam == null)
 					_pCam = GetComponent<Camera>();
-
-				base.Init();
 
 				if (_gObj != null && _pCon != null && _pBod != null && _pCam != null)
 				{
@@ -394,11 +386,6 @@ namespace Hubris
 			ProcessDeltas();
 
 			_prevGrounded = _pCon.isGrounded;
-		}
-
-		public override void AnimEventHandler(int nEvent)
-		{
-
 		}
 
 		// Update is called once per frame

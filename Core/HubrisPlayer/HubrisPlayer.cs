@@ -7,14 +7,11 @@ namespace Hubris
 {
 	public abstract class HubrisPlayer : LiveEntity
 	{
-		///--------------------------------------------------------------------
-		/// HubrisPlayer constants
-		///--------------------------------------------------------------------
-
+		// HubrisPlayer constants
 		public const float DIST_CHK_GROUND = 2.0f, ACCEL_THRESHOLD = 0.1f, DOT_THRESHOLD = -0.75f;
 
 		// Player Type; whether First Person, Free Look, or others
-		public enum PType { NONE = 0, FPS, FL, RTS, NUM_TYPES };       
+		public enum PType { NONE = 0, FPS, FL, RTS, NUM_TYPES };
 
 		// Special Movement Type
 		public enum SpecMoveType { NONE = 0, JUMP, CROUCH, NUM_TYPES}
@@ -45,16 +42,13 @@ namespace Hubris
 			}
 		}
 
-		///--------------------------------------------------------------------
-		/// HubrisPlayer instance vars
-		///--------------------------------------------------------------------
-
 		// Player states, use properties to interact
 		protected bool _canModSpdTgt = true;
 		protected bool _prevGrounded = false;
 		protected bool _moving = false;
 		protected bool _fastMove = false;
 
+		// Player instance variables
 		[Header("Player type and components")]
 		[SerializeField]
 		protected PType _pType = PType.FPS;
@@ -78,27 +72,14 @@ namespace Hubris
 		[SerializeField]
 		protected float _mSmoothAmt = 1.0f;
 
-		[Header("Additional settings")]
 		[SerializeField]
 		protected MoveParams _moveParams = null;
-		[SerializeField]
-		protected Inventory _inv = new Inventory();
-		[SerializeField]
-		protected bool _alwaysRun = false;
-		[SerializeField]
-		[Tooltip("Master volume level")]
-		[Range(0.0f, 1.0f)]
-		protected float _volMaster;
-		[SerializeField]
-		[Tooltip("Music volume level")]
-		[Range(0.0f, 1.0f)]
-		protected float _volMusic;
-
 
 		protected float _spd = 0.0f;
 		protected float _spdTar = 0.0f;
 
-		protected PlayerEffects _effects;
+		[SerializeField]
+		protected Inventory _inv = new Inventory();
 
 		protected PlayerState _pState = new PlayerState();
 		protected Vector3 _gravVector = Vector3.zero;
@@ -108,62 +89,51 @@ namespace Hubris
 		protected RaycastHit _grndChk;
 		protected float _slopeChk;
 		protected float _fallAng = 59.0f;   // The angle of the slope at which the player can no longer walk forward or jump
-		protected static InputManager _im = null;
 		protected static MouseLook _mLook = null;
 
-		///--------------------------------------------------------------------
-		/// HubrisPlayer properties
-		///--------------------------------------------------------------------
+		// Player properties
+		public Camera PlayerCam => _pCam;
 
-		public Camera PlayerCam
-		{ get { return _pCam; } protected set { _pCam = value; } }
-
-		public MoveParams Movement
-		{ get { return _moveParams; } protected set { _moveParams = value; } }
-
-		public bool AlwaysRun
-		{ get { return _alwaysRun; } set { _alwaysRun = value; } }
-
-		public float VolMaster
-		{ get { return _volMaster; } set { _volMaster = value; } }
-
-		public float VolMusic
-		{ get { return _volMusic; } set { _volMusic = value; } }
+		public MoveParams Movement => _moveParams;
 
 		public float Speed
-		{ get { return _spd; } protected set { _spd = value; } }
+		{
+			get { return _spd; }
+			protected set { _spd = value; }
+		}
 
 		public float SpeedTarget
-		{ get { return _spdTar; } protected set { _spdTar = value; } }
+		{
+			get { return _spdTar; }
+			protected set { _spdTar = value; }
+		}
 
 		public Inventory PlayerInv
-		{ get { return _inv; } protected set { _inv = value; } }
-
-		public PlayerEffects Effects
-		{ get { return _effects; } protected set { _effects = value; } }
+		{
+			get { return _inv; }
+		}
 
 		public PlayerState State
-		{ get { return _pState; } protected set { _pState = value; } }
+		{
+			get { return _pState; }
+		}
 
-		public bool IsGrounded
-		{ get { return _pCon.isGrounded; } }
+		public bool IsGrounded => _pCon.isGrounded;
 
 		public Vector3 Velocity
-		{ get {  if(_pBod != null) { return _pBod.velocity; } else { return Vector3.zero; } } }
-
-		public byte PlayerType
 		{
-			get { return (byte)_pType; }
+			get {  if(_pBod != null) { return _pBod.velocity; } else { return Vector3.zero; } }
+		}
+
+		public PType PlayerType
+		{
+			get { return _pType; }
 			protected set
 			{
-				if (value > (byte)PType.NONE && value < (byte)PType.NUM_TYPES)
-				{
-					_pType = (PType)value;
-				}
+				if (value > PType.NONE && value < PType.NUM_TYPES)
+					_pType = value;
 				else
-				{
 					_pType = PType.FPS;
-				}
 			}
 		}
 
@@ -200,13 +170,7 @@ namespace Hubris
 			}
 		}
 
-		public static InputManager Input
-		{ get { return _im; } protected set { _im = value; } }
-
-		///--------------------------------------------------------------------
-		/// HubrisPlayer methods
-		///--------------------------------------------------------------------
-
+		// Player methods
 		public abstract void Interact0();
 		public abstract void Interact1();
 		public abstract void Move(InputManager.Axis ax, float val);
@@ -215,22 +179,8 @@ namespace Hubris
 
 		protected override void Init()
 		{
-			if (PlayerCam == null)
-			{
-				PlayerCam = this.gameObject.GetComponent<Camera>();
-				if (PlayerCam == null)
-					LocalConsole.Instance.LogError("Player camera not found", true);
-			}
-
-			if (PlayerCam != null)
-			{
-				Effects = new PlayerEffects(PlayerCam);
-			}
-
 			EntType = LiveEntity.EType.PLAYER;
 			Stats = EntStats.Create(EntType);
-			Input = new InputManager();
-			Input.Init(_pType);
 			SpeedTarget = Movement.SpeedLow;
 		}
 
@@ -318,11 +268,6 @@ namespace Hubris
 			_prevGrounded = _pCon.isGrounded;
 		}
 
-		public virtual void AnimEventHandler(int nEvent)
-		{
-			// Override with unique animation events in derived classes
-		}
-
 		protected void UpdateMouse()
 		{
 			if (_mLook.CursorLock)
@@ -348,23 +293,17 @@ namespace Hubris
 
 		protected virtual void Update()
 		{
-			/* IMPORTANT! */
-			// Include InputManager.Update() in all derived/overridden Update() methods or call base.Update()
-			_im.Update(); 
+			
 		}
 
 		protected virtual void LateUpdate()
 		{
-			/* IMPORTANT! */
-			// Include InputManager.LateUpdate() in all derived/overridden Update() methods or call base.LateUpdate()
-			_im.LateUpdate();
+			
 		}
 
 		protected virtual void FixedUpdate()
 		{
-			/* IMPORTANT! */
-			// Include InputManager.FixedUpdate() in all derived/overridden Update() methods or call base.FixedUpdate()
-			_im.FixedUpdate();
+			
 		}
 
 		public override void CleanUp(bool full = true)
@@ -376,7 +315,6 @@ namespace Hubris
 				if (full)
 				{
 					Instance = null;
-					Input = null;
 					_mLook = null;
 					_gObj = null;
 					_pCon = null;

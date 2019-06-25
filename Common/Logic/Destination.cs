@@ -4,46 +4,46 @@ using UnityEngine;
 
 namespace Hubris
 {
-    /// <summary>
-    /// Represents a destination to satisfy an Objective
-    /// </summary>
-    [RequireComponent(typeof(Collider))]
-    public class Destination : InterestPoint
-    {
-        ///--------------------------------------------------------------------
-        /// Destination instance vars
-        ///--------------------------------------------------------------------
+	/// <summary>
+	/// Represents a destination to satisfy an Objective
+	/// </summary>
+	[RequireComponent(typeof(Collider))]
+	public class Destination : InterestPoint
+	{
+		///--------------------------------------------------------------------
+		/// Destination instance vars
+		///--------------------------------------------------------------------
 
-        [SerializeField]
-        private Collider _trigger = null;
+		[SerializeField]
+		private Collider _trigger = null;
 
-        ///--------------------------------------------------------------------
-        /// Destination properties
-        ///--------------------------------------------------------------------  
+		///--------------------------------------------------------------------
+		/// Destination properties
+		///--------------------------------------------------------------------  
 
-        public Collider Trigger
-        {
-            get { return _trigger; }
-        }
+		public Collider Trigger
+		{
+			get { return _trigger; }
+		}
 
-        ///--------------------------------------------------------------------
-        /// Destination methods
-        ///--------------------------------------------------------------------
+		///--------------------------------------------------------------------
+		/// Destination methods
+		///--------------------------------------------------------------------
 
-        void OnTriggerStay(Collider other)
-        {
-            if (Active)
-            {
-                LiveEntity ent = other.gameObject.GetComponent<LiveEntity>();
-                if (ent != null)
-                {
-                    if (ent.EntType == LiveEntity.EType.PLAYER)
-                    {
-                        NotifyObservers(true);
-                        Deactivate();
-                    }
-                }
-            }
-        }
-    }
+		void OnTriggerStay(Collider other)
+		{
+			if (Active)
+			{
+				LiveEntity ent = other.gameObject.GetComponent<LiveEntity>();
+				if (ent != null)
+				{
+					if (ent.EntType == LiveEntity.EType.PLAYER)
+					{
+						NotifyObservers(true);
+						Deactivate();
+					}
+				}
+			}
+		}
+	}
 }

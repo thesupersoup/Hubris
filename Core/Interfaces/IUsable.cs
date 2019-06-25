@@ -1,13 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-namespace Hubris
+﻿namespace Hubris
 {
-    interface IUsable
-    {
-        // IUsable methods
-        bool TryUse();
-        void OnUse();
-    }
+	interface IUsable
+	{
+		// IUsable methods
+		bool TryUse();
+		void OnUse();
+	}
 }

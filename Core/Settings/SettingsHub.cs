@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using static Hubris.Variable;
 
 namespace Hubris
@@ -22,8 +20,8 @@ namespace Hubris
 
 		public const int MIN_STRING_SIZE = 4;
 
-		public const float DEF_SENS = 1.0f, DEF_VOLMASTER = 1.0f, DEF_VOLMUSIC = 1.0f;
-		public const bool DEF_MSMOOTH = false, DEF_ALWAYSRUN = false, DEF_USEACCEL = true, DEF_DEBUG = false;
+		public const float DEF_SENS = 1.0f;
+		public const bool DEF_MSMOOTH = false, DEF_USEACCEL = true, DEF_DEBUG = false;
 		#endregion Constants
 
 		#region VariableArray
@@ -45,9 +43,6 @@ namespace Hubris
 			// Player settings
 			vars[(int)VarType.Sens] = new Variable("sensitivity", VarData.FLOAT, VarType.Sens, DEF_SENS);
 			vars[(int)VarType.MSmooth] = new Variable("msmooth", VarData.BOOL, VarType.MSmooth, DEF_MSMOOTH);
-			vars[(int)VarType.AlwaysRun] = new Variable("alwaysrun", VarData.BOOL, VarType.AlwaysRun, DEF_ALWAYSRUN);
-			vars[(int)VarType.VolMaster] = new Variable("vol", VarData.FLOAT, VarType.VolMaster, DEF_VOLMASTER);
-			vars[(int)VarType.VolMusic] = new Variable("volmusic", VarData.FLOAT, VarType.VolMusic, DEF_VOLMUSIC);
 
 			// Dev settings
 			vars[(int)VarType.Useaccel] = new Variable("useaccel", VarData.BOOL, VarType.Useaccel, DEF_USEACCEL);
@@ -78,21 +73,6 @@ namespace Hubris
 		public Variable MSmooth
 		{
 			get { return varArr[(int)VarType.MSmooth]; }
-		}
-
-		public Variable AlwaysRun
-		{
-			get { return varArr[(int)VarType.AlwaysRun]; }
-		}
-
-		public Variable VolMaster
-		{
-			get { return varArr[(int)VarType.VolMaster]; }
-		}
-
-		public Variable VolMusic
-		{
-			get { return varArr[(int)VarType.VolMusic]; }
 		}
 
 		public Variable Useaccel
@@ -184,15 +164,6 @@ namespace Hubris
 							break;
 						case VarType.MSmooth:
 							HubrisPlayer.Instance.MSmooth = (bool)varArr[index].Data;
-							break;
-						case VarType.AlwaysRun:
-							HubrisPlayer.Instance.AlwaysRun = (bool)varArr[index].Data;
-							break;
-						case VarType.VolMaster:
-							HubrisPlayer.Instance.VolMaster = (float)varArr[index].Data;
-							break;
-						case VarType.VolMusic:
-							HubrisPlayer.Instance.VolMusic = (float)varArr[index].Data;
 							break;
 						case VarType.Useaccel:
 							HubrisPlayer.Instance.Movement.SetUseAccel((bool)varArr[index].Data);

@@ -51,7 +51,10 @@ namespace Hubris
 
         private object _lock = new object();    // Threadsafe lock object
 
-        public MagQueue()
+		public bool HasNodes() => _head != null;
+		public int NumNodes() => _count;
+
+		public MagQueue()
         {
             _count = 0;
         }
@@ -93,17 +96,6 @@ namespace Hubris
 
                 return tempNode?.Mag ?? new Magazine(0,0);  // Return empty mag if nothing found
             }
-        }
-
-        // Check if the queue has any nodes waiting
-        public bool HasNodes()
-        {
-            return _head != null;
-        }
-
-        public int NumNodes()
-        {
-            return _count;
         }
     }
 }

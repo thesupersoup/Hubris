@@ -4,21 +4,23 @@ using UnityEngine;
 
 namespace Hubris
 {
-    public class BNpcDead : BNpcBase
-    {
-        // Singleton instance of this class
-        public readonly static BNpcDead Instance = new BNpcDead();
+	public class BNpcDead : BNpcBase
+	{
+		// Singleton instance of this class
+		public readonly static BNpcDead Instance = new BNpcDead();
 
-        public override void Invoke(Npc a)
-        {
-            SetAnimBool(a, "isDead", true);
+		public override void Invoke( BhvTree b, Npc a )
+		{
+			SetAnimBool(a, "isDead", true);
 
-            if (!a.Stats.IsDead)
-            {
-                SetAnimBool(a, "isDead", false);
-                ChangeBranch(a, BNpcIdle.Instance);
-                return;
-            }
-        }
-    }
+			if (!a.Stats.IsDead)
+			{
+				SetAnimBool(a, "isDead", false);
+				Status = BhvStatus.FAILURE;
+				return;
+			}
+
+			Status = BhvStatus.SUCCESS;
+		}
+	}
 }

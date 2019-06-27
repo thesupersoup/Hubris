@@ -25,6 +25,8 @@ namespace Hubris
 
 		[SerializeField]
 		private BhvTree _bhvTree = new BhvTree( BNpcIdle.Instance );
+		[SerializeField]
+		private FOV _fov;
 
 		private List<LiveEntity> _trackList = new List<LiveEntity>(), 
 								_removeList = new List<LiveEntity>();
@@ -40,6 +42,22 @@ namespace Hubris
 			{ return _bhvTree; }
 			protected set
 			{ _bhvTree = value; }
+		}
+
+		public FOV ViewCone
+		{
+			get
+			{ return _fov; }
+			protected set
+			{ _fov = value; }
+		}
+
+		public FOVDegrees ViewConeAngle
+		{
+			get
+			{ return ViewCone.Degrees; }
+			protected set
+			{ ViewCone.Degrees = value; }
 		}
 
 		public Animator Anim
@@ -96,8 +114,10 @@ namespace Hubris
 		/// Npc Methods
 		///--------------------------------------------------------------------
 
-		void OnEnable()
+		public override void OnEnable()
 		{
+			base.OnEnable();
+
 			if (NavAgent == null)
 			{
 				NavAgent = GetComponent<NavMeshAgent>();
@@ -112,11 +132,10 @@ namespace Hubris
 					Debug.Log(this.gameObject.name + " doesn't have an Animator!");
 			}
 
+			ViewCone = new FOV( this.transform.forward, _aiParams.FOV );
+
 			EntType = LiveEntity.EType.ENEMY;
 			Stats = EntStats.Create(EntType);
-
-			// Temporary name assignment
-			Name = this.gameObject.name;
 		}
 
 		public void SetTargetObj(GameObject obj)
@@ -140,14 +159,16 @@ namespace Hubris
 
 		}
 
-		void Update()
+		public override void Tick()
 		{
-			
+
 		}
 
 		void FixedUpdate()
 		{
 			Behavior.Invoke( this );
+
+			ViewCone.UpdateVectors( this.transform.forward );
 		}
 
 		void LateUpdate()

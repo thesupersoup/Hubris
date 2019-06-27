@@ -55,9 +55,7 @@ namespace Hubris
 		public override void Init()
 		{
 			if (HubrisCore.Instance == null || HubrisCore.Instance.Console != this)
-			{
 				return;
-			}
 
 			SubTick();
 

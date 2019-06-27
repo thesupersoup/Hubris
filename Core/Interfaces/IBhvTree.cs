@@ -5,7 +5,9 @@
 	/// </summary>
 	public interface IBhvTree
 	{
-		void ChangeBranch( IBhvBranch b );
+		BhvStatus Status { get; }
+		void SetStatus( BhvStatus s );
+		void ChangeBranch( IBhvNode n, Npc a );
 		void Invoke( Npc a );
 	}
 }

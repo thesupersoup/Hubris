@@ -29,7 +29,7 @@ MonoBehaviour:
   _proxPct: 0.8
   _rotSpd: 0.065
   _rotAngle: 0.25
-  _animDelay: 5
+  _fov: 2
   _atkInit: 0.6
   _atkEnd: 1.8
   _awareMod: 1

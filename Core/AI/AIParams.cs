@@ -109,6 +109,8 @@ namespace Hubris
 		[Range(0.0f, ROT_ANGLE_MAX)]
 		private float _rotAngle;
 		[SerializeField]
+		[Tooltip( "Represents the angle of the Agent's field-of-view cone" )]
+		private FOVDegrees _fov;
 		[Tooltip("Animation delay for better synchronization with actions (seconds)")]
 		[Range(0.0f, LOW_MED_RANGE)]
 		private float _animDelay;
@@ -237,6 +239,11 @@ namespace Hubris
 		/// [Returns RotAngle with RotAngleMod applied]
 		/// </summary>
 		public float RotAngle { get { return _rotAngle; } protected set { _rotAngle = value; } }
+
+		/// <summary>
+		/// Represents the angle of the Agent's field-of-view cone (degrees, based on enum)
+		/// </summary>
+		public FOVDegrees FOV { get { return _fov; } protected set { _fov = value; } }
 
 		/// <summary>
 		/// Animation delay for better synchronization with actions (seconds)
@@ -420,6 +427,15 @@ namespace Hubris
 				else    // nAng > ROT_ANGLE_MAX
 					_rotAngle = ROT_ANGLE_MAX;
 			}
+		}
+
+		/// <summary>
+		/// [Angle, degrees (based on enum)] Should be less than the total number of elements in the enum
+		/// </summary>
+		public void SetFOV(FOVDegrees nDeg)
+		{
+			if ( nDeg < FOVDegrees.NUM_FOVS )
+				_fov = nDeg;
 		}
 
 		/// <summary>

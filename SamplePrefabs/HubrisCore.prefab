@@ -41,15 +41,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 3818872976495289613}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 04e587effbf93e64e8108228b538ad3c, type: 3}
+  m_Script: {fileID: 11500000, guid: 1728dafeea55b86458e7a2584dc13210, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _version: v0.0.9
   _netLibType: Telepathy.Client
   _netSendMethod: Send
-  _debug: 0
-  _ui: {fileID: 0}
-  _net: {fileID: 0}
+  _tick: 1.5
+  _ui: {fileID: 3818872976495289613}
+  _enableInputMgr: 1
+  _net: {fileID: 2352669621766220107}
 --- !u!114 &2352669621766220107
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -66,6 +66,7 @@ MonoBehaviour:
   _isServer: 0
   _local: 0
   _connected: 0
+  _session: 
   _localUdpPort: 0
   _localTcpPort: 0
   _remoteUdpPort: 27770

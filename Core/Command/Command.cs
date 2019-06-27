@@ -10,7 +10,7 @@ namespace Hubris
 	/// Represents possible interactions between the player and the game. Mapped to a specific key in KeyMap.
 	/// Treat as a static class.
 	/// </summary>
-	public class Command
+	public sealed class Command
 	{
 		///--------------------------------------------------------------------
 		/// 
@@ -170,25 +170,25 @@ namespace Hubris
 		public string UIName
 		{
 			get { return _uiName; }
-			protected set { _uiName = value; }
+			private set { _uiName = value; }
 		}
 
 		public string CmdName   // CmdName should always be lowercase
 		{
 			get { return _cmdName.ToLower(); }
-			protected set { _cmdName = value.ToLower(); }
+			private set { _cmdName = value.ToLower(); }
 		}
 
 		public CmdType Type
 		{
 			get { return _type; }
-			protected set { if (value >= CmdType.None && value < CmdType.Num_Cmds) { _type = value; } else { _type = CmdType.None; } }
+			private set { if (value >= CmdType.None && value < CmdType.Num_Cmds) { _type = value; } else { _type = CmdType.None; } }
 		}
 
 		public bool Continuous
 		{
 			get { return _cont; }
-			protected set { _cont = value; }
+			private set { _cont = value; }
 		}
 
 

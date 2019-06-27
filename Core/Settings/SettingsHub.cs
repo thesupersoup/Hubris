@@ -21,7 +21,7 @@ namespace Hubris
 		public const int MIN_STRING_SIZE = 4;
 
 		public const float DEF_SENS = 1.0f;
-		public const bool DEF_MSMOOTH = false, DEF_USEACCEL = true, DEF_DEBUG = false;
+		public const bool DEF_MSMOOTH = false, DEF_USEACCEL = true, DEF_DEBUG = true;
 		#endregion Constants
 
 		#region VariableArray
@@ -54,10 +54,7 @@ namespace Hubris
 
 		#region QuickVariables
 		///---------------------------------------------------------------------
-		/// 
-		/// Static Command methods for fetching commands by index, type, or 
-		/// specific properties for each command
-		/// 
+		/// Specific Variable properties
 		///---------------------------------------------------------------------
 
 		public Variable None

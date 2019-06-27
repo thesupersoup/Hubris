@@ -5,7 +5,7 @@ namespace Hubris
     /// <summary>
     /// Node for MagQueue that wraps up a Magazine and ref to next node
     /// </summary>
-    public class MagQueueNode : IDisposable
+    public sealed class MagQueueNode : IDisposable
     {
         private Magazine _mag;
         private MagQueueNode _next = null;

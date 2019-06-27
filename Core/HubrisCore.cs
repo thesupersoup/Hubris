@@ -45,8 +45,6 @@ namespace Hubris
 		[SerializeField]
 		private string _netSendMethod = "Send";				// Method name to send data
 		[SerializeField]
-		private bool _debug = false;
-		[SerializeField]
 		protected float _tick = 1.5f;		// Tick time in seconds
 		protected float _timer;
 		protected bool _willCall = false;	// Will call Tick() and LateTick() next Update and LateUpdate(), respectively
@@ -93,11 +91,8 @@ namespace Hubris
 			protected set { _netSendMethod = value; }
 		}
 
-		public bool Debug
-		{
-			get { return _debug; }
-			protected set { _debug = value; }
-		}
+		// Moved to SettingsHub
+		public bool Debug => (bool)_con?.Settings?.Debug.Data;
 
 		// Tick time in seconds
 		public float TickTime => _tick;
@@ -142,14 +137,11 @@ namespace Hubris
 					}
 				}
 
-				// Initialize UI object
-				if (_ui != null)
-				{
-					GameObject temp = Instantiate(_ui);
-					temp.name = _ui.name;   // None of that "(Clone)" nonsense
-				}
-
 				_timer = 0.0f;
+
+				// Init Console before other objects
+				_con.Init();
+				_gm.Init();
 
 				if ( UseInputManager )
 				{
@@ -157,8 +149,12 @@ namespace Hubris
 					_im.Init();
 				}
 
-				_gm.Init();
-				_con.Init();
+				// Initialize UI object
+				if (_ui != null)
+				{
+					GameObject temp = Instantiate(_ui);
+					temp.name = _ui.name;   // None of that "(Clone)" nonsense
+				}
 			}
 		}
 
@@ -175,7 +171,7 @@ namespace Hubris
 
 		public void DebugToggle()
 		{
-			Debug = !Debug;
+			Console.Settings.Debug.Data = !(bool)_con.Settings.Debug.Data;
 
 			Console.Log("Debug mode " + (Debug ? "activated" : "deactivated"));
 

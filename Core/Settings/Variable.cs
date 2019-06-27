@@ -3,7 +3,7 @@
 	/// <summary>
 	/// Represents a variable which can be accessed and modified through the console
 	/// </summary>
-	public class Variable
+	public sealed class Variable
 	{
 
 		///--------------------------------------------------------------------
@@ -65,8 +65,8 @@
 		public string Name { get; }
 		public VarData DataType { get; }
 		public VarType Type { get; }
-		public bool Dirty { get; protected set; }
-		public object InitData { get; protected set; }
+		public bool Dirty { get; private set; }
+		public object InitData { get; private set; }
 		public object Data
 		{
 			get { return _data; }

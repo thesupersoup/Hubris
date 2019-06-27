@@ -5,7 +5,7 @@ namespace Hubris
 	/// <summary>
 	/// Node for CmdQueue that wraps up a Command and associated data, with a ref to next node
 	/// </summary>
-	public class CmdQueueNode : IDisposable
+	public sealed class CmdQueueNode : IDisposable
 	{
 		private Command _cmd = null;
 		private string _data = null;

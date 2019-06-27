@@ -154,6 +154,27 @@ namespace Hubris
 			NavAgent.SetDestination(MovePos);
 		}
 
+		/// <summary>
+		/// Do something with received sound events
+		/// </summary>
+		protected override void ProcessSoundEvents()
+		{
+			if ( SoundEventList != null && SoundEventList.Count > 0 )
+			{
+				for ( int i = 0; i < SoundEventList.Count; i++ )
+				{
+					LiveEntity src = SoundEventList[i].Source.GetComponent<LiveEntity>();
+
+					if ( src != null )
+					{
+						SetTargetObj( src.gameObject );
+					}
+				}
+
+				SoundEventList.Clear();
+			}
+		}
+
 		void Start()
 		{
 
@@ -167,7 +188,7 @@ namespace Hubris
 		void FixedUpdate()
 		{
 			Behavior.Invoke( this );
-
+			ProcessSoundEvents();
 			ViewCone.UpdateVectors( this.transform.forward );
 		}
 

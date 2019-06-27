@@ -240,6 +240,9 @@ namespace Hubris
 					// If we were previously airborne
 					if (!_prevGrounded)
 					{
+						// Emit landing sound
+						EmitSoundEvent( new SoundEvent( this.gameObject, this.transform.position, 10.0f ) );
+
 						if (!_moving)
 						{
 							Speed *= (MoveParams.MAX_RANGE - SpeedLoss);
@@ -386,6 +389,11 @@ namespace Hubris
 			ProcessDeltas();
 
 			_prevGrounded = _pCon.isGrounded;
+		}
+
+		public void OnDrawGizmos()
+		{
+			Gizmos.DrawWireSphere( this.transform.position, 10.0f );
 		}
 
 		// Update is called once per frame

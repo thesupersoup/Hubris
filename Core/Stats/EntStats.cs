@@ -7,7 +7,8 @@ namespace Hubris
 	/// Class for storing shared LiveEntity stats and accessors
 	/// </summary>
 	[Serializable]
-	public class EntStats
+	[CreateAssetMenu( fileName = "NewEntStats", menuName = "Hubris/Params/EntStats", order = 1 )]
+	public class EntStats : ScriptableObject
 	{
 		[SerializeField]
 		protected int _hp;
@@ -31,7 +32,7 @@ namespace Hubris
 		public int Stamina { get { return _sta; } protected set { _sta = value; } }
 		public int StaminaMax { get { return _sta; } protected set { _staMax = value; } }
 
-		public EntStats(int nHp, int nHpMax, int nAp, int nApMax, int nSt, int nStMax)
+		public EntStats Init(int nHp, int nHpMax, int nAp, int nApMax, int nSt, int nStMax)
 		{
 			Health = nHp;
 			HealthMax = nHpMax;
@@ -39,6 +40,7 @@ namespace Hubris
 			ArmorMax = nApMax;
 			Stamina = nSt;
 			StaminaMax = nStMax;
+			return this;
 		}
 
 		public bool AddHealth(int nHP) // Returns true for successful addition, false if health is full
@@ -137,27 +139,9 @@ namespace Hubris
 			}
 		}
 
-		public static EntStats Create(LiveEntity.EType type)
+		public static EntStats GetDefault()
 		{
-			EntStats stats;
-
-			switch(type)
-			{
-				case LiveEntity.EType.BASE:
-					stats = new EntStats(100, 100, 0, 0, 100, 100);
-					break;
-				case LiveEntity.EType.PLAYER:
-					stats = new EntStats(100, 100, 0, 0, 100, 100);
-					break;
-				case LiveEntity.EType.ENEMY:
-					stats = new EntStats(80, 80, 0, 100, 80, 80);
-					break;
-				default:
-					stats = new EntStats(100, 100, 0, 0, 100, 100);
-					break;
-			}
-
-			return stats;
+			return CreateInstance<EntStats>().Init( 100, 100, 0, 100, 100, 100 );
 		}
 	}
 }

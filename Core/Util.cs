@@ -21,5 +21,13 @@ namespace Hubris
 
 			return dist;
 		}
+
+		/// <summary>
+		/// Get the square of a floating point value; use this method for clarity of code and to prevent simple mistakes
+		/// </summary>
+		public static float GetSquare( float val )
+		{
+			return val * val;
+		}
 	}
 }

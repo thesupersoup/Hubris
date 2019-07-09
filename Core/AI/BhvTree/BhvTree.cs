@@ -16,7 +16,7 @@ namespace Hubris
 
 		private IBhvNode _active;
 		private BhvStatus _activeStatus;
-		private float _timerMove = 0.0f;
+		private float _timerAct = 0.0f;
 		private float _timerChk = 0.0f;
 
 		///--------------------------------------------------------------------
@@ -33,7 +33,7 @@ namespace Hubris
 		/// </summary>
 		public BhvStatus Status { get { return _activeStatus; } protected set { _activeStatus = value; } }
 
-		public float TimerMove { get { return _timerMove; } set { _timerMove = value; } }
+		public float TimerAct { get { return _timerAct; } set { _timerAct = value; } }
 
 		public float TimerCheck { get { return _timerChk; } set { _timerChk = value; } }
 
@@ -59,7 +59,7 @@ namespace Hubris
 		/// </summary>
 		public void ResetTimers()
 		{
-			TimerMove = 0.0f;
+			TimerAct = 0.0f;
 			TimerCheck = 0.0f;
 		}
 
@@ -68,7 +68,7 @@ namespace Hubris
 		/// </summary>
 		public void UpdateTimers()
 		{
-			TimerMove += Time.deltaTime;
+			TimerAct += Time.deltaTime;
 			TimerCheck += Time.deltaTime;
 		}
 
@@ -111,6 +111,51 @@ namespace Hubris
 			}
 		}
 
+		/// <summary>
+		/// Returns a behavior branch, accepts a BhvBranch enum value
+		/// </summary>
+		/// <returns></returns>
+		public IBhvNode GetBranch( BhvEnum v )
+		{
+			IBhvNode node;
+
+			switch( v )
+			{
+				case BhvEnum.IDLE:
+					node = BNpcIdle.Instance;
+					break;
+				case BhvEnum.MOVING:
+					node = BNpcMoving.Instance;
+					break;
+				case BhvEnum.ALERT:
+					node = BNpcAlert.Instance;
+					break;
+				case BhvEnum.WARY:
+					node = BNpcWary.Instance;
+					break;
+				case BhvEnum.HUNT:
+					node = BNpcHunt.Instance;
+					break;
+				case BhvEnum.AGGRO:
+					node = BNpcAggro.Instance;
+					break;
+				case BhvEnum.FLEE:
+					node = BNpcFlee.Instance;
+					break;
+				case BhvEnum.ASLEEP:
+					node = BNpcAsleep.Instance;
+					break;
+				case BhvEnum.DEAD:
+					node = BNpcDead.Instance;
+					break;
+				default:
+					node = BNpcNone.Instance;
+					break;
+			}
+
+			return node;
+		}
+
 		public void Invoke( Npc a )
 		{
 			if ( ActiveBranch == null )
@@ -132,23 +177,32 @@ namespace Hubris
 				}
 				else // If the parent NPC has a target; we're not in idletown anymore
 				{
-					/// BNpcAggro not implemented yet
-					/* If the target is closer than our awareness distance near point or we took damage 
-					if( Util.CheckDistSqr( a.transform.position, a.TargetObj.transform.position ) < a.Params.AwareClose * a.Params.AwareClose || TOOK_DAMAGE )
-					{ 
-						ChangeBranch( BNpcAggro.Instance );
-						return;
-					}*/
+					/* if ( TOOK_DAMAGE )
+					 *	ChangeBranch( BNpcAggro, a ); // We go straight to angry (but there needs to be certain caveats)
+					 * else
+					 */
 
-					/// BNpcHunt not implemented yet
-					/* If the target is closer than our awareness distance midpoint
-					if ( Util.CheckDistSqr( a.transform.position, a.TargetObj.transform.position ) < a.Params.AwareMed * a.Params.AwareMed )
-						ChangeBranch( BNpcHunt.Instance ); // We become alert
-					else */
+					// Check how close the Npc is
+					float distSqr = Util.CheckDistSqr( a.transform.position, a.TargetObj.transform.position );
 
-					// If the target is further than the midpoint of our awareness distance
-					// if ( Util.CheckDistSqr( a.transform.position, a.TargetObj.transform.position ) >= a.Params.AwareMed * a.Params.AwareMed )
-					ChangeBranch( BNpcAlert.Instance, a ); // We become alert
+					if ( distSqr > a.Params.AwareMed * a.Params.AwareMed )	// If target is further than the medium awareness distance
+						ChangeBranch( BNpcAlert.Instance, a );	// We become alert
+					else if ( distSqr > a.Params.AwareClose * a.Params.AwareClose )	// If target is nearer than the medium distance but further than the close distance
+					{
+						if ( a.Params.Predator )	// If we're a predatory Npc...
+							ChangeBranch( BNpcHunt.Instance, a );	// ... we go hunting
+						else	// Otherwise...
+							ChangeBranch( BNpcWary.Instance, a );	// ... we become wary
+					}
+					else if ( distSqr > a.Params.AtkDist * a.Params.AtkDist )// If target is too close for comfort
+					{
+						if ( a.Params.Predator )	// If we're a predatory Npc...
+							ChangeBranch( BNpcAggro.Instance, a );	// ... we get angry
+						else	// Otherwise...
+							ChangeBranch( BNpcFlee.Instance, a );	// ... we run away
+					}
+					else	// And then the fight started
+						ChangeBranch( BNpcAtk.Instance, a );
 				}
 			}
 		}

@@ -30,7 +30,8 @@ namespace Hubris
 		/// Constants for default values
 		public const float DEF_AWARE_MAX = 10.0f, DEF_AWARE_MED = 5.0f, DEF_AWARE_CLOSE = 2.5f, DEF_ATK_DIST = 2.0f, DEF_STOP_DIST = 1.0f,
 							DEF_CHK_IDLE = 0.5f, DEF_CHK_ALERT = 0.33f, DEF_MOVE_SPD = 14.0f, DEF_MOVE_WALK = 0.36f,
-							DEF_ROAM_DIST = 10.0f, DEF_ROAM_TIME = 10.0f, DEF_PROX_PCT = 0.8f, DEF_ROT_ANGLE = 40.0f, DEF_ROT_SPD = 0.15f;
+							DEF_ROAM_DIST = 10.0f, DEF_ROAM_TIME = 10.0f, DEF_PROX_PCT = 0.8f, DEF_ROT_ANGLE = 40.0f, DEF_ROT_SPD = 0.15f,
+							DEF_FLEE_DIST = 10.0f, FLEE_DIVISOR = 2.0f, WARY_DIVISOR = 4.0f;
 
 		/// Constants for modifiers
 		public const float MOD_MAX = 1.0f, DEF_MOD = 1.0f, 
@@ -41,86 +42,97 @@ namespace Hubris
 		/// Serialized instance variables for Editor
 		///--------------------------------------------------------------------
 
-		[Header("AI parameters")]
 		[SerializeField]
-		[Tooltip("Max awareness distance (Agent will ignore objects of interest beyond it, unless specifically handled) [with AwareMod coefficient]")]
-		[Range(0.0f, LARGE_RANGE)]
+		[Tooltip( "What type of Npc is this? Used for squad and predatory behavior" )]
+		private NpcType _type;
+		[SerializeField]
+		[Tooltip( "Max awareness distance (Npc will ignore objects of interest beyond it, unless specifically handled) [with AwareMod coefficient]" )]
+		[Range( 0.0f, LARGE_RANGE )]
 		private float _awareMax;
 		[SerializeField]
-		[Tooltip("Medium awareness distance for certain state changes [with AwareMod coefficient]")]
-		[Range(0.0f, LARGE_RANGE)]
+		[Tooltip( "Medium awareness distance for certain state changes [with AwareMod coefficient]" )]
+		[Range( 0.0f, LARGE_RANGE )]
 		private float _awareMed;
 		[SerializeField]
-		[Tooltip("Close awareness distance for certain state changes [with AwareMod coefficient]")]
-		[Range(0.0f, LARGE_RANGE)]
+		[Tooltip( "Close awareness distance for certain state changes [with AwareMod coefficient]" )]
+		[Range( 0.0f, LARGE_RANGE )]
 		private float _awareClose;
 		[SerializeField]
-		[Tooltip("Attack range")]
-		[Range(0.0f, LARGE_RANGE)]
+		[Tooltip( "Attack range" )]
+		[Range( 0.0f, LARGE_RANGE )]
 		private float _atkDist;
 		[SerializeField]
-		[Tooltip("Stop moving toward target when at or closer than this distance")]
-		[Range(0.0f, LARGE_RANGE)]
+		[Tooltip( "Stop moving toward target when at or closer than this distance" )]
+		[Range( 0.0f, LARGE_RANGE )]
 		private float _stopDist;
 		[SerializeField]
-		[Tooltip("Area scan frequency when idle, in seconds; set higher to increase performance")]
-		[Range(0.0f, LOW_MED_RANGE)]
+		[Tooltip( "Area scan frequency when idle, in seconds; set higher to increase performance" )]
+		[Range( 0.0f, LOW_MED_RANGE )]
 		private float _chkIdle;
 		[SerializeField]
-		[Tooltip("Area scan frequency when alert, in seconds; set higher to increase performance")]
-		[Range(0.0f, LOW_MED_RANGE)]
+		[Tooltip( "Area scan frequency when alert, in seconds; set higher to increase performance" )]
+		[Range( 0.0f, LOW_MED_RANGE )]
 		private float _chkAlert;
 		[SerializeField]
-		[Tooltip("Base movement speed value")]
-		[Range(0.0f, LARGE_RANGE)]
+		[Tooltip( "Base movement speed value" )]
+		[Range( 0.0f, LARGE_RANGE )]
 		private float _moveSpd;
 		[SerializeField]
-		[Tooltip("Coefficient of base movement speed when walking")]
-		[Range(0.0f, MOD_MAX)]
+		[Tooltip( "Coefficient of base movement speed when walking" )]
+		[Range( 0.0f, MOD_MAX )]
 		private float _moveWalk;
 		[SerializeField]
-		[Tooltip("Should this Agent roam when bored?")]
+		[Tooltip( "Should this Agent roam when bored?" )]
 		private bool _roam;
 		[SerializeField]
-		[Tooltip("Maximum radius to search for a position when roaming or patrolling")]
-		[Range(0.0f, LARGE_RANGE)]
+		[Tooltip( "Maximum radius to search for a position when roaming, patrolling, or fleeing" )]
+		[Range( 0.0f, LARGE_RANGE )]
 		private float _roamDist;
 		[SerializeField]
-		[Tooltip("Time to wait between position searches while roaming or patrolling, in seconds")]
-		[Range(0.0f, LARGE_RANGE)]
+		[Tooltip( "Time to wait between position searches while roaming or patrolling, in seconds" )]
+		[Range( 0.0f, LARGE_RANGE )]
 		private float _roamTime;
 		[SerializeField]
-		[Tooltip("Number of possible roam points to consider when roaming; set lower to increase performance")]
-		[Range(MIN_PTS, MAX_PTS)]
+		[Tooltip( "Number of possible roam points to consider when roaming; set lower to increase performance" )]
+		[Range( MIN_PTS, MAX_PTS )]
 		private int _roamPts;
 		[SerializeField]
-		[Tooltip("Should this Agent retarget when one threat is closer than another?")]
+		[Tooltip( "Will this Npc hunt targets?" )]
+		private bool _predator;
+		[SerializeField]
+		[Tooltip( "Will this Npc attack if target gets too close, regardless of predatory status?" )]
+		private bool _territorial;
+		[SerializeField]
+		[Tooltip( "Will this Npc coordinate with others of the same type?" )]
+		private bool _squad;
+		[SerializeField]
+		[Tooltip( "Should this Npc retarget when one threat is closer than another?" )]
 		private bool _retarget;
 		[SerializeField]
-		[Tooltip("When threatened, if another threat moves closer than this coefficient of the distance between the Agent and it's current threat, it may consider retargeting")]
-		[Range(0.0f, SMALL_RANGE)]
+		[Tooltip( "When threatened, if another threat moves closer than this coefficient of the distance between the Npc and it's current threat, it may consider retargeting" )]
+		[Range( 0.0f, SMALL_RANGE )]
 		private float _proxPct;
 		[SerializeField]
-		[Tooltip("Speed coefficient for this Agent's rotations")]
-		[Range(0.0f, LOW_MED_RANGE)]
+		[Tooltip( "Speed coefficient for this Npc's rotations" )]
+		[Range( 0.0f, LOW_MED_RANGE )]
 		private float _rotSpd;
 		[SerializeField]
-		[Tooltip("Maximum angle between an Agent's forward vector and the vector to target's position [with RotAngleMod coefficient]")]
-		[Range(0.0f, ROT_ANGLE_MAX)]
+		[Tooltip( "Maximum angle between an Npc's forward vector and the vector to target's position [with RotAngleMod coefficient]" )]
+		[Range( 0.0f, ROT_ANGLE_MAX )]
 		private float _rotAngle;
 		[SerializeField]
-		[Tooltip( "Represents the angle of the Agent's field-of-view cone" )]
+		[Tooltip( "Represents the default angle of the Npc's field-of-view cone" )]
 		private FOVDegrees _fov;
-		[Tooltip("Animation delay for better synchronization with actions (seconds)")]
-		[Range(0.0f, LOW_MED_RANGE)]
+		[Tooltip( "Animation delay for better synchronization with actions (seconds)" )]
+		[Range( 0.0f, LOW_MED_RANGE )]
 		private float _animDelay;
 		[SerializeField]
-		[Tooltip("Time between the beginning of an attack animation and the damage check (seconds)")]
-		[Range(0.0f, LOW_MED_RANGE)]
+		[Tooltip( "Time between the beginning of an attack animation and the damage check (seconds)" )]
+		[Range( 0.0f, LOW_MED_RANGE )]
 		private float _atkInit;
 		[SerializeField]
-		[Tooltip("Time after the damage check to wait before another attack can begin (seconds)")]
-		[Range(0.0f, LOW_MED_RANGE)]
+		[Tooltip( "Time after the damage check to wait before another attack can begin (seconds)" )]
+		[Range( 0.0f, LOW_MED_RANGE )]
 		private float _atkEnd;
 
 		///--------------------------------------------------------------------
@@ -130,16 +142,22 @@ namespace Hubris
 		///--------------------------------------------------------------------
 
 		[SerializeField]
-		[Tooltip("[Coefficient, float] Modifier for awareness distances")]
-		[Range(0.0f, MOD_MAX)]
+		[Tooltip( "[Coefficient, float] Modifier for awareness distances" )]
+		[Range( 0.0f, MOD_MAX )]
 		private float _awareMod;
+
+		///--------------------------------------------------------------------
+		/// Npc Type
+		///--------------------------------------------------------------------
+
+		public NpcType Type { get { return _type; } protected set { _type = value; } }
 
 		///--------------------------------------------------------------------
 		/// Distances for behavior state changes and area scan variables
 		///--------------------------------------------------------------------
 
 		/// <summary>
-		/// Max awareness distance (Agent will ignore objects of interest beyond it, unless specifically handled)
+		/// Max awareness distance (Npc will ignore objects of interest beyond it, unless specifically handled)
 		/// [Returns AwareMax with AwareMod applied]
 		/// </summary>
 		public float AwareMax { get { return _awareMax * _awareMod; } protected set { _awareMax = value; } }
@@ -218,8 +236,23 @@ namespace Hubris
 		/// Additional behavior properties
 		///--------------------------------------------------------------------
 
+		/// <summmary>
+		/// Will this Npc hunt targets?
+		/// </summmary>
+		public bool Predator { get { return _predator; } protected set { _predator = value; } }
+
 		/// <summary>
-		/// Should this Agent retarget when one threat is closer than another?
+		/// Will this Npc attack if target gets too close, regardless of predatory status?
+		/// </summary>
+		public bool Territorial { get { return _territorial; } protected set { _territorial = value; } }
+
+		/// <summary>
+		/// Will this Npc coordinate with others of the same type?
+		/// </summary>
+		public bool Squad { get { return _squad; } protected set { _squad = value; } }
+
+		/// <summary>
+		/// Should this Npc retarget when one threat is closer than another?
 		/// </summary>
 		public bool Retarget { get { return _retarget; } protected set { _retarget = value; } }
         
@@ -228,20 +261,20 @@ namespace Hubris
 		/// of the distance between the Agent and it's current threat, it may consider retargeting
 		/// </summary>
 		public float ProxPct { get { return _proxPct; } protected set { _proxPct = value; } }
-        
+
 		/// <summary>
-		/// Speed coefficient for this Agent's rotations
+		/// Speed coefficient for this Npc's rotations
 		/// </summary>
 		public float RotSpd { get { return _rotSpd; } protected set { _rotSpd = value; } }
 
 		/// <summary>
-		/// Maximum angle between an Agent's forward vector and the vector to target's position
+		/// Maximum angle between an Npc's forward vector and the vector to target's position
 		/// [Returns RotAngle with RotAngleMod applied]
 		/// </summary>
 		public float RotAngle { get { return _rotAngle; } protected set { _rotAngle = value; } }
 
 		/// <summary>
-		/// Represents the angle of the Agent's field-of-view cone (degrees, based on enum)
+		/// Represents the default angle of the Npc's field-of-view cone (degrees, enum)
 		/// </summary>
 		public FOVDegrees FOV { get { return _fov; } protected set { _fov = value; } }
 
@@ -274,90 +307,98 @@ namespace Hubris
 		///--------------------------------------------------------------------
 
 		/// <summary>
+		/// What type of Npc is this? Used for squad and predatory behavior
+		/// </summary>
+		public void SetType( NpcType nType )
+		{
+			Type = nType;
+		}
+
+		/// <summary>
 		/// [Distance, float] Should be greater than 0
 		/// </summary>
-		public void SetAwareMax(float nAware)
+		public void SetAwareMax( float nAware )
 		{
-			if (nAware > 0.0f)
+			if ( nAware > 0.0f )
 				AwareMax = nAware;
 		}
 
 		/// <summary>
 		/// [Distance, float] Should be less than AwareMax
 		/// </summary>
-		public void SetAwareMed(float nMed)
+		public void SetAwareMed( float nMed )
 		{
-			if (nMed < AwareMax)
+			if ( nMed < AwareMax )
 				AwareMed = nMed;
 		}
 
 		/// <summary>
 		/// [Distance, float] Should be less than AwareMed
 		/// </summary>
-		public void SetAwareClose(float nClose)
+		public void SetAwareClose( float nClose )
 		{
-			if (nClose < AwareMed)
+			if ( nClose < AwareMed )
 				AwareClose = nClose;
 		}
 
 		/// <summary>
 		/// [Distance, float] Should be positive
 		/// </summary>
-		public void SetAtkDist(float nAtk)
+		public void SetAtkDist( float nAtk )
 		{
-			if (nAtk >= 0.0f)
+			if ( nAtk >= 0.0f )
 				AtkDist = nAtk;
 		}
 
 		/// <summary>
 		/// [Distance, float] Should be positive
 		/// </summary>
-		public void SetStopDist(float nStop)
+		public void SetStopDist( float nStop )
 		{
-			if (nStop >= 0.0f)
+			if ( nStop >= 0.0f )
 				StopDist = nStop;
 		}
 
 		/// <summary>
 		/// [Seconds, float] Should be positive
 		/// </summary>
-		public void SetChkIdle(float nIdle)
+		public void SetChkIdle( float nIdle )
 		{
-			if (nIdle >= 0.0f)
+			if ( nIdle >= 0.0f )
 				ChkIdle = nIdle;
 		}
 
 		/// <summary>
 		/// [Seconds, float] Should be positive
 		/// </summary>
-		public void SetChkAlert(float nAlert)
+		public void SetChkAlert( float nAlert )
 		{
-			if (nAlert >= 0.0f)
+			if ( nAlert >= 0.0f )
 				ChkAlert = nAlert;
 		}
 
 		/// <summary>
 		/// [Speed, float] Should be positive
 		/// </summary>
-		public void SetMoveSpeed(float nSpd)
+		public void SetMoveSpeed( float nSpd )
 		{
-			if (nSpd >= 0.0f)
+			if ( nSpd >= 0.0f )
 				MoveSpd = nSpd;
 		}
 
 		/// <summary>
 		/// [Speed coefficient, float] Should be greater than 0 and less than max
 		/// </summary>
-		public void SetMoveWalk(float nWalk)
+		public void SetMoveWalk( float nWalk )
 		{
-			if (nWalk >= 0.0f && nWalk < MOD_MAX)
+			if ( nWalk >= 0.0f && nWalk < MOD_MAX )
 				MoveWalk = nWalk;
 		}
 
 		/// <summary>
 		/// [bool] Should this Agent roam when bored?
 		/// </summary>
-		public void SetRoam(bool nRoam)
+		public void SetRoam( bool nRoam )
 		{
 			Roam = nRoam;
 		}
@@ -365,31 +406,31 @@ namespace Hubris
 		/// <summary>
 		/// [Distance, float] Should be positive
 		/// </summary>
-		public void SetRoamDist(float nRoam)
+		public void SetRoamDist( float nRoam )
 		{
-			if (nRoam >= 0.0f)
+			if ( nRoam >= 0.0f )
 				RoamDist = nRoam;
 		}
 
 		/// <summary>
 		/// [Seconds, float] Should be positive
 		/// </summary>
-		public void SetRoamTime(float nTime)
+		public void SetRoamTime( float nTime )
 		{
-			if (nTime >= 0.0f)
+			if ( nTime >= 0.0f )
 				RoamTime = nTime;
 		}
 
 		/// <summary>
 		/// [int] Should be greater than MIN_PTS and less than MAX_PTS
 		/// </summary>
-		public void SetRoamPts(int nPts)
+		public void SetRoamPts( int nPts )
 		{
-			if (nPts >= MIN_PTS && nPts <= MAX_PTS)
+			if ( nPts >= MIN_PTS && nPts <= MAX_PTS )
 				RoamPts = nPts;
 			else
 			{
-				if (nPts < MIN_PTS)
+				if ( nPts < MIN_PTS )
 					RoamPts = MIN_PTS;
 				else // nPts > MAX_PTS
 					RoamPts = MAX_PTS;
@@ -397,9 +438,33 @@ namespace Hubris
 		}
 
 		/// <summary>
-		/// [bool] Should this Agent retarget when one threat is closer than another?
+		/// [bool] Will this Npc hunt targets?
 		/// </summary>
-		public void SetRetarget(bool nRe)
+		public void SetPredator( bool nPred )
+		{
+			Predator = nPred;
+		}
+
+		/// <summary>
+		/// [bool] Will this Npc attack if target gets too close, regardless of predatory status?
+		/// </summary>
+		public void SetTerritorial( bool nTerr )
+		{
+			Territorial = nTerr;
+		}
+
+		/// <summary>
+		/// [bool] Will this Npc coordinate with others of the same type?
+		/// </summary>
+		public void SetSquad( bool nSquad )
+		{
+			Squad = nSquad;
+		}
+
+		/// <summary>
+		/// [bool] Should this Npc retarget when one threat is closer than another?
+		/// </summary>
+		public void SetRetarget( bool nRe )
 		{
 			Retarget = nRe;
 		}
@@ -407,22 +472,22 @@ namespace Hubris
 		/// <summary>
 		/// [Percentage (as decimal), float] Should be greater than 0
 		/// </summary>
-		public void SetProxPct(float nProx)
+		public void SetProxPct( float nProx )
 		{
-			if (nProx > 0.0f)
+			if ( nProx > 0.0f )
 				ProxPct = nProx;
 		}
 
 		/// <summary>
 		/// [Angle, float] Should be positive and within constraints; will set accordingly otherwise
 		/// </summary>
-		public void SetRotAngle(float nAng)
+		public void SetRotAngle( float nAng )
 		{
-			if (nAng >= 0.0f && nAng <= ROT_ANGLE_MAX)
+			if ( nAng >= 0.0f && nAng <= ROT_ANGLE_MAX )
 				_rotAngle = nAng;
 			else
 			{
-				if (nAng < 0.0f)
+				if ( nAng < 0.0f )
 					_rotAngle = 0.0f;
 				else    // nAng > ROT_ANGLE_MAX
 					_rotAngle = ROT_ANGLE_MAX;
@@ -430,9 +495,9 @@ namespace Hubris
 		}
 
 		/// <summary>
-		/// [Angle, degrees (based on enum)] Should be less than the total number of elements in the enum
+		/// [Angle, degrees (enum)] Should be less than the total number of elements in the enum
 		/// </summary>
-		public void SetFOV(FOVDegrees nDeg)
+		public void SetFOV( FOVDegrees nDeg )
 		{
 			if ( nDeg < FOVDegrees.NUM_FOVS )
 				_fov = nDeg;
@@ -441,49 +506,49 @@ namespace Hubris
 		/// <summary>
 		/// [Coefficient, float] Should be greater than 0
 		/// </summary>
-		public void SetRotSpd(float nSpd)
+		public void SetRotSpd( float nSpd )
 		{
-			if (nSpd > 0.0f)
+			if ( nSpd > 0.0f )
 				RotSpd = nSpd;
 		}
 
 		/// <summary>
 		/// [Seconds, float] Should be positive
 		/// </summary>
-		public void SetAnimDelay(float nDelay)
+		public void SetAnimDelay( float nDelay )
 		{
-			if (nDelay >= 0.0f)
+			if ( nDelay >= 0.0f )
 				AnimDelay = nDelay;
 		}
 
 		/// <summary>
 		/// [Seconds, float] Should be positive 
 		/// </summary>
-		public void SetAtkInit(float nInit)
+		public void SetAtkInit( float nInit )
 		{
-			if (nInit >= 0.0f)
+			if ( nInit >= 0.0f )
 				AtkInit = nInit;
 		}
 
 		/// <summary>
 		/// [Seconds, float] Should be positive and larger than or equal to AtkInit
 		/// </summary>
-		public void SetAtkEnd(float nEnd)
+		public void SetAtkEnd( float nEnd )
 		{
-			if (nEnd >= AtkInit)
+			if ( nEnd >= AtkInit )
 				AtkEnd = nEnd;
 		}
 
 		/// <summary>
 		/// [Percentage (as decimal), float] Should be greater than 0 and less than max; will set accordingly otherwise
 		/// </summary>
-		public void SetAwareMod(float nMod)
+		public void SetAwareMod( float nMod )
 		{
-			if (nMod >= 0.0f && nMod <= MOD_MAX)
+			if ( nMod >= 0.0f && nMod <= MOD_MAX )
 				AwareMod = nMod;
 			else
 			{
-				if (nMod < 0.0f)
+				if ( nMod < 0.0f )
 					AwareMod = 0.0f;
 				else // nMod > MOD_MAX
 					AwareMod = MOD_MAX;
@@ -499,7 +564,7 @@ namespace Hubris
 			AwareMod = DEF_MOD;
 		}
 
-		public AIParams(float dMax, float dMed, float dClose, float dAtk, float dStop, float tIdle, float tAlert, float nSpd, float nWalk, bool bRoam, float dRoam, float tRoam, int nPts, bool bRe, float dProx, float rSpd, float animDelay, float atkInit, float atkEnd)
+		public AIParams( float dMax, float dMed, float dClose, float dAtk, float dStop, float tIdle, float tAlert, float nSpd, float nWalk, bool bRoam, float dRoam, float tRoam, int nPts, bool bRe, float dProx, float rSpd, float animDelay, float atkInit, float atkEnd )
 		{
 			AwareMax = dMax;
 			AwareMed = dMed;
@@ -528,26 +593,26 @@ namespace Hubris
 		{
 			AIParams p = new AIParams();
 
-			p.SetAwareMax(80.0f);
-			p.SetAwareMed(50.0f);
-			p.SetAwareClose(25.0f);
-			p.SetAtkDist(4.25f);
-			p.SetStopDist(2.5f);
-			p.SetChkIdle(0.5f);
-			p.SetChkAlert(0.33f);
-			p.SetMoveSpeed(14.0f);
-			p.SetMoveWalk(0.36f);
-			p.SetRoam(true);
-			p.SetRoamDist(20.0f);
-			p.SetRoamTime(10.0f);
-			p.SetRoamPts(5);
-			p.SetRetarget(true);
-			p.SetProxPct(0.8f);
-			p.SetRotSpd(0.065f);
-			p.SetRotAngle(50.0f);
-			p.SetAnimDelay(0.45f);
-			p.SetAtkInit(0.6f);
-			p.SetAtkEnd(1.8f);
+			p.SetAwareMax( 80.0f );
+			p.SetAwareMed( 50.0f );
+			p.SetAwareClose( 25.0f );
+			p.SetAtkDist( 4.25f );
+			p.SetStopDist( 2.5f );
+			p.SetChkIdle( 0.5f );
+			p.SetChkAlert( 0.33f );
+			p.SetMoveSpeed( 14.0f );
+			p.SetMoveWalk( 0.36f );
+			p.SetRoam( true );
+			p.SetRoamDist( 20.0f );
+			p.SetRoamTime( 10.0f );
+			p.SetRoamPts( 5 );
+			p.SetRetarget( true );
+			p.SetProxPct( 0.8f );
+			p.SetRotSpd( 0.065f );
+			p.SetRotAngle( 50.0f );
+			p.SetAnimDelay( 0.45f );
+			p.SetAtkInit( 0.6f );
+			p.SetAtkEnd( 1.8f );
 
 			return p;
 		}

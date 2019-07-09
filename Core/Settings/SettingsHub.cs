@@ -38,15 +38,15 @@ namespace Hubris
 		{
 			Variable[] vars = new Variable[(int)VarType.Num_Vars]; // Use Num_Vars to ensure proper array length
 
-			vars[(int)VarType.None] = new Variable("none", VarData.OBJECT, VarType.None, null);
+			vars[(int)VarType.None] = new Variable( "none", VarData.OBJECT, VarType.None, null );
 
 			// Player settings
-			vars[(int)VarType.Sens] = new Variable("sensitivity", VarData.FLOAT, VarType.Sens, DEF_SENS);
-			vars[(int)VarType.MSmooth] = new Variable("msmooth", VarData.BOOL, VarType.MSmooth, DEF_MSMOOTH);
+			vars[(int)VarType.Sens] = new Variable( "sensitivity", VarData.FLOAT, VarType.Sens, DEF_SENS );
+			vars[(int)VarType.MSmooth] = new Variable( "msmooth", VarData.BOOL, VarType.MSmooth, DEF_MSMOOTH );
 
 			// Dev settings
-			vars[(int)VarType.Useaccel] = new Variable("useaccel", VarData.BOOL, VarType.Useaccel, DEF_USEACCEL);
-			vars[(int)VarType.Debug] = new Variable("debug", VarData.BOOL, VarType.Debug, DEF_DEBUG);
+			vars[(int)VarType.Useaccel] = new Variable( "useaccel", VarData.BOOL, VarType.Useaccel, DEF_USEACCEL );
+			vars[(int)VarType.Debug] = new Variable( "debug", VarData.BOOL, VarType.Debug, DEF_DEBUG );
 
 			return vars;
 		}
@@ -84,21 +84,21 @@ namespace Hubris
 		#endregion QuickVariables
 
 
-		public Variable GetVariable(int index)
+		public Variable GetVariable( int index )
 		{
-			if (index >= 0 && index < varArr.Length)
-				return varArr[index];
-			else
+			if ( index < 0 || index >= varArr.Length )
 			{
-				LocalConsole.Instance.LogError("HubrisSettings GetVariable(): Invalid index requested, returning Variable.None");
+				LocalConsole.Instance.LogError( "HubrisSettings GetVariable(): Invalid index requested, returning Variable.None" );
 				return varArr[(int)VarType.None];
 			}
+
+			return varArr[index];
 		}
 
-		public Variable GetVariable(VarType type)
+		public Variable GetVariable( VarType type )
 		{
 			int index = (int)type;
-			if (index >= 0 && index < varArr.Length)
+			if ( index >= 0 && index < varArr.Length )
 				return varArr[index];
 			else
 			{
@@ -110,7 +110,7 @@ namespace Hubris
 		/// <summary>
 		/// Searches for a variable by name (string param), non-case-sensitive
 		/// </summary>
-		public Variable GetVarByName(string nName)
+		public Variable GetVarByName( string nName )
 		{
 			Variable varObj = varArr[(int)VarType.None];
 
@@ -119,7 +119,7 @@ namespace Hubris
 
 			for (int i = 0; i < varArr.Length; i++)
 			{
-				if (varArr[i].Name.Substring(0, MIN_STRING_SIZE).Equals(varTest))
+				if ( varArr[i].Name.Substring( 0, MIN_STRING_SIZE ).Equals( varTest ) )
 				{
 					varObj = varArr[i];
 					break;  // Found it, don't need to keep searching
@@ -132,10 +132,10 @@ namespace Hubris
 		/// <summary>
 		/// Pushes changes to a variable into the array; UpdateDirtyVar() must then be called manually
 		/// </summary>
-		public void PushChanges(VarType nType, object nData)
+		public void PushChanges( VarType nType, object nData )
 		{
 			int index = (int) nType;
-			if(index >= 0 && index < varArr.Length)
+			if( index >= 0 && index < varArr.Length )
 			{
 				varArr[index].Data = nData;
 			}
@@ -144,53 +144,54 @@ namespace Hubris
 		/// <summary>
 		/// Checks if the variable specified by the VarType param is dirty, and if so, sends the new value
 		/// </summary>
-		public bool UpdateDirtyVar(VarType nType)
+		public bool UpdateDirtyVar( VarType nType )
 		{
-			if (nType != VarType.None)  // Let's not waste our time
+			if ( nType == VarType.None )  // Let's not waste our time
+				return false;
+
+			int index = (int)nType;
+			bool success = true;
+
+			if ( varArr[index].Dirty )
 			{
-				int index = (int)nType;
-				bool success = true;
-
-				if (varArr[index].Dirty)
+				// VarType determines where the new value is sent
+				switch ( nType )
 				{
-					// VarType determines where the new value is sent
-					switch (nType)
-					{
-						case VarType.Sens:
+					case VarType.Sens:
+						if( HubrisPlayer.Instance != null )
 							HubrisPlayer.Instance.Sensitivity = (float)varArr[index].Data;
-							break;
-						case VarType.MSmooth:
+						break;
+					case VarType.MSmooth:
+						if ( HubrisPlayer.Instance != null )
 							HubrisPlayer.Instance.MSmooth = (bool)varArr[index].Data;
-							break;
-						case VarType.Useaccel:
-							HubrisPlayer.Instance.Movement.SetUseAccel((bool)varArr[index].Data);
-							break;
-						case VarType.Debug:
-							HubrisCore.Instance.DebugToggle();
-							break;
-						default:
-							success = false;
-							break;
-					}
+						break;
+					case VarType.Useaccel:
+						if ( HubrisPlayer.Instance != null )
+							HubrisPlayer.Instance.Movement.SetUseAccel( (bool)varArr[index].Data );
+						break;
+					case VarType.Debug:
+						HubrisCore.Instance.DebugToggle();
+						break;
+					default:
+						success = false;
+						break;
+				}
 
-					if (success)
-					{
-						LocalConsole.Instance.Log(varArr[index].Name + " : " + varArr[index].Data);
-						varArr[index].CleanVar();
-					}
-					else
-						LocalConsole.Instance.LogWarning("HubrisSettings UpdateDirtyVar(): No corresponding behavior for dirty variable at array index " + index);
+				if ( success )
+				{
+					LocalConsole.Instance.Log( varArr[index].Name + " : " + varArr[index].Data );
+					varArr[index].CleanVar();
 				}
 				else
-				{
-					success = false;
-					LocalConsole.Instance.LogWarning("HubrisSettings UpdateDirtyVar(): Variable at array index " + index + " was not dirty");
-				}
-
-				return success;
+					LocalConsole.Instance.LogWarning( "HubrisSettings UpdateDirtyVar(): No corresponding behavior for dirty variable at array index " + index );
 			}
 			else
-				return false;
+			{
+				success = false;
+				LocalConsole.Instance.LogWarning( "HubrisSettings UpdateDirtyVar(): Variable at array index " + index + " was not dirty" );
+			}
+
+			return success;
 		}
 
 		/// <summary>

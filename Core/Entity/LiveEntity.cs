@@ -8,16 +8,8 @@ namespace Hubris
 	{
 		public const float ARMOR_ABSORB = 0.75f;
 
-		public enum EType
-		{
-			BASE = 0,
-			PLAYER,
-			ENEMY,
-			NUM_TYPES
-		}
-
 		[SerializeField]
-		EType _type;
+		EntityType _type;
 		[SerializeField]
 		EntStats _stats;
 		[SerializeField]
@@ -27,7 +19,7 @@ namespace Hubris
 
 		private List<SoundEvent> _soundEventList = new List<SoundEvent>();
 
-		public EType EntType { get { return _type; } protected set { _type = value; } }
+		public EntityType EntType { get { return _type; } protected set { _type = value; } }
 		public EntStats Stats { get { return _stats; } protected set { _stats = value; } }
 		public bool AlignToSurface { get { return _alignSurface; } protected set { _alignSurface = value; } }
 		public LayerMask SoundEventLayer => _soundEventLayer;
@@ -36,7 +28,11 @@ namespace Hubris
 		// Start is called before the first frame update
 		protected virtual void Init()
 		{
-			Stats = EntStats.Create(EntType);
+			if ( Stats == null )
+			{
+				Debug.Log( $"LiveEntity {this.name} has no associated EntStats object, instantiating default..." );
+				Stats = Instantiate( EntStats.GetDefault() );
+			}
 		}
 
 		/// <summary>

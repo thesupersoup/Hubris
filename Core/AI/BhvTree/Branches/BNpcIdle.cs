@@ -4,7 +4,9 @@ using UnityEngine.AI;
 
 namespace Hubris
 {
-	[Serializable]
+	/// <summary>
+	/// Npc is idle, and may choose to roam on a given interval
+	/// </summary>
 	public class BNpcIdle : BNpcBase
 	{
 		// Singleton instance of this state
@@ -18,30 +20,31 @@ namespace Hubris
 				return b.Status;
 			}
 
-			if ( b.TimerMove >= a.Params.RoamTime )
+			if ( b.TimerAct >= a.Params.RoamTime )
 			{
-				b.TimerMove = 0.0f;
-
-				// Set speed appropriately for walking
+				b.TimerAct = 0.0f;
 
 				// if (Random.Range(1, 20) > 10)
 				// RpcTriggerSound(Apex.SndT.IDLE, Random.Range(0.0f, Apex.SND_MAX_DELAY));
 
-				Debug.Log( "Checking if " + a.Name + " should roam..." );
-				if ( UnityEngine.Random.Range( 1, 20 ) > 10 )
+				if ( a.Params.Roam )
 				{
-					Debug.Log( a.Name + " is attempting to roam" );
-					Vector3 nPos = FindRoamPoint( a );
-
-					if ( nPos != Vector3.zero )
+					Debug.Log( "Checking if " + a.Name + " should roam..." );
+					if ( UnityEngine.Random.Range( 1, 20 ) > 10 )
 					{
-						// Set Speed accordingly
-						SetSpeed( a, a.Params.MoveSpd * a.Params.MoveWalk );
+						Debug.Log( a.Name + " is attempting to roam" );
+						Vector3 nPos = FindRoamPoint( a );
 
-						a.SetMovePos( nPos );
-						Debug.Log( a.Name + " is roaming" );
-						b.SetStatus( BhvStatus.SUCCESS );
-						return b.Status;
+						if ( nPos != Vector3.zero )
+						{
+							// Set Speed accordingly
+							SetSpeed( a, a.Params.MoveSpd * a.Params.MoveWalk );
+
+							a.SetMovePos( nPos );
+							Debug.Log( a.Name + " is roaming" );
+							b.SetStatus( BhvStatus.SUCCESS );
+							return b.Status;
+						}
 					}
 				}
 			}

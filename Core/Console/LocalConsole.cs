@@ -64,10 +64,11 @@ namespace Hubris
 			_cmdData = new List<string>();
 			_setVarTemp = Settings.None;
 
+			Ready = true;
+
 			if (HubrisPlayer.Instance != null)
 			{
 				_pScript = HubrisPlayer.Instance;
-				Ready = true;
 			}
 			else
 			{
@@ -255,6 +256,7 @@ namespace Hubris
 		public void ProcessSetVar(string data)
 		{
 			string[] strArr = null;
+			bool change = true;
 
 			if (data != null)
 				strArr = data.Split(new char[] { ' ' }); // Split at whitespace
@@ -271,10 +273,7 @@ namespace Hubris
 					if (strArr[1] != null && strArr[1][0] != HELP_CHAR)
 					{
 						Settings.PushChanges(_setVarTemp.Type, strArr[1]);
-						if (!Settings.GetVariable(_setVarTemp.Type).Dirty)
-							Log("Invalid value [" + strArr[1] + "] provided for variable " + _setVarTemp.Name);
-						else
-							Settings.UpdateDirtyVar(_setVarTemp.Type);
+						change = true;
 					}
 					else
 						DisplayVarHelp(_setVarTemp);
@@ -285,10 +284,7 @@ namespace Hubris
 					{
 						case Variable.VarData.BOOL:
 							Settings.PushChanges(_setVarTemp.Type, !(bool)_setVarTemp.Data);   // Toggle if boolean
-							if (!Settings.GetVariable(_setVarTemp.Type).Dirty)
-								Log("Could not toggle variable " + _setVarTemp.Name);
-							else
-								Settings.UpdateDirtyVar(_setVarTemp.Type);
+							change = true;
 							break;
 						default:
 							Log("Invalid variable (or no value provided): " + strArr[0]);
@@ -300,6 +296,14 @@ namespace Hubris
 			}
 			else
 				Log("Invalid data");
+
+			if( change )
+			{
+				if ( !Settings.GetVariable( _setVarTemp.Type ).Dirty )
+					Log( "Invalid value [" + strArr[1] + "] provided for variable " + _setVarTemp.Name );
+				else
+					Settings.UpdateDirtyVar( _setVarTemp.Type );
+			}
 
 			_setVarTemp = Settings.None;    // Reset temp variable
 		}
@@ -345,19 +349,16 @@ namespace Hubris
 		// FixedTick is called once per fixed time interval with MonoBehaviour.FixedUpdate()
 		public override void FixedTick()
 		{
+			if ( _pScript == null && HubrisPlayer.Instance != null )
+			{
+				_pScript = HubrisPlayer.Instance;
+				Settings.UpdateAllDirtyVars();
+				if ( HubrisCore.Instance.Debug )
+					Log( "LocalConsole Update(): FPSControl.Player found" );
+			}
+
 			if (Active && Ready)
 				ProcessInstructions();
-			else
-			{
-				if (_pScript == null && HubrisPlayer.Instance != null)
-				{
-					_pScript = HubrisPlayer.Instance;
-					Settings.UpdateAllDirtyVars();
-					if (HubrisCore.Instance.Debug)
-						Log("LocalConsole Update(): FPSControl.Player found, setting Ready = true", true);
-					Ready = true;
-				}
-			}
 		}
 
 		public void Log(string msg, bool unity = false)

@@ -21,14 +21,18 @@ namespace Hubris
 		[SerializeField]
 		protected List<InterestPoint> _interestPts = null;
 
+		[SerializeField]
+		protected List<SpawnPoint> _spawnPts = null;
+
 		///--------------------------------------------------------------------
 		/// GameManager properties
 		///--------------------------------------------------------------------
 
-		public List<Objective> Objectives
-		{
-			get { return _objectives; }
-		}
+		public List<Objective> Objectives => _objectives;
+
+		public List<InterestPoint> InterestPts => _interestPts;
+
+		public List<SpawnPoint> SpawnPts => _spawnPts;
 
 		public static GameManager Instance
 		{
@@ -58,6 +62,13 @@ namespace Hubris
 					_objectives.Add(new Objective(_interestPts[i].InterestType, _interestPts[i]));
 				}
 			}
+		}
+
+		public void ClearInfo()
+		{
+			Objectives.Clear();
+			InterestPts.Clear();
+			SpawnPts.Clear();
 		}
 
 		public override void FixedTick()

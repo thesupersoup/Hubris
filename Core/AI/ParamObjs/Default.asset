@@ -15,6 +15,7 @@ MonoBehaviour:
   _awareMax: 80
   _awareMed: 50
   _awareClose: 25
+  _predator: 1
   _atkDist: 4.25
   _stopDist: 2.5
   _chkIdle: 0.5
@@ -29,7 +30,7 @@ MonoBehaviour:
   _proxPct: 0.8
   _rotSpd: 0.065
   _rotAngle: 0.25
-  _fov: 2
+  _fov: 3
   _atkInit: 0.6
   _atkEnd: 1.8
   _awareMod: 1

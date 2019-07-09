@@ -179,8 +179,10 @@ namespace Hubris
 
 		protected override void Init()
 		{
-			EntType = LiveEntity.EType.PLAYER;
-			Stats = EntStats.Create(EntType);
+			base.OnEnable();
+			base.Init();
+
+			EntType = EntityType.PLAYER;
 			SpeedTarget = Movement.SpeedLow;
 		}
 

@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Hubris
 {
+	/// <summary>
+	/// Base class for behavior branches, includes common methods
+	/// </summary>
 	public abstract class BNpcBase : IBhvNode
 	{
 		public virtual BhvStatus Invoke( BhvTree b, Npc a )
@@ -158,7 +161,7 @@ namespace Hubris
 						// Stats checkStats = ent.transform.root.GetComponent<Stats>();
 
 						// Is it still within range
-						if (distCheck <= a.Params.AwareMax * a.Params.AwareMax)
+						if (distCheck <= Util.GetSquare( a.Params.AwareMax ) )
 						{
 							// Is it within the NPCs field-of-view
 							if ( a.ViewCone.IsInView( a.transform.forward, ent.transform.position - a.transform.position ) )

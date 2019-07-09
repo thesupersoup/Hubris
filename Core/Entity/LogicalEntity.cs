@@ -78,11 +78,12 @@ namespace Hubris
 		/// </summary>
 		protected virtual void SubTick()
 		{
-			if (HubrisCore.Instance != null)
+			if ( HubrisCore.Instance != null )
 			{
 				HubrisCore.Instance.AcTick += Tick;
 				HubrisCore.Instance.AcLateTick += LateTick;
 				HubrisCore.Instance.AcFixedTick += FixedTick;
+				HubrisCore.Instance.AcCleanUp += CleanUp;
 			}
 		}
 
@@ -92,11 +93,12 @@ namespace Hubris
 		/// </summary>
 		protected virtual void UnsubTick()
 		{
-			if (HubrisCore.Instance != null)
+			if ( HubrisCore.Instance != null )
 			{
 				HubrisCore.Instance.AcTick -= Tick;
 				HubrisCore.Instance.AcLateTick -= LateTick;
 				HubrisCore.Instance.AcFixedTick -= FixedTick;
+				HubrisCore.Instance.AcCleanUp -= CleanUp;
 			}
 		}
 

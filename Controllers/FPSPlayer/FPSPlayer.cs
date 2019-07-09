@@ -391,11 +391,6 @@ namespace Hubris
 			_prevGrounded = _pCon.isGrounded;
 		}
 
-		public void OnDrawGizmos()
-		{
-			Gizmos.DrawWireSphere( this.transform.position, 10.0f );
-		}
-
 		// Update is called once per frame
 		protected override void Update()
 		{

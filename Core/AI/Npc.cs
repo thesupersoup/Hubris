@@ -71,6 +71,8 @@ namespace Hubris
 			get { return _aiParams; }
 		}
 
+		public NpcType Type => Params?.Type ?? NpcType.BASE;
+
 		public NavMeshAgent NavAgent
 		{
 			get { return _navAgent; }
@@ -93,11 +95,15 @@ namespace Hubris
 			get { return _targetObj.transform.position; }
 		}
 
+		public float TargetDistSqr => Util.CheckDistSqr( this.transform.position, TargetPos );
+
 		public Vector3 MovePos
 		{
 			get { return _movePos; }
 			protected set { _movePos = value; }
 		}
+
+		public float MoveDistSqr => Util.CheckDistSqr( this.transform.position, MovePos );
 
 		public List<LiveEntity> TrackList
 		{
@@ -117,6 +123,7 @@ namespace Hubris
 		public override void OnEnable()
 		{
 			base.OnEnable();
+			base.Init();
 
 			if (NavAgent == null)
 			{
@@ -134,8 +141,7 @@ namespace Hubris
 
 			ViewCone = new FOV( this.transform.forward, _aiParams.FOV );
 
-			EntType = LiveEntity.EType.ENEMY;
-			Stats = EntStats.Create(EntType);
+			EntType = EntityType.NPC;
 		}
 
 		public void SetTargetObj(GameObject obj)

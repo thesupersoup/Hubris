@@ -37,7 +37,7 @@ namespace Hubris
 				LiveEntity ent = other.gameObject.GetComponent<LiveEntity>();
 				if (ent != null)
 				{
-					if (ent.EntType == LiveEntity.EType.PLAYER)
+					if (ent.EntType == EntityType.PLAYER)
 					{
 						NotifyObservers(true);
 						Deactivate();

@@ -6,8 +6,8 @@
 	public static class Version
 	{
 		public const int major = 0,
-							minor = 1,
-							patch = 1;
+							minor = 2,
+							patch = 0;
 
 		public static int Major => major;
 		public static int Minor => minor;

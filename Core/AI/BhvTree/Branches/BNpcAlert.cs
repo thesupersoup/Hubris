@@ -3,7 +3,9 @@ using UnityEngine;
 
 namespace Hubris
 {
-	[Serializable]
+	/// <summary>
+	/// Npc is aware of a target but hasn't taken action yet
+	/// </summary>
 	public class BNpcAlert : BNpcBase
 	{
 		// Singleton instance of this state
@@ -16,9 +18,6 @@ namespace Hubris
 				b.SetStatus( BhvStatus.FAILURE );
 				return b.Status;
 			}
-
-			// Set Speed accordingly
-			SetSpeed(a, a.Params.MoveSpd);
 
 			if (b.TimerCheck >= a.Params.ChkAlert)
 			{

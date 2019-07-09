@@ -173,13 +173,16 @@ namespace Hubris
 				bool act = !_conCan.activeSelf;
 				_conCan.SetActive(act);
 
-				if (HubrisPlayer.Instance.PlayerType == HubrisPlayer.PType.FPS)
+				if (HubrisPlayer.Instance?.PlayerType == HubrisPlayer.PType.FPS)
 				{
 					HubrisPlayer.Instance.SetMouse(!act);
 				}
 
-				if (InputManager.Instance != null)
-					InputManager.Instance.SetReady(!act);
+				if ( HubrisCore.Instance.Ingame )
+				{
+					// Enter Lite mode when the console is up, to prevent unwanted input
+					InputManager.Instance?.SetLite( act );
+				}
 
 				if (_conIn != null)
 				{

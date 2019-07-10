@@ -49,9 +49,10 @@ namespace Hubris
 				}
 			}
 
-			SetAnimTrigger(a, "Idle");
+			if( !b.AnimInfo.IsName( AnimString.IDLE ) )
+				SetAnimTrigger( a, AnimString.IDLE );
 
-			if (b.TimerCheck >= a.Params.ChkIdle)
+			if ( b.TimerCheck >= a.Params.ChkIdle )
 			{
 				b.TimerCheck = 0.0f;
 				CheckEnv(a);
@@ -60,7 +61,7 @@ namespace Hubris
 			return b.Status;
 		}
 
-		public Vector3 FindRoamPoint(Npc a)
+		public Vector3 FindRoamPoint( Npc a )
 		{
 			bool invalid = false;
 
@@ -68,18 +69,18 @@ namespace Hubris
 
 			roamPoint += a.transform.position;
 
-			NavMesh.SamplePosition(roamPoint, out NavMeshHit point, a.Params.RoamDist, NavMesh.AllAreas);
+			NavMesh.SamplePosition( roamPoint, out NavMeshHit point, a.Params.RoamDist, NavMesh.AllAreas );
 
-			if (point.position.x == Mathf.Infinity || point.position.x == Mathf.NegativeInfinity)
+			if ( point.position.x == Mathf.Infinity || point.position.x == Mathf.NegativeInfinity )
 				invalid = true;
 
-			if (point.position.y == Mathf.Infinity || point.position.y == Mathf.NegativeInfinity)
+			if ( point.position.y == Mathf.Infinity || point.position.y == Mathf.NegativeInfinity )
 				invalid = true;
 
-			if (point.position.z == Mathf.Infinity || point.position.z == Mathf.NegativeInfinity)
+			if ( point.position.z == Mathf.Infinity || point.position.z == Mathf.NegativeInfinity )
 				invalid = true;
 
-			if (!invalid)
+			if ( !invalid )
 				return point.position;
 			else
 				return Vector3.zero;

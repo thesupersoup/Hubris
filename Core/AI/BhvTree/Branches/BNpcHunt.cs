@@ -37,7 +37,8 @@ namespace Hubris
 			if ( a.NavAgent.speed != nSpd )
 				SetSpeed( a, nSpd );
 
-			SetAnimTrigger( a, "Walk" );
+			if( !b.AnimInfo.IsName( AnimString.WALK ) )
+				SetAnimTrigger( a, AnimString.WALK );
 
 			if ( b.TimerCheck >= a.Params.ChkAlert )
 			{

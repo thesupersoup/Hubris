@@ -21,7 +21,7 @@ namespace Hubris
 		/// AI constants 
 		///--------------------------------------------------------------------
 
-		public const float LOOK_ANGLE_MAX = 70.0f;   // Maximum amount (in degrees) of variance when using IK to look at a target
+		public const float LOOK_ANGLE_MAX = 70.0f;	// Maximum amount (in degrees) of variance when using IK to look at a target
 
 		/// Constants for the [Range] Attribute maximums below
 		public const float SMALL_RANGE = 1.0f, LOW_MED_RANGE = 5.0f, HIGH_MED_RANGE = 10.0f, LARGE_RANGE = 100.0f, ROT_ANGLE_MAX = 179.0f;
@@ -34,9 +34,8 @@ namespace Hubris
 							DEF_ACCEL_BASE = 100.0f, DEF_ATK_SLOW = 0.5f, DEF_FLEE_DIST = 10.0f, FLEE_DIVISOR = 2.0f, WARY_DIVISOR = 4.0f;
 
 		/// Constants for modifiers
-		public const float MOD_MAX = 1.0f, DEF_MOD = 1.0f, 
-							AWARE_MOD_IMPAIRED = 0.6f,
-							ROT_ANGLE_MOD_NARROW = 0.01f;
+		public const float MOD_MAX = 1.0f, DEF_MOD = 1.0f,
+							AWARE_MOD_IMPAIRED = 0.6f;
 
 		///--------------------------------------------------------------------
 		/// Serialized instance variables for Editor
@@ -106,6 +105,9 @@ namespace Hubris
 		[Tooltip( "Will this Npc coordinate with others of the same type?" )]
 		private bool _squad;
 		[SerializeField]
+		[Tooltip( "Will this Npc always try to flee from threats?" )]
+		private bool _flighty;
+		[SerializeField]
 		[Tooltip( "Should this Npc retarget when one threat is closer than another?" )]
 		private bool _retarget;
 		[SerializeField]
@@ -117,7 +119,7 @@ namespace Hubris
 		[Range( 0.0f, LOW_MED_RANGE )]
 		private float _rotSpd;
 		[SerializeField]
-		[Tooltip( "Maximum angle between an Npc's forward vector and the vector to target's position [with RotAngleMod coefficient]" )]
+		[Tooltip( "Maximum angle between an Npc's forward vector and the vector to target's position" )]
 		[Range( 0.0f, ROT_ANGLE_MAX )]
 		private float _rotAngle;
 		[SerializeField]
@@ -132,8 +134,8 @@ namespace Hubris
 		[Range( 0.0f, LARGE_RANGE )]
 		private float _accelBase;
 		[SerializeField]
-		[Tooltip( "Coefficient to slow Npc speed when Npc is attacking" )]
-		[Range( 0.0f, SMALL_RANGE )]
+		[Tooltip( "Slow to this coefficient of speed when Npc is attacking" )]
+		[Range( SMALL_RANGE, 0.0f )]
 		private float _atkSlow;
 		[SerializeField]
 		[Tooltip( "Time between the beginning of an attack animation and the damage check (seconds)" )]
@@ -261,6 +263,11 @@ namespace Hubris
 		public bool Squad { get { return _squad; } protected set { _squad = value; } }
 
 		/// <summary>
+		/// Will this Npc always try to flee from threats?
+		/// </summary>
+		public bool Flighty { get { return _flighty; } protected set { _flighty = value; } }
+
+		/// <summary>
 		/// Should this Npc retarget when one threat is closer than another?
 		/// </summary>
 		public bool Retarget { get { return _retarget; } protected set { _retarget = value; } }
@@ -278,7 +285,6 @@ namespace Hubris
 
 		/// <summary>
 		/// Maximum angle between an Npc's forward vector and the vector to target's position
-		/// [Returns RotAngle with RotAngleMod applied]
 		/// </summary>
 		public float RotAngle { get { return _rotAngle; } protected set { _rotAngle = value; } }
 
@@ -298,7 +304,7 @@ namespace Hubris
 		public float AccelBase { get { return _accelBase; } protected set { _accelBase = value; } }
 
 		/// <summary>
-		/// Coefficient to slow Npc speed when Npc is attacking
+		/// Slow to this coefficient of speed when Npc is attacking
 		/// </summary>
 		public float AtkSlow { get { return _atkSlow; } protected set { _atkSlow = value; } }
 
@@ -481,6 +487,14 @@ namespace Hubris
 		}
 
 		/// <summary>
+		/// [bool] Will this Npc always try to flee from threats?
+		/// </summary>
+		public void SetFlighty( bool nFlight )
+		{
+			Flighty = nFlight;
+		}
+
+		/// <summary>
 		/// [bool] Should this Npc retarget when one threat is closer than another?
 		/// </summary>
 		public void SetRetarget( bool nRe )
@@ -614,6 +628,7 @@ namespace Hubris
 			p.SetPredator( false );
 			p.SetTerritorial( false );
 			p.SetSquad( false );
+			p.SetFlighty( false );
 			p.SetRetarget( false );
 			p.SetProxPct( DEF_PROX_PCT );
 			p.SetRotSpd( DEF_ROT_SPD );

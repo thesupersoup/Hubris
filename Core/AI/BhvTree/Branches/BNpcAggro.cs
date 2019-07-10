@@ -30,12 +30,13 @@ namespace Hubris
 
 			float nSpd = a.Params.MoveSpd;
 
-			AnimatorStateInfo animInfo = a.Anim.GetCurrentAnimatorStateInfo( 0 );
-
-			if ( animInfo.IsName( "Attack" ) )
+			if ( b.AnimInfo.IsName( AnimString.ATK ) )
 				nSpd *= a.Params.AtkSlow;
 			else
-				SetAnimTrigger( a, "Run" );
+			{
+				if( !b.AnimInfo.IsName( AnimString.RUN ) )
+					SetAnimTrigger( a, AnimString.RUN );
+			}
 
 			// Set Speed accordingly
 			if ( a.NavAgent.speed != nSpd )

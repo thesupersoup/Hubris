@@ -43,7 +43,8 @@ namespace Hubris
 				return b.Status;
 			}
 
-			SetAnimTrigger( a, "Run" );
+			if( !b.AnimInfo.IsName( AnimString.RUN ) )
+				SetAnimTrigger( a, AnimString.RUN );
 
 			if ( b.TimerCheck >= a.Params.ChkAlert )
 			{

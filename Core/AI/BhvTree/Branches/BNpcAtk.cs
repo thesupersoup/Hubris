@@ -17,23 +17,16 @@ namespace Hubris
 				return b.Status;
 			}
 
-			AnimatorStateInfo animInfo = a.Anim.GetCurrentAnimatorStateInfo( 0 );
-
 			if ( b.DistTarget > Util.GetSquare( a.Params.AtkDist ) )
 			{
-				if ( animInfo.IsName( "Attack" ) )
-					a.Anim.ResetTrigger( "Attack" );
+				if ( b.AnimInfo.IsName( AnimString.ATK ) )
+					a.Anim.ResetTrigger( AnimString.ATK );
 
 				b.SetStatus( BhvStatus.FAILURE );
 				return b.Status;
 			}
 
-			Vector3 targetPos = a.TargetPos;
-			Vector3 thisPos = a.transform.position;
-			Vector3 fwd = a.transform.forward;
-			fwd.y = 0.0f;
-			targetPos.y = 0.0f;
-			thisPos.y = 0.0f;
+			GetFlatVectors( a, out Vector3 targetPos, out Vector3 thisPos, out Vector3 fwd );
 
 			float angle = Vector3.Angle( fwd, (targetPos - thisPos) );
 
@@ -46,14 +39,42 @@ namespace Hubris
 
 			float nSpd = a.Params.MoveSpd;
 
-			if ( animInfo.IsName( "Attack" ) )
+			if ( b.AnimInfo.IsName( AnimString.ATK ) )
 				nSpd *= a.Params.AtkSlow;
 
 			// Set Speed accordingly
 			if ( a.NavAgent.speed != nSpd )
 				SetSpeed( a, nSpd );
 
-			SetAnimTrigger( a, "Attack" );
+			if ( b.ActionReady )
+			{
+				if ( b.TimerAct >= a.Params.AtkInit )
+				{
+					b.SetActionReady( false );
+					SetAnimTrigger( a, AnimString.ATK );
+					Debug.Log( "Attacking" );
+				}
+			}
+			else	// ActionReady is false
+			{
+				if ( a.NavAgent.velocity != Vector3.zero )
+				{
+					if ( !b.AnimInfo.IsName( AnimString.WALK ) )
+						SetAnimTrigger( a, AnimString.WALK );
+				}
+				else
+				{
+					if ( !b.AnimInfo.IsName( AnimString.IDLE ) )
+						SetAnimTrigger( a, AnimString.IDLE );
+				}
+
+				if ( b.TimerAct >= a.Params.AtkEnd )
+				{
+					b.SetActionReady( true );
+					b.TimerAct = 0.0f;
+					Debug.Log( "Ready to attack again" );
+				}
+			}
 
 			if ( b.TimerCheck >= a.Params.ChkAlert )
 			{ 
@@ -61,8 +82,10 @@ namespace Hubris
 				CheckEnv( a );
 			}
 
-			if ( a.NavAgent.destination != a.MovePos )
-				a.NavAgent.SetDestination( a.MovePos );
+			// if ( a.NavAgent.destination != a.MovePos )
+			a.NavAgent.SetDestination( a.MovePos );
+
+			b.SetPrevPos( a.transform.position );
 
 			return b.Status;
 		}

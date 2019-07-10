@@ -28,25 +28,22 @@ namespace Hubris
 			if (a.NavAgent.hasPath)
 				a.NavAgent.ResetPath();
 
-			Vector3 targetPos = a.TargetObj.transform.position;
-			Vector3 thisPos = a.transform.position;
-			Vector3 fwd = a.transform.forward;
-			fwd.y = 0.0f;
-			targetPos.y = 0.0f;
-			thisPos.y = 0.0f;
+			GetFlatVectors( a, out Vector3 targetPos, out Vector3 thisPos, out Vector3 fwd );
 
 			float angle = Vector3.Angle(fwd, (targetPos - thisPos));
 
 			if (angle > a.Params.RotAngle)
 			{
 				// Reverse walk anim to differentiate from regular walking
-				SetAnimTrigger(a, "WalkBack");
+				if ( !b.AnimInfo.IsName( AnimString.WALKBACK ) )
+					SetAnimTrigger( a, AnimString.WALKBACK );
+
 				TurnToward( a, targetPos );
 			}
 			else
 			{
-				if (!a.Anim.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
-					SetAnimTrigger(a, "Idle");
+				if ( !b.AnimInfo.IsName( AnimString.IDLE ) )
+					SetAnimTrigger( a, AnimString.IDLE );
 			}
 
 			return b.Status;

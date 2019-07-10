@@ -18,8 +18,11 @@ namespace Hubris
 		private BhvStatus _activeStatus;
 		private float _timerAct = 0.0f;
 		private float _timerChk = 0.0f;
+		private bool _actReady = false;
 		private float _distTarget = 0.0f;
 		private float _distMove = 0.0f;
+		private Vector3 _prevPos = Vector3.zero;
+		private AnimatorStateInfo _animInfo;
 
 		///--------------------------------------------------------------------
 		/// BhvTree properties
@@ -35,13 +38,40 @@ namespace Hubris
 		/// </summary>
 		public BhvStatus Status { get { return _activeStatus; } protected set { _activeStatus = value; } }
 
+		/// <summary>
+		/// Timer for certain actions in behaviors
+		/// </summary>
 		public float TimerAct { get { return _timerAct; } set { _timerAct = value; } }
 
+		/// <summary>
+		/// Timer for checking the environment
+		/// </summary>
 		public float TimerCheck { get { return _timerChk; } set { _timerChk = value; } }
 
+		/// <summary>
+		/// Flag for certain Npc behaviors
+		/// </summary>
+		public bool ActionReady => _actReady;
+
+		/// <summary>
+		/// Square of the distance between the Npc and the target
+		/// </summary>
 		public float DistTarget => _distTarget;
 
+		/// <summary>
+		/// Square of the distance between the Npc and desired movement position
+		/// </summary>
 		public float DistMove => _distMove;
+
+		/// <summary>
+		/// Position of the Npc as of the previous behavior invocation
+		/// </summary>
+		public Vector3 PrevPos => _prevPos;
+
+		/// <summary>
+		/// Current Animator state info for the Npc
+		/// </summary>
+		public AnimatorStateInfo AnimInfo => _animInfo;
 
 		///--------------------------------------------------------------------
 		/// BhvTree methods
@@ -72,16 +102,24 @@ namespace Hubris
 		/// <summary>
 		/// Increment logic timers by time since the last frame
 		/// </summary>
-		public void UpdateTimers()
+		private void UpdateTimers()
 		{
 			TimerAct += Time.deltaTime;
 			TimerCheck += Time.deltaTime;
 		}
 
+				/// <summary>
+		/// Sets the ActionReady flag
+		/// </summary>
+		public void SetActionReady( bool r )
+		{
+			_actReady = r;
+		}
+
 		/// <summary>
 		/// Update distance to target object and distance to move point for use by behavior branches
 		/// </summary>
-		public void UpdateDistances( Npc a )
+		private void UpdateDistances( Npc a )
 		{
 			if( a.TargetObj != null )
 				_distTarget = a.TargetDistSqr;
@@ -91,11 +129,28 @@ namespace Hubris
 		}
 
 		/// <summary>
+		/// Set the previous position
+		/// </summary>
+		public void SetPrevPos( Vector3 pos )
+		{
+			_prevPos = pos;
+		}
+
+		/// <summary>
+		/// Update the stored animator state info
+		/// </summary>
+		private void UpdateAnimInfo( Npc a, int layer )
+		{
+			_animInfo = a.Anim.GetCurrentAnimatorStateInfo( layer );
+		}
+
+		/// <summary>
 		/// Change the active behavior branch
 		/// </summary>
 		public void ChangeBranch( IBhvNode n, Npc a )
 		{
 			ResetTimers();
+			SetActionReady( true );
 
 			if ( HubrisCore.Instance.Debug )
 				LocalConsole.Instance.Log( $"{a.Name}: {nameof( ActiveBranch )} requested change due to status: {(int)Status}", true );
@@ -184,6 +239,7 @@ namespace Hubris
 
 			UpdateTimers();
 			UpdateDistances( a );
+			UpdateAnimInfo( a, 0 );
 			RootChecks( a );
 
 			// What should we do if the active behavior branch succeeds or fails

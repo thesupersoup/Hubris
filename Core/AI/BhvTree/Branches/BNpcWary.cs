@@ -20,6 +20,16 @@ namespace Hubris
 				return b.Status;
 			}
 
+			if ( b.DistTarget <= Util.GetSquare( a.Params.AwareClose ) )
+			{
+				if ( a.Params.Flighty )
+				{
+					// Too close, should flee
+					b.SetStatus( BhvStatus.FAILURE );
+					return b.Status;
+				}
+			}
+
 			if ( b.DistTarget <= Util.GetSquare( a.Params.AwareMed ) )
 			{
 				if ( a.MovePos == Vector3.zero )
@@ -46,7 +56,8 @@ namespace Hubris
 				return b.Status;
 			}
 
-			SetAnimTrigger( a, "WalkBack" );
+			if( !b.AnimInfo.IsName( AnimString.WALKBACK ) )
+				SetAnimTrigger( a, AnimString.WALKBACK );
 
 			if ( b.TimerCheck >= a.Params.ChkAlert )
 			{

@@ -15,7 +15,7 @@ namespace Hubris
 			// Override in derived state
 		}
 
-		public void SetSpeed(Npc a, float nSpd)
+		public void SetSpeed( Npc a, float nSpd )
 		{
 			if(a.NavAgent != null)
 			{
@@ -24,7 +24,7 @@ namespace Hubris
 			}
 		}
 
-		public void SetAnimTrigger(Npc a, string nAnim)
+		public void SetAnimTrigger( Npc a, string nAnim )
 		{
 			if(a.Anim != null)
 			{
@@ -33,7 +33,7 @@ namespace Hubris
 			}
 		}
 
-		public void SetAnimBool(Npc a, string nName, bool nValue)
+		public void SetAnimBool( Npc a, string nName, bool nValue )
 		{
 			if(a.Anim != null)
 			{
@@ -42,13 +42,29 @@ namespace Hubris
 			}
 		}
 
-		public void TurnToward(Npc a, Vector3 target)
+		/// <summary>
+		/// Turn toward the specified Vector3 target
+		/// </summary>
+		public void TurnToward( Npc a, Vector3 target )
 		{
 			a.transform.rotation = Quaternion.Slerp( a.transform.rotation,
 					Quaternion.LookRotation( target - a.transform.position ), a.Params.RotSpd );
 		}
 
-		public void CheckEnv(Npc a)
+		/// <summary>
+		/// Provides three vectors via the out parameters with the y-value zeroed out
+		/// </summary>
+		public void GetFlatVectors( Npc a, out Vector3 targetPos, out Vector3 thisPos, out Vector3 fwd )
+		{
+			targetPos = a.TargetPos;
+			thisPos = a.transform.position;
+			fwd = a.transform.forward;
+			fwd.y = 0.0f;
+			targetPos.y = 0.0f;
+			thisPos.y = 0.0f;
+		}
+
+		public void CheckEnv( Npc a )
 		{
 			AreaScan(a);
 			if (a.TrackList != null)
@@ -147,7 +163,7 @@ namespace Hubris
 			}
 		}
 
-		public void ProcessTrackBook(Npc a) // Process the entities in the trackBook, finds closest and removes ents beyond MAX_DIST 
+		public void ProcessTrackBook( Npc a ) // Process the entities in the trackBook, finds closest and removes ents beyond MAX_DIST 
 		{
 			bool resetTrackList = false;
 
@@ -163,11 +179,11 @@ namespace Hubris
 
 					if (ent != null) // If the entity dies and is cleaned up before the trackBook is processed, it will be null
 					{
-						float distCheck = Util.CheckDistSqr(a.transform.position, ent.transform.position);
+						float distCheck = Util.CheckDistSqr( a.transform.position, ent.transform.position );
 						// Stats checkStats = ent.transform.root.GetComponent<Stats>();
 
 						// Is it still within range
-						if (distCheck <= Util.GetSquare( a.Params.AwareMax ) )
+						if ( distCheck <= Util.GetSquare( a.Params.AwareMax ) )
 						{
 							// Is it within the NPCs field-of-view
 							if ( a.ViewCone.IsInView( a.transform.forward, ent.transform.position - a.transform.position ) )
@@ -208,7 +224,7 @@ namespace Hubris
 					}
 				}
 
-				if (a.TargetObj == null)
+				if ( a.TargetObj == null )
 				{
 					if (closestEnt != null)
 					{
@@ -223,9 +239,9 @@ namespace Hubris
 				a.SetTargetObj(null);
 			}
 
-			if (a.RemoveList != null && a.RemoveList.Count > 0)
+			if ( a.RemoveList != null && a.RemoveList.Count > 0 )
 			{
-				for (int i = 0; i < a.RemoveList.Count; i++)
+				for ( int i = 0; i < a.RemoveList.Count; i++ )
 				{
 					LiveEntity ent = a.RemoveList[i];
 					if (ent != null) // If the entity dies and is cleaned up before the removeBook is processed, it will be null
@@ -235,17 +251,17 @@ namespace Hubris
 				a.RemoveList.Clear();
 			}
 
-			if (resetTrackList)
+			if ( resetTrackList )
 			{
 				a.TrackList.Clear();
 			}
 		}
 
-		public void Untrack(Npc a, LiveEntity ent)
+		public void Untrack( Npc a, LiveEntity ent )
 		{
-			if (ent != null) // If the entity dies and is cleaned up before it can be untracked, it will be null
+			if ( ent != null ) // If the entity dies and is cleaned up before it can be untracked, it will be null
 			{
-				if (a.TrackList.Contains(ent))
+				if ( a.TrackList.Contains(ent) )
 				{
 					a.TrackList.Remove(ent);
 					Debug.Log(a.gameObject.name + " Untrack(): " + ent.gameObject.name + " removed from trackBook");

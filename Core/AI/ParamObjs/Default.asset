@@ -36,7 +36,7 @@ MonoBehaviour:
   _fov: 3
   _animDelay: 0
   _accelBase: 100
-  _atkSlow: 0.7
+  _atkSlow: 0.4
   _atkInit: 0.6
   _atkEnd: 1.8
   _awareMod: 1

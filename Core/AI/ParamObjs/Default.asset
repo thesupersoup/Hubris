@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 89d1aba2f731e5c4b864150954ec1764, type: 3}
   m_Name: Default
   m_EditorClassIdentifier: 
+  _type: 1
   _awareMax: 80
   _awareMed: 50
   _awareClose: 25
-  _predator: 1
   _atkDist: 4.25
   _stopDist: 2.5
   _chkIdle: 0.5
@@ -26,11 +26,17 @@ MonoBehaviour:
   _roamDist: 20
   _roamTime: 10
   _roamPts: 5
+  _predator: 1
+  _territorial: 0
+  _squad: 1
   _retarget: 1
   _proxPct: 0.8
   _rotSpd: 0.065
   _rotAngle: 0.25
   _fov: 3
+  _animDelay: 0
+  _accelBase: 100
+  _atkSlow: 0.7
   _atkInit: 0.6
   _atkEnd: 1.8
   _awareMod: 1

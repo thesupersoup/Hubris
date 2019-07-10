@@ -18,6 +18,8 @@ namespace Hubris
 		private BhvStatus _activeStatus;
 		private float _timerAct = 0.0f;
 		private float _timerChk = 0.0f;
+		private float _distTarget = 0.0f;
+		private float _distMove = 0.0f;
 
 		///--------------------------------------------------------------------
 		/// BhvTree properties
@@ -36,6 +38,10 @@ namespace Hubris
 		public float TimerAct { get { return _timerAct; } set { _timerAct = value; } }
 
 		public float TimerCheck { get { return _timerChk; } set { _timerChk = value; } }
+
+		public float DistTarget => _distTarget;
+
+		public float DistMove => _distMove;
 
 		///--------------------------------------------------------------------
 		/// BhvTree methods
@@ -72,6 +78,21 @@ namespace Hubris
 			TimerCheck += Time.deltaTime;
 		}
 
+		/// <summary>
+		/// Update distance to target object and distance to move point for use by behavior branches
+		/// </summary>
+		public void UpdateDistances( Npc a )
+		{
+			if( a.TargetObj != null )
+				_distTarget = a.TargetDistSqr;
+
+			if ( a.MovePos != Vector3.zero )
+				_distMove = a.MoveDistSqr;
+		}
+
+		/// <summary>
+		/// Change the active behavior branch
+		/// </summary>
 		public void ChangeBranch( IBhvNode n, Npc a )
 		{
 			ResetTimers();
@@ -162,6 +183,7 @@ namespace Hubris
 				return;
 
 			UpdateTimers();
+			UpdateDistances( a );
 			RootChecks( a );
 
 			// What should we do if the active behavior branch succeeds or fails
@@ -183,18 +205,16 @@ namespace Hubris
 					 */
 
 					// Check how close the Npc is
-					float distSqr = Util.CheckDistSqr( a.transform.position, a.TargetObj.transform.position );
-
-					if ( distSqr > a.Params.AwareMed * a.Params.AwareMed )	// If target is further than the medium awareness distance
+					if ( DistTarget > Util.GetSquare( a.Params.AwareMed ) )	// If target is further than the medium awareness distance
 						ChangeBranch( BNpcAlert.Instance, a );	// We become alert
-					else if ( distSqr > a.Params.AwareClose * a.Params.AwareClose )	// If target is nearer than the medium distance but further than the close distance
+					else if ( DistTarget > Util.GetSquare( a.Params.AwareClose ) )	// If target is nearer than the medium distance but further than the close distance
 					{
 						if ( a.Params.Predator )	// If we're a predatory Npc...
 							ChangeBranch( BNpcHunt.Instance, a );	// ... we go hunting
 						else	// Otherwise...
 							ChangeBranch( BNpcWary.Instance, a );	// ... we become wary
 					}
-					else if ( distSqr > a.Params.AtkDist * a.Params.AtkDist )// If target is too close for comfort
+					else if ( DistTarget > Util.GetSquare( a.Params.AtkDist ) )// If target is too close for comfort
 					{
 						if ( a.Params.Predator )	// If we're a predatory Npc...
 							ChangeBranch( BNpcAggro.Instance, a );	// ... we get angry

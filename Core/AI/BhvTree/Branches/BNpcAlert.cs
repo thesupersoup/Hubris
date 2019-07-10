@@ -41,8 +41,7 @@ namespace Hubris
 			{
 				// Reverse walk anim to differentiate from regular walking
 				SetAnimTrigger(a, "WalkBack");
-				a.transform.rotation = Quaternion.Slerp(a.transform.rotation,
-									Quaternion.LookRotation(targetPos - thisPos), a.Params.RotSpd);
+				TurnToward( a, targetPos );
 			}
 			else
 			{

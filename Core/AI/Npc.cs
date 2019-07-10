@@ -69,9 +69,10 @@ namespace Hubris
 		public AIParams Params
 		{
 			get { return _aiParams; }
+			protected set { _aiParams = value; }
 		}
 
-		public NpcType Type => Params?.Type ?? NpcType.BASE;
+		public NpcType Type => Params != null ? Params.Type : NpcType.BASE;
 
 		public NavMeshAgent NavAgent
 		{
@@ -122,6 +123,12 @@ namespace Hubris
 
 		public override void OnEnable()
 		{
+			if ( Params == null )
+			{
+				LocalConsole.Instance.Log( $"Npc {this.name} has no associated AIParams object, instantiating default...", true );
+				Params = Instantiate( AIParams.GetDefault() );
+			}
+
 			base.OnEnable();
 			base.Init();
 
@@ -131,6 +138,9 @@ namespace Hubris
 				if (NavAgent == null)
 					NavAgent = this.gameObject.AddComponent<NavMeshAgent>();
 			}
+
+			NavAgent.stoppingDistance = Params.StopDist;
+			NavAgent.acceleration = Params.AccelBase;
 
 			if(Anim == null)
 			{

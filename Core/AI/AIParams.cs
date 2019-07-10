@@ -31,7 +31,7 @@ namespace Hubris
 		public const float DEF_AWARE_MAX = 10.0f, DEF_AWARE_MED = 5.0f, DEF_AWARE_CLOSE = 2.5f, DEF_ATK_DIST = 2.0f, DEF_STOP_DIST = 1.0f,
 							DEF_CHK_IDLE = 0.5f, DEF_CHK_ALERT = 0.33f, DEF_MOVE_SPD = 14.0f, DEF_MOVE_WALK = 0.36f,
 							DEF_ROAM_DIST = 10.0f, DEF_ROAM_TIME = 10.0f, DEF_PROX_PCT = 0.8f, DEF_ROT_ANGLE = 40.0f, DEF_ROT_SPD = 0.15f,
-							DEF_FLEE_DIST = 10.0f, FLEE_DIVISOR = 2.0f, WARY_DIVISOR = 4.0f;
+							DEF_ACCEL_BASE = 100.0f, DEF_ATK_SLOW = 0.5f, DEF_FLEE_DIST = 10.0f, FLEE_DIVISOR = 2.0f, WARY_DIVISOR = 4.0f;
 
 		/// Constants for modifiers
 		public const float MOD_MAX = 1.0f, DEF_MOD = 1.0f, 
@@ -123,9 +123,18 @@ namespace Hubris
 		[SerializeField]
 		[Tooltip( "Represents the default angle of the Npc's field-of-view cone" )]
 		private FOVDegrees _fov;
+		[SerializeField]
 		[Tooltip( "Animation delay for better synchronization with actions (seconds)" )]
 		[Range( 0.0f, LOW_MED_RANGE )]
 		private float _animDelay;
+		[SerializeField]
+		[Tooltip( "Base acceleration for this Npc" )]
+		[Range( 0.0f, LARGE_RANGE )]
+		private float _accelBase;
+		[SerializeField]
+		[Tooltip( "Coefficient to slow Npc speed when Npc is attacking" )]
+		[Range( 0.0f, SMALL_RANGE )]
+		private float _atkSlow;
 		[SerializeField]
 		[Tooltip( "Time between the beginning of an attack animation and the damage check (seconds)" )]
 		[Range( 0.0f, LOW_MED_RANGE )]
@@ -282,7 +291,17 @@ namespace Hubris
 		/// Animation delay for better synchronization with actions (seconds)
 		/// </summary>
 		public float AnimDelay { get { return _animDelay; } protected set { _animDelay = value; } }
-        
+
+		/// <summary>
+		/// Base acceleration for this Npc
+		/// </summary>
+		public float AccelBase { get { return _accelBase; } protected set { _accelBase = value; } }
+
+		/// <summary>
+		/// Coefficient to slow Npc speed when Npc is attacking
+		/// </summary>
+		public float AtkSlow { get { return _atkSlow; } protected set { _atkSlow = value; } }
+
 		/// <summary>
 		/// Time between the beginning of an attack animation and the damage check (seconds)
 		/// </summary>
@@ -296,7 +315,7 @@ namespace Hubris
 		///--------------------------------------------------------------------
 		/// Parameter modifiers
 		///--------------------------------------------------------------------
-        
+
 		/// <summary>
 		/// [Coefficient, float] Modifier for awareness distances
 		/// </summary>
@@ -522,6 +541,21 @@ namespace Hubris
 		}
 
 		/// <summary>
+		/// Base acceleration for this Npc
+		/// </summary>
+		public void SetAccelBase( float nAccel )
+		{
+			if ( nAccel > 0.0f )
+				AccelBase = nAccel;
+		}
+
+		public void SetAtkSlow( float nSlow )
+		{
+			if ( nSlow > 0.0f )
+				AtkSlow = nSlow;
+		}
+
+		/// <summary>
 		/// [Seconds, float] Should be positive 
 		/// </summary>
 		public void SetAtkInit( float nInit )
@@ -559,60 +593,36 @@ namespace Hubris
 		/// AIParams methods
 		///--------------------------------------------------------------------
 
-		public AIParams()
+		public static AIParams GetDefault()
 		{
-			AwareMod = DEF_MOD;
-		}
+			AIParams p = CreateInstance<AIParams>();
 
-		public AIParams( float dMax, float dMed, float dClose, float dAtk, float dStop, float tIdle, float tAlert, float nSpd, float nWalk, bool bRoam, float dRoam, float tRoam, int nPts, bool bRe, float dProx, float rSpd, float animDelay, float atkInit, float atkEnd )
-		{
-			AwareMax = dMax;
-			AwareMed = dMed;
-			AwareClose = dClose;
-			AtkDist = dAtk;
-			StopDist = dStop;
-			ChkIdle = tIdle;
-			ChkAlert = tAlert;
-			MoveSpd = nSpd;
-			MoveWalk = nWalk;
-			Roam = bRoam;
-			RoamDist = dRoam;
-			RoamTime = tRoam;
-			RoamPts = nPts;
-			Retarget = bRe;
-			ProxPct = dProx;
-			RotSpd = rSpd;
-			AnimDelay = animDelay;
-			AtkInit = atkInit;
-			AtkEnd = atkEnd;
-			AwareMod = DEF_MOD;
-		}
-
-		// To be implemented with a fluent interface and method chaining
-		public static AIParams Default()
-		{
-			AIParams p = new AIParams();
-
-			p.SetAwareMax( 80.0f );
-			p.SetAwareMed( 50.0f );
-			p.SetAwareClose( 25.0f );
-			p.SetAtkDist( 4.25f );
-			p.SetStopDist( 2.5f );
-			p.SetChkIdle( 0.5f );
-			p.SetChkAlert( 0.33f );
-			p.SetMoveSpeed( 14.0f );
-			p.SetMoveWalk( 0.36f );
-			p.SetRoam( true );
-			p.SetRoamDist( 20.0f );
-			p.SetRoamTime( 10.0f );
-			p.SetRoamPts( 5 );
-			p.SetRetarget( true );
-			p.SetProxPct( 0.8f );
-			p.SetRotSpd( 0.065f );
-			p.SetRotAngle( 50.0f );
-			p.SetAnimDelay( 0.45f );
-			p.SetAtkInit( 0.6f );
-			p.SetAtkEnd( 1.8f );
+			p.SetType( NpcType.BASE );
+			p.SetAwareMax( DEF_AWARE_MAX );
+			p.SetAwareMed( DEF_AWARE_MED );
+			p.SetAwareClose( DEF_AWARE_CLOSE );
+			p.SetAtkDist( DEF_ATK_DIST );
+			p.SetStopDist( DEF_STOP_DIST );
+			p.SetChkIdle( DEF_CHK_IDLE );
+			p.SetChkAlert( DEF_CHK_ALERT );
+			p.SetMoveSpeed( DEF_MOVE_SPD );
+			p.SetMoveWalk( DEF_MOVE_WALK );
+			p.SetRoam( false );
+			p.SetRoamDist( DEF_ROAM_DIST );
+			p.SetRoamTime( DEF_ROAM_TIME );
+			p.SetRoamPts( 0 );
+			p.SetPredator( false );
+			p.SetTerritorial( false );
+			p.SetSquad( false );
+			p.SetRetarget( false );
+			p.SetProxPct( DEF_PROX_PCT );
+			p.SetRotSpd( DEF_ROT_SPD );
+			p.SetRotAngle( DEF_ROT_ANGLE );
+			p.SetAnimDelay( 0.0f );
+			p.SetAccelBase( DEF_ACCEL_BASE );
+			p.SetAtkSlow( DEF_ATK_SLOW );
+			p.SetAtkInit( 0.0f );
+			p.SetAtkEnd( 0.0f );
 
 			return p;
 		}

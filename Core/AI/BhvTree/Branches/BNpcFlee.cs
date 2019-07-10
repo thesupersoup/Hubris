@@ -35,9 +35,7 @@ namespace Hubris
 				a.SetMovePos( nPos );
 			}
 
-			float moveDist = a.MoveDistSqr;
-
-			if ( moveDist <= Util.GetSquare(a.Params.StopDist) )
+			if ( b.DistMove <= Util.GetSquare(a.Params.StopDist) )
 			{
 				a.NavAgent.ResetPath();
 				a.SetMovePos( Vector3.zero );
@@ -55,6 +53,8 @@ namespace Hubris
 
 			if ( a.NavAgent.destination != a.MovePos )
 				a.NavAgent.SetDestination( a.MovePos );
+
+			TurnToward( a, a.MovePos );
 
 			return b.Status;
 		}

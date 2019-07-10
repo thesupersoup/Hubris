@@ -20,24 +20,26 @@ namespace Hubris
 				return b.Status;
 			}
 
-			float tarDist = a.TargetDistSqr;
-
-			if ( tarDist <= Util.GetSquare( a.Params.AtkDist ) )
+			if ( b.DistTarget <= Util.GetSquare( a.Params.AtkDist ) )
 			{
 				b.SetStatus( BhvStatus.SUCCESS );
 				return b.Status;
 			}
 
-			if ( a.MovePos == Vector3.zero )
-				a.SetMovePos( a.TargetPos );
+			a.SetMovePos( a.TargetPos );
 
 			float nSpd = a.Params.MoveSpd;
+
+			AnimatorStateInfo animInfo = a.Anim.GetCurrentAnimatorStateInfo( 0 );
+
+			if ( animInfo.IsName( "Attack" ) )
+				nSpd *= a.Params.AtkSlow;
+			else
+				SetAnimTrigger( a, "Run" );
 
 			// Set Speed accordingly
 			if ( a.NavAgent.speed != nSpd )
 				SetSpeed( a, nSpd );
-
-			SetAnimTrigger( a, "Run" );
 
 			if ( b.TimerCheck >= a.Params.ChkAlert )
 			{

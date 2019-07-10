@@ -42,6 +42,12 @@ namespace Hubris
 			}
 		}
 
+		public void TurnToward(Npc a, Vector3 target)
+		{
+			a.transform.rotation = Quaternion.Slerp( a.transform.rotation,
+					Quaternion.LookRotation( target - a.transform.position ), a.Params.RotSpd );
+		}
+
 		public void CheckEnv(Npc a)
 		{
 			AreaScan(a);

@@ -15,7 +15,7 @@ namespace Hubris
 		[SerializeField]
 		private bool _alignSurface = true;		// Should this NPC align itself to the surface normal?
 		[SerializeField]
-		private LayerMask _soundEventLayer;     // What layer should sound events check when emitting
+		private LayerMask _soundEventLayer;		// What layer should sound events check when emitting
 
 		private List<SoundEvent> _soundEventList = new List<SoundEvent>();
 
@@ -28,11 +28,7 @@ namespace Hubris
 		// Start is called before the first frame update
 		protected virtual void Init()
 		{
-			if ( Stats == null )
-			{
-				Debug.Log( $"LiveEntity {this.name} has no associated EntStats object, instantiating default..." );
-				Stats = Instantiate( EntStats.GetDefault() );
-			}
+			
 		}
 
 		/// <summary>

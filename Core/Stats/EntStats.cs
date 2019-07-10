@@ -7,8 +7,7 @@ namespace Hubris
 	/// Class for storing shared LiveEntity stats and accessors
 	/// </summary>
 	[Serializable]
-	[CreateAssetMenu( fileName = "NewEntStats", menuName = "Hubris/Params/EntStats", order = 1 )]
-	public class EntStats : ScriptableObject
+	public class EntStats
 	{
 		[SerializeField]
 		protected int _hp;
@@ -141,7 +140,7 @@ namespace Hubris
 
 		public static EntStats GetDefault()
 		{
-			return CreateInstance<EntStats>().Init( 100, 100, 0, 100, 100, 100 );
+			return new EntStats().Init( 100, 100, 0, 100, 100, 100 );
 		}
 	}
 }

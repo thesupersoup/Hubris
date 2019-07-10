@@ -17,18 +17,37 @@ namespace Hubris
 				return b.Status;
 			}
 
-			float tarDist = a.TargetDistSqr;
+			AnimatorStateInfo animInfo = a.Anim.GetCurrentAnimatorStateInfo( 0 );
 
-			if ( tarDist <= Util.GetSquare( a.Params.AtkDist ) )
+			if ( b.DistTarget > Util.GetSquare( a.Params.AtkDist ) )
 			{
-				b.SetStatus( BhvStatus.SUCCESS );
+				if ( animInfo.IsName( "Attack" ) )
+					a.Anim.ResetTrigger( "Attack" );
+
+				b.SetStatus( BhvStatus.FAILURE );
 				return b.Status;
 			}
 
-			if ( a.MovePos == Vector3.zero )
-				a.SetMovePos( a.TargetPos );
+			Vector3 targetPos = a.TargetPos;
+			Vector3 thisPos = a.transform.position;
+			Vector3 fwd = a.transform.forward;
+			fwd.y = 0.0f;
+			targetPos.y = 0.0f;
+			thisPos.y = 0.0f;
+
+			float angle = Vector3.Angle( fwd, (targetPos - thisPos) );
+
+			if ( angle > a.Params.RotAngle )
+			{
+				TurnToward( a, targetPos );
+			}
+
+			a.SetMovePos( targetPos );
 
 			float nSpd = a.Params.MoveSpd;
+
+			if ( animInfo.IsName( "Attack" ) )
+				nSpd *= a.Params.AtkSlow;
 
 			// Set Speed accordingly
 			if ( a.NavAgent.speed != nSpd )
@@ -37,10 +56,7 @@ namespace Hubris
 			SetAnimTrigger( a, "Attack" );
 
 			if ( b.TimerCheck >= a.Params.ChkAlert )
-			{
-				if ( a.TargetPos != a.MovePos )
-					a.SetMovePos( a.TargetPos );
-
+			{ 
 				b.TimerCheck = 0.0f;
 				CheckEnv( a );
 			}

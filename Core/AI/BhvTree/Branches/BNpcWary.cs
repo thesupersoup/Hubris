@@ -20,9 +20,7 @@ namespace Hubris
 				return b.Status;
 			}
 
-			float tarDist = a.TargetDistSqr;
-
-			if ( tarDist <= Util.GetSquare( a.Params.AwareMed ) )
+			if ( b.DistTarget <= Util.GetSquare( a.Params.AwareMed ) )
 			{
 				if ( a.MovePos == Vector3.zero )
 				{
@@ -40,9 +38,7 @@ namespace Hubris
 				}
 			}
 
-			float moveDist = a.MoveDistSqr;
-
-			if ( moveDist <= a.Params.StopDist * a.Params.StopDist )
+			if ( b.DistMove <= Util.GetSquare( a.Params.StopDist ) )
 			{
 				a.NavAgent.ResetPath();
 				a.SetMovePos( Vector3.zero );

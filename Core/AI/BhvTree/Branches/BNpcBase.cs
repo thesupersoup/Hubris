@@ -24,22 +24,120 @@ namespace Hubris
 			}
 		}
 
+		public void SetAnimTrigger( Npc a, AnimT e )
+		{
+			if( a.Anim == null )
+			{
+				LocalConsole.Instance.LogWarning( "Behavior SetAnimTrigger(): Npc Animator is null", true );
+				return;
+			}
+
+			switch ( e )
+			{
+				case AnimT.IDLE:
+					a.Anim.SetTrigger( AnimString.IDLE );
+					break;
+				case AnimT.WALK:
+					a.Anim.SetTrigger( AnimString.WALK );
+					break;
+				case AnimT.WALKBACK:
+					a.Anim.SetTrigger( AnimString.WALKBACK );
+					break;
+				case AnimT.RUN:
+					a.Anim.SetTrigger( AnimString.RUN );
+					break;
+				case AnimT.ATK:
+					a.Anim.SetTrigger( AnimString.ATK );
+					break;
+				case AnimT.HURT:
+					a.Anim.SetTrigger( AnimString.HURT );
+					break;
+				case AnimT.DIE:
+					a.Anim.SetTrigger( AnimString.DIE );
+					break;
+				case AnimT.SLEEP:
+					a.Anim.SetTrigger( AnimString.SLEEP );
+					break;
+				default:
+					LocalConsole.Instance.LogWarning( "Behavior SetAnimTrigger(): Invalid animation trigger enum value specified", true );
+					break;
+			}
+		}
+
 		public void SetAnimTrigger( Npc a, string nAnim )
 		{
-			if(a.Anim != null)
+			if ( a.Anim == null )
 			{
-				if (nAnim != null && nAnim.Length > 0)
-					a.Anim.SetTrigger(nAnim);
+				LocalConsole.Instance.LogWarning( "Behavior SetAnimTrigger(): Npc Animator is null", true );
+				return;
 			}
+
+			if (nAnim != null && nAnim.Length > 0)
+					a.Anim.SetTrigger(nAnim);
 		}
 
 		public void SetAnimBool( Npc a, string nName, bool nValue )
 		{
-			if(a.Anim != null)
+			if ( a.Anim == null )
 			{
-				if (nName != null && nName.Length > 0)
-					a.Anim.SetBool(nName, nValue);
+				LocalConsole.Instance.LogWarning( "Behavior SetAnimTrigger(): Npc Animator is null", true );
+				return;
 			}
+
+			if (nName != null && nName.Length > 0)
+					a.Anim.SetBool(nName, nValue);
+		}
+
+		public void ResetAnimTrigger( Npc a, AnimT e )
+		{
+			if ( a.Anim == null )
+			{
+				LocalConsole.Instance.LogWarning( "Behavior ResetAnimTrigger(): Npc Animator is null", true );
+				return;
+			}
+
+			switch ( e )
+			{
+				case AnimT.IDLE:
+					a.Anim.ResetTrigger( AnimString.IDLE );
+					break;
+				case AnimT.WALK:
+					a.Anim.ResetTrigger( AnimString.WALK );
+					break;
+				case AnimT.WALKBACK:
+					a.Anim.ResetTrigger( AnimString.WALKBACK );
+					break;
+				case AnimT.RUN:
+					a.Anim.ResetTrigger( AnimString.RUN );
+					break;
+				case AnimT.ATK:
+					a.Anim.ResetTrigger( AnimString.ATK );
+					break;
+				case AnimT.HURT:
+					a.Anim.ResetTrigger( AnimString.HURT );
+					break;
+				case AnimT.DIE:
+					a.Anim.ResetTrigger( AnimString.DIE );
+					break;
+				case AnimT.SLEEP:
+					a.Anim.ResetTrigger( AnimString.SLEEP );
+					break;
+				default:
+					LocalConsole.Instance.LogWarning( "Behavior ResetAnimTrigger(): Invalid animation trigger enum value specified", true );
+					break;
+			}
+		}
+
+		public void ResetAnimTrigger( Npc a, string nAnim )
+		{
+			if ( a.Anim == null )
+			{
+				LocalConsole.Instance.LogWarning( "Behavior SetAnimTrigger(): Npc Animator is null", true );
+				return;
+			}
+
+			if ( nAnim != null && nAnim.Length > 0 )
+				a.Anim.ResetTrigger( nAnim );
 		}
 
 		/// <summary>
@@ -228,7 +326,7 @@ namespace Hubris
 				{
 					if (closestEnt != null)
 					{
-						a.SetTargetObj(closestEnt.gameObject);
+						a.SetTargetObj(closestEnt.gameObject, closestEnt);
 					}
 					// else
 					// Debug.Log(this.gameObject + " AIManager ProcessTrackBook(): closestEnt is null");
@@ -236,7 +334,8 @@ namespace Hubris
 			}
 			else
 			{
-				a.SetTargetObj(null);
+				if( a.TargetObj != null )
+					a.ResetTargetObj();
 			}
 
 			if ( a.RemoveList != null && a.RemoveList.Count > 0 )

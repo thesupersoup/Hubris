@@ -14,7 +14,13 @@ namespace Hubris
 
 		public override BhvStatus Invoke( BhvTree b, Npc a )
 		{
-			if ( a.TargetObj != null || a.MovePos != Vector3.zero)
+			if ( a.TargetObj != null && b.SeeTarget)
+			{
+				b.SetStatus( BhvStatus.FAILURE );
+				return b.Status;
+			}
+				
+			if (a.MovePos != Vector3.zero)
 			{
 				b.SetStatus( BhvStatus.FAILURE );
 				return b.Status;

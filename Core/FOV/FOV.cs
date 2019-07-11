@@ -52,11 +52,20 @@ namespace Hubris
 		}
 
 		/// <summary>
-		/// Returns whether the target position is within the field-of-view
+		/// Returns whether the target position is within the field-of-view, based on provided forward vector and direction
 		/// </summary>
-		public bool IsInView( Vector3 src, Vector3 chk )
+		public bool IsInView( Vector3 srcFwd, Vector3 chk )
 		{
-			return (Vector3.Angle( src, chk ) <= Vector3.Angle( src, LeftVect ) || Vector3.Angle( src, chk ) <= Vector3.Angle( src, RightVect ));
+			return (Vector3.Angle( srcFwd, chk ) <= Vector3.Angle( srcFwd, LeftVect ) || Vector3.Angle( srcFwd, chk ) <= Vector3.Angle( srcFwd, RightVect ));
+		}
+
+		/// <summary>
+		/// Draw FOV vectors in Unity Editor scene view for debug purposes
+		/// </summary>
+		public void DebugDrawVectors( Npc a )
+		{
+			Debug.DrawRay( a.transform.position, LeftVect * 100, Color.green );
+			Debug.DrawRay( a.transform.position, RightVect * 100, Color.red );
 		}
 
 		private Vector3 GetVectorLeft( Vector3 src )

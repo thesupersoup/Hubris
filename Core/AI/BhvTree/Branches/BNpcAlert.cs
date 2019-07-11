@@ -19,6 +19,27 @@ namespace Hubris
 				return b.Status;
 			}
 
+			if ( !b.SeeTarget )
+			{
+				Debug.Log( "SightCheck failed" );
+				b.SetStatus( BhvStatus.FAILURE );
+				return b.Status;
+			}
+
+			if ( b.DistTarget <= Util.GetSquare( a.Params.AwareMed ) )
+			{
+				if( a.Params.Predator )
+				{
+					b.SetStatus( BhvStatus.SUCCESS );
+					return b.Status;
+				}
+				else
+				{
+					b.SetStatus( BhvStatus.FAILURE );
+					return b.Status;
+				}
+			}
+
 			if (b.TimerCheck >= a.Params.ChkAlert)
 			{
 				b.TimerCheck = 0.0f;

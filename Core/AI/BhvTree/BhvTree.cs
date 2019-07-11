@@ -23,6 +23,7 @@ namespace Hubris
 		private float _distMove = 0.0f;
 		private Vector3 _prevPos = Vector3.zero;
 		private AnimatorStateInfo _animInfo;
+		private bool _seeTarget = false;
 
 		///--------------------------------------------------------------------
 		/// BhvTree properties
@@ -72,6 +73,11 @@ namespace Hubris
 		/// Current Animator state info for the Npc
 		/// </summary>
 		public AnimatorStateInfo AnimInfo => _animInfo;
+
+		/// <summary>
+		/// Can the Npc see the target, if there is any?
+		/// </summary>
+		public bool SeeTarget { get { return _seeTarget; } protected set { _seeTarget = value; } }
 
 		///--------------------------------------------------------------------
 		/// BhvTree methods
@@ -142,6 +148,14 @@ namespace Hubris
 		private void UpdateAnimInfo( Npc a, int layer )
 		{
 			_animInfo = a.Anim.GetCurrentAnimatorStateInfo( layer );
+		}
+
+		/// <summary>
+		/// Update whether the Npc can see the target, if there is any
+		/// </summary>
+		private void UpdateSeeTarget( Npc a )
+		{
+			SeeTarget = a.SightCheck();
 		}
 
 		/// <summary>
@@ -240,12 +254,13 @@ namespace Hubris
 			UpdateTimers();
 			UpdateDistances( a );
 			UpdateAnimInfo( a, 0 );
+			UpdateSeeTarget( a );
 			RootChecks( a );
 
 			// What should we do if the active behavior branch succeeds or fails
 			if( ActiveBranch.Invoke( this, a ) != BhvStatus.RUNNING )
 			{				
-				if ( a.TargetObj == null )
+				if ( a.TargetObj == null || !SeeTarget )
 				{
 					// If we have a destination
 					if ( a.MovePos != Vector3.zero )
@@ -253,7 +268,7 @@ namespace Hubris
 					else
 						ChangeBranch( BNpcIdle.Instance, a );
 				}
-				else // If the parent NPC has a target; we're not in idletown anymore
+				else // If the parent NPC has a target (that can be seen); we're not in idletown anymore
 				{
 					/* if ( TOOK_DAMAGE )
 					 *	ChangeBranch( BNpcAggro, a ); // We go straight to angry (but there needs to be certain caveats)

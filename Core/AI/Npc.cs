@@ -17,11 +17,17 @@ namespace Hubris
 		[SerializeField]
 		private NavMeshAgent _navAgent = null;
 		[SerializeField]
-		private LayerMask _mask; 	                // What other entities should this Npc be aware of?
+		private LayerMask _entMask;					// What other entities should this Npc be aware of?
+		[SerializeField]
+		private LayerMask _sightMask;				// What should this Npc be aware of for line-of-sight checks?
 		[SerializeField]
 		private GameObject _targetObj = null;
 		[SerializeField]
-		private Vector3 _movePos = Vector3.zero;    // Where the Agent is trying to move
+		private LiveEntity _targetEnt = null;
+		[SerializeField]
+		private EntStats _targetStats = null;
+		[SerializeField]
+		private Vector3 _movePos = Vector3.zero;	// Where the Agent is trying to move
 
 		[SerializeField]
 		private BhvTree _bhvTree = new BhvTree( BNpcIdle.Instance );
@@ -80,10 +86,9 @@ namespace Hubris
 			protected set { _navAgent = value; }
 		}
 
-		public LayerMask EntMask
-		{
-			get { return _mask; }
-		}
+		public LayerMask EntMask => _entMask;
+
+		public LayerMask SightMask => _sightMask;
 
 		public GameObject TargetObj
 		{
@@ -91,9 +96,21 @@ namespace Hubris
 			protected set { _targetObj = value; }
 		}
 
+		public LiveEntity TargetEnt
+		{
+			get { return _targetEnt; }
+			protected set { _targetEnt = value; }
+		}
+
+		public EntStats TargetStats
+		{
+			get { return _targetStats; }
+			protected set { _targetStats = value; }
+		}
+
 		public Vector3 TargetPos
 		{
-			get { return _targetObj.transform.position; }
+			get { return _targetObj?.transform.position ?? Vector3.zero; }
 		}
 
 		public float TargetDistSqr => Util.CheckDistSqr( this.transform.position, TargetPos );
@@ -132,7 +149,7 @@ namespace Hubris
 			base.OnEnable();
 			base.Init();
 
-			if (NavAgent == null)
+			if ( NavAgent == null )
 			{
 				NavAgent = GetComponent<NavMeshAgent>();
 				if (NavAgent == null)
@@ -142,7 +159,7 @@ namespace Hubris
 			NavAgent.stoppingDistance = Params.StopDist;
 			NavAgent.acceleration = Params.AccelBase;
 
-			if(Anim == null)
+			if( Anim == null )
 			{
 				Anim = GetComponent<Animator>();
 				if (Anim == null)
@@ -154,20 +171,66 @@ namespace Hubris
 			EntType = EntityType.NPC;
 		}
 
-		public void SetTargetObj(GameObject obj)
+		public void SetTargetObj( GameObject obj )
 		{
-			_targetObj = obj;
+			TargetObj = obj;
+			TargetEnt = TargetObj.GetComponent<LiveEntity>();
+
+			if ( TargetEnt != null )
+				TargetStats = TargetEnt.Stats;
 		}
 
-		public void SetMovePos(Vector3 nPos)
+		public void SetTargetObj( GameObject obj, LiveEntity ent )
+		{
+			TargetObj = obj;
+			TargetEnt = ent;
+
+			if ( TargetEnt != null )
+				TargetStats = TargetEnt.Stats;
+		}
+
+		public void ResetTargetObj()
+		{
+			Debug.Log( $"{this.name} resetting target object" );
+
+			TargetObj = null;
+			TargetEnt = null;
+			TargetStats = null;
+		}
+
+		public void SetMovePos( Vector3 nPos )
 		{
 			_movePos = nPos;
 		}
 
-		public void MoveTo(Vector3 nPos)
+		public void MoveTo( Vector3 nPos )
 		{
 			MovePos = nPos;
-			NavAgent.SetDestination(MovePos);
+			NavAgent.SetDestination( MovePos );
+		}
+
+		/// <summary>
+		/// Check whether the target is in the Npcs line of sight
+		/// </summary>
+		public bool SightCheck()
+		{
+			if ( TargetObj == null )
+				return false;
+
+			Vector3 dir = (TargetObj.transform.position - this.transform.position).normalized;
+
+			if ( ViewCone.IsInView( this.transform.forward, dir ) )
+			{
+				Debug.DrawRay( this.transform.position, dir * TargetDistSqr );
+
+				if ( Physics.Raycast( this.transform.position, dir, out RaycastHit hit, TargetDistSqr, SightMask ) )
+				{
+					if ( hit.transform.root.gameObject == TargetObj )
+						return true;
+				}
+			}
+
+			return false;
 		}
 
 		/// <summary>
@@ -179,12 +242,7 @@ namespace Hubris
 			{
 				for ( int i = 0; i < SoundEventList.Count; i++ )
 				{
-					LiveEntity src = SoundEventList[i].Source.GetComponent<LiveEntity>();
-
-					if ( src != null )
-					{
-						SetTargetObj( src.gameObject );
-					}
+					SetTargetObj( SoundEventList[i].Source );
 				}
 
 				SoundEventList.Clear();

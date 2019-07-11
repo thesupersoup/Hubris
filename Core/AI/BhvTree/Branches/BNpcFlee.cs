@@ -16,7 +16,7 @@ namespace Hubris
 		{
 			if ( a.TargetObj == null )
 			{
-				b.SetStatus( BhvStatus.FAILURE );
+				b.SetStatus( BhvStatus.SUCCESS );
 				return b.Status;
 			}
 

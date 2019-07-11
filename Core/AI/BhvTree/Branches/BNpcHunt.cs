@@ -20,6 +20,20 @@ namespace Hubris
 				return b.Status;
 			}
 
+			if( !b.SeeTarget )
+			{
+				// Set MovePos to last known TargetPos
+				a.SetMovePos( a.TargetPos );
+				b.SetStatus( BhvStatus.FAILURE );
+				return b.Status;
+			}
+
+			if ( b.DistTarget > Util.GetSquare( a.Params.AwareMax ) )
+			{
+				b.SetStatus( BhvStatus.FAILURE );
+				return b.Status;
+			}
+
 			if ( b.DistTarget <= Util.GetSquare( a.Params.AwareClose ) )
 			{
 				a.NavAgent.ResetPath();

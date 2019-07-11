@@ -17,10 +17,17 @@ namespace Hubris
 				return b.Status;
 			}
 
+			if ( a.TargetEnt?.Stats.IsDead ?? false )
+			{
+				a.ResetTargetObj();
+				b.SetStatus( BhvStatus.SUCCESS );
+				return b.Status;
+			}
+
 			if ( b.DistTarget > Util.GetSquare( a.Params.AtkDist ) )
 			{
 				if ( b.AnimInfo.IsName( AnimString.ATK ) )
-					a.Anim.ResetTrigger( AnimString.ATK );
+					ResetAnimTrigger( a, AnimString.ATK );
 
 				b.SetStatus( BhvStatus.FAILURE );
 				return b.Status;

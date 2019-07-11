@@ -19,7 +19,7 @@ namespace Hubris
 				return b.Status;
 			}
 
-			if ( a.TargetObj != null )
+			if ( a.TargetObj != null && b.SeeTarget )
 			{
 				b.SetStatus( BhvStatus.FAILURE );
 				a.SetMovePos( Vector3.zero );
@@ -28,7 +28,8 @@ namespace Hubris
 
 			float moveDist = a.MoveDistSqr;
 
-			if ( moveDist <= Util.GetSquare( a.Params.StopDist ) )
+			// Need to include NavAgent.radius or else the Npc won't ever reach the MovePos
+			if ( moveDist <= Util.GetSquare( a.Params.StopDist + a.NavAgent.radius ) )
 			{
 				a.NavAgent.ResetPath();
 				a.SetMovePos( Vector3.zero );

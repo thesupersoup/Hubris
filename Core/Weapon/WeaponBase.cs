@@ -20,6 +20,8 @@ namespace Hubris
 		protected int _range;
 		[SerializeField]
 		protected AudioClip[] _weaponSfx = new AudioClip[(int)WeaponSfx.NUM_SFX];
+		[SerializeField]
+		protected WeaponAlt _alt = null;
 
 		public string Name			{ get { return _name; } protected set { _name = value; } }
 		public DmgType DamageType	{ get { return _dmgType; } protected set { _dmgType = value; } }
@@ -36,14 +38,26 @@ namespace Hubris
 			Range = nRange;
 		}
 
-		public override void Interact0()
+		public override void Interact0( Camera pCam, LayerMask mask, LiveEntity owner )
 		{
+			if ( Physics.Raycast( pCam.transform.position, pCam.transform.forward, out RaycastHit hit, Range, mask ) )
+			{
+				GameObject target = hit.transform.root.gameObject;  // Grab root because hitboxes
+				IDamageable ent = target.GetComponent<IDamageable>();
 
+				if ( ent != null )
+				{
+					ent.TakeDmg( DamageType, Damage, false );
+				}
+			}
 		}
 
-		public override void Interact1()
+		public override void Interact1( Camera pCam, LayerMask mask, LiveEntity owner )
 		{
+			if ( _alt == null )
+				return;
 
+			_alt.Invoke( pCam, mask, this, owner );
 		}
 	}
 }

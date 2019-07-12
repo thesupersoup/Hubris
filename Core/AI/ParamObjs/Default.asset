@@ -34,7 +34,7 @@ MonoBehaviour:
   _proxPct: 0.8
   _rotSpd: 0.065
   _rotAngle: 0.25
-  _fov: 3
+  _fov: 4
   _animDelay: 0
   _accelBase: 100
   _atkSlow: 0.3

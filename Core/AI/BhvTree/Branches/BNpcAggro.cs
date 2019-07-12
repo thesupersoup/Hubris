@@ -12,11 +12,19 @@ namespace Hubris
 		// Singleton instance of this state
 		public readonly static BNpcAggro Instance = new BNpcAggro();
 
-		public override BhvStatus Invoke( BhvTree b, Npc a )
+		public override BhvStatus Invoke( Npc a, BhvTree b )
 		{
 			if ( a.TargetObj == null )
 			{
 				b.SetStatus( BhvStatus.FAILURE );
+				return b.Status;
+			}
+
+			if ( a.TargetEnt?.Stats.IsDead ?? false )
+			{
+				StopMove( a );
+				a.ResetTargetObj();
+				b.SetStatus( BhvStatus.SUCCESS );
 				return b.Status;
 			}
 
@@ -48,7 +56,7 @@ namespace Hubris
 					a.SetMovePos( a.TargetPos );
 
 				b.TimerCheck = 0.0f;
-				CheckEnv( a );
+				CheckEnv( a, b );
 			}
 
 			if ( a.NavAgent.destination != a.MovePos )

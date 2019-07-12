@@ -12,7 +12,7 @@ namespace Hubris
 		// Singleton instance of this class
 		public readonly static BNpcWary Instance = new BNpcWary();
 
-		public override BhvStatus Invoke( BhvTree b, Npc a )
+		public override BhvStatus Invoke( Npc a, BhvTree b )
 		{
 			if ( a.TargetObj == null )
 			{
@@ -50,8 +50,7 @@ namespace Hubris
 
 			if ( b.DistMove <= Util.GetSquare( a.Params.StopDist ) )
 			{
-				a.NavAgent.ResetPath();
-				a.SetMovePos( Vector3.zero );
+				StopMove( a );
 				b.SetStatus( BhvStatus.SUCCESS );
 				return b.Status;
 			}
@@ -62,7 +61,7 @@ namespace Hubris
 			if ( b.TimerCheck >= a.Params.ChkAlert )
 			{
 				b.TimerCheck = 0.0f;
-				CheckEnv( a );
+				CheckEnv( a, b );
 			}
 
 			if ( a.NavAgent.destination != a.MovePos )

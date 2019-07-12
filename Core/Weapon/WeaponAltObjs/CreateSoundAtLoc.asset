@@ -9,13 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc9b9631d76706c48a4c50c1905df195, type: 3}
-  m_Name: TestWeapon
+  m_Script: {fileID: 11500000, guid: bf630f4b7cb4bb942ac10fe37bddf419, type: 3}
+  m_Name: CreateSoundAtLoc
   m_EditorClassIdentifier: 
-  _weight: 0
-  _name: TestWeapon
-  _dmgType: 0
-  _dmg: 30
-  _range: 5
-  _weaponSfx: []
-  _alt: {fileID: 0}
+  _type: 0

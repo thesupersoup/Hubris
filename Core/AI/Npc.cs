@@ -27,7 +27,9 @@ namespace Hubris
 		[SerializeField]
 		private EntStats _targetStats = null;
 		[SerializeField]
-		private Vector3 _movePos = Vector3.zero;	// Where the Agent is trying to move
+		private Vector3 _movePos = Vector3.zero;	// Where the Npc is trying to move
+		[SerializeField]
+		private Vector3 _targetPos = Vector3.zero;	// Where the Npc is trying to look 
 
 		[SerializeField]
 		private BhvTree _bhvTree = new BhvTree( BNpcIdle.Instance );
@@ -110,7 +112,8 @@ namespace Hubris
 
 		public Vector3 TargetPos
 		{
-			get { return _targetObj?.transform.position ?? Vector3.zero; }
+			get { if ( TargetObj != null ) { return TargetObj.transform.position; } else { return _targetPos; } }
+			protected set { _targetPos = value; }
 		}
 
 		public float TargetDistSqr => Util.CheckDistSqr( this.transform.position, TargetPos );
@@ -174,6 +177,12 @@ namespace Hubris
 		public void SetTargetObj( GameObject obj )
 		{
 			TargetObj = obj;
+
+			if ( TargetObj == null )
+				return;
+
+			// TargetPos is now the TargetObj's position
+			TargetPos = Vector3.zero;
 			TargetEnt = TargetObj.GetComponent<LiveEntity>();
 
 			if ( TargetEnt != null )
@@ -184,6 +193,10 @@ namespace Hubris
 		{
 			TargetObj = obj;
 			TargetEnt = ent;
+
+			// TargetPos is now the TargetObj's position
+			if ( TargetObj != null )
+				TargetPos = Vector3.zero;
 
 			if ( TargetEnt != null )
 				TargetStats = TargetEnt.Stats;
@@ -198,35 +211,41 @@ namespace Hubris
 			TargetStats = null;
 		}
 
+		public void SetTargetPos( Vector3 nPos )
+		{
+			TargetPos = nPos;
+		}
+
 		public void SetMovePos( Vector3 nPos )
 		{
-			_movePos = nPos;
+			MovePos = nPos;
 		}
 
 		public void MoveTo( Vector3 nPos )
 		{
-			MovePos = nPos;
+			SetMovePos( nPos );
 			NavAgent.SetDestination( MovePos );
 		}
 
 		/// <summary>
-		/// Check whether the target is in the Npcs line of sight
+		/// Check whether the target is in the Npc's field-of-view and line-of-sight
 		/// </summary>
-		public bool SightCheck()
+		public bool SightCheck( GameObject target, float dist )
 		{
-			if ( TargetObj == null )
+			if ( target == null )
 				return false;
 
-			Vector3 dir = (TargetObj.transform.position - this.transform.position).normalized;
+			Vector3 dir = ( target.transform.position - this.transform.position ).normalized;
 
 			if ( ViewCone.IsInView( this.transform.forward, dir ) )
 			{
-				Debug.DrawRay( this.transform.position, dir * TargetDistSqr );
-
 				if ( Physics.Raycast( this.transform.position, dir, out RaycastHit hit, TargetDistSqr, SightMask ) )
 				{
-					if ( hit.transform.root.gameObject == TargetObj )
+					if ( hit.transform.root.gameObject == target )
+					{
+						Debug.DrawRay( this.transform.position, dir * dist );
 						return true;
+					}
 				}
 			}
 
@@ -242,7 +261,28 @@ namespace Hubris
 			{
 				for ( int i = 0; i < SoundEventList.Count; i++ )
 				{
-					SetTargetObj( SoundEventList[i].Source );
+					GameObject src = SoundEventList[i].Source;
+					Vector3 origin = SoundEventList[i].Origin;
+					SoundIntensity intensity = SoundEventList[i].Intensity;
+
+					if ( TargetObj == null )
+					{
+						if ( src == null )
+						{
+							if ( intensity >= SoundIntensity.NOTEWORTHY || MovePos == Vector3.zero )
+								SetTargetPos( origin );
+
+							continue;
+						}
+
+						SetTargetObj( src );
+					}
+					else
+					{
+						// Check if the sound event is closer than the current target
+						if ( TargetDistSqr > Util.CheckDistSqr( this.transform.position, origin ) )
+							SetTargetObj( src );
+					}
 				}
 
 				SoundEventList.Clear();

@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dc9b9631d76706c48a4c50c1905df195, type: 3}
-  m_Name: TestWeapon
+  m_Name: TestWeaponSound
   m_EditorClassIdentifier: 
   _weight: 0
-  _name: TestWeapon
+  _name: TestWeaponSound
   _dmgType: 0
-  _dmg: 30
-  _range: 5
+  _dmg: 5
+  _range: 10000
   _weaponSfx: []
-  _alt: {fileID: 0}
+  _alt: {fileID: 11400000, guid: 71b2d05bb79f1b84d9aa61982bd1215c, type: 2}

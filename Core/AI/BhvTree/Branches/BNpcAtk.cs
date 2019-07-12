@@ -9,7 +9,7 @@ namespace Hubris
 		// Singleton instance of this state
 		public readonly static BNpcAtk Instance = new BNpcAtk();
 
-		public override BhvStatus Invoke( BhvTree b, Npc a )
+		public override BhvStatus Invoke( Npc a, BhvTree b )
 		{
 			if ( a.TargetObj == null )
 			{
@@ -19,6 +19,7 @@ namespace Hubris
 
 			if ( a.TargetEnt?.Stats.IsDead ?? false )
 			{
+				StopMove( a );
 				a.ResetTargetObj();
 				b.SetStatus( BhvStatus.SUCCESS );
 				return b.Status;
@@ -59,7 +60,6 @@ namespace Hubris
 				{
 					b.SetActionReady( false );
 					SetAnimTrigger( a, AnimString.ATK );
-					Debug.Log( "Attacking" );
 				}
 			}
 			else	// ActionReady is false
@@ -79,14 +79,13 @@ namespace Hubris
 				{
 					b.SetActionReady( true );
 					b.TimerAct = 0.0f;
-					Debug.Log( "Ready to attack again" );
 				}
 			}
 
 			if ( b.TimerCheck >= a.Params.ChkAlert )
 			{ 
 				b.TimerCheck = 0.0f;
-				CheckEnv( a );
+				CheckEnv( a, b );
 			}
 
 			// if ( a.NavAgent.destination != a.MovePos )

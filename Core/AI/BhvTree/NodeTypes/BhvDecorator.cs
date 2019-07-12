@@ -4,7 +4,7 @@ namespace Hubris
 {
 	public abstract class BhvDecorator : IBhvNode, IBhvDecorator, IDisposable
 	{
-		public delegate BhvStatus Child( BhvTree b, Npc a );
+		public delegate BhvStatus Child( Npc a, BhvTree b );
 
 		///--------------------------------------------------------------------
 		/// BhvDecorator instance vars
@@ -32,12 +32,12 @@ namespace Hubris
 			_handle = c;
 		}
 
-		public BhvStatus Invoke( BhvTree b, Npc a )
+		public BhvStatus Invoke( Npc a, BhvTree b )
 		{
 			if ( ChildHandle == null )
 				return BhvStatus.FAILURE;
 
-			return DecorateResult( ChildHandle.Invoke( b, a ) );
+			return DecorateResult( ChildHandle.Invoke( a, b ) );
 		}
 
 		public virtual BhvStatus DecorateResult( BhvStatus s )

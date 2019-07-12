@@ -11,76 +11,37 @@ namespace Hubris
 	{
 		#region Constants
 		///--------------------------------------------------------------------
-		/// 
 		/// Settings defaults as constants
 		/// Defaults for variables should have one-to-one parity with the 
 		/// static Variable array
-		/// 
 		///--------------------------------------------------------------------
 
 		public const int MIN_STRING_SIZE = 4;
 
 		public const float DEF_SENS = 1.0f;
-		public const bool DEF_MSMOOTH = false, DEF_USEACCEL = true, DEF_DEBUG = true;
+		public const bool DEF_MSMOOTH = false, DEF_USEACCEL = true, DEF_DEBUG = true,
+							DEF_INVIS = false;
 		#endregion Constants
-
-		#region VariableArray
+		
 		///---------------------------------------------------------------------
-		///
-		/// Array of Variables, initialized with InitVars()
-		/// 
+		/// Array of Variables initialized in VariableDef class.
+		/// Should have one-to-one parity with VarType enum.
 		///--------------------------------------------------------------------
 
-		private Variable[] varArr = InitVars();
-
-		[ExecuteInEditMode]
-		private static Variable[] InitVars()
-		{
-			Variable[] vars = new Variable[(int)VarType.Num_Vars]; // Use Num_Vars to ensure proper array length
-
-			vars[(int)VarType.None] = new Variable( "none", VarData.OBJECT, VarType.None, null );
-
-			// Player settings
-			vars[(int)VarType.Sens] = new Variable( "sensitivity", VarData.FLOAT, VarType.Sens, DEF_SENS );
-			vars[(int)VarType.MSmooth] = new Variable( "msmooth", VarData.BOOL, VarType.MSmooth, DEF_MSMOOTH );
-
-			// Dev settings
-			vars[(int)VarType.Useaccel] = new Variable( "useaccel", VarData.BOOL, VarType.Useaccel, DEF_USEACCEL );
-			vars[(int)VarType.Debug] = new Variable( "debug", VarData.BOOL, VarType.Debug, DEF_DEBUG );
-
-			return vars;
-		}
-		#endregion VariableArray
+		private Variable[] varArr = VariableDef.GetVarArr();
 
 		#region QuickVariables
 		///---------------------------------------------------------------------
 		/// Specific Variable properties
 		///---------------------------------------------------------------------
 
-		public Variable None
-		{
-			get { return varArr[(int)VarType.None]; }
-		}
+		public Variable None => varArr[(int)VarType.None];
+		public Variable Sens => varArr[(int)VarType.Sens];
+		public Variable MSmooth => varArr[(int)VarType.MSmooth];
+		public Variable Useaccel => varArr[(int)VarType.Useaccel];
+		public Variable Debug => varArr[(int)VarType.Debug];
+		public Variable Invis => varArr[(int)VarType.Invis];
 
-		public Variable Sens
-		{
-			get { return varArr[(int)VarType.Sens]; }
-		}
-
-		public Variable MSmooth
-		{
-			get { return varArr[(int)VarType.MSmooth]; }
-		}
-
-		public Variable Useaccel
-		{
-			get { return varArr[(int)VarType.Useaccel]; }
-		}
-
-		public Variable Debug
-		{
-			get { return varArr[(int)VarType.Debug]; }
-		}
 		#endregion QuickVariables
 
 
@@ -102,7 +63,7 @@ namespace Hubris
 				return varArr[index];
 			else
 			{
-				LocalConsole.Instance.LogError("HubrisSettings GetVariable(): Invalid index requested, returning Variable.None");
+				LocalConsole.Instance.LogError( "HubrisSettings GetVariable(): Invalid index requested, returning Variable.None" );
 				return varArr[(int)VarType.None];
 			}
 		}
@@ -171,6 +132,10 @@ namespace Hubris
 						break;
 					case VarType.Debug:
 						HubrisCore.Instance.DebugToggle();
+						break;
+					case VarType.Invis:
+						if ( HubrisPlayer.Instance != null )
+							HubrisPlayer.Instance.Stats.SetInvisible( (bool)varArr[(int)VarType.Invis].Data );
 						break;
 					default:
 						success = false;

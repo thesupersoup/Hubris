@@ -88,9 +88,9 @@ namespace Hubris
 				case HubrisPlayer.PType.RTS:
 					switch ( nCmd.Type )
 					{
-						case Command.CmdType.Jump:
-						case Command.CmdType.CrouchHold:
-						case Command.CmdType.CrouchToggle:
+						case CmdType.Jump:
+						case CmdType.CrouchHold:
+						case CmdType.CrouchToggle:
 							valid = false;
 							break;
 						default:
@@ -114,10 +114,10 @@ namespace Hubris
 		{
 			switch ( nCmd.Type )
 			{
-				case Command.CmdType.MoveF:
-				case Command.CmdType.MoveB:
-				case Command.CmdType.MoveL:
-				case Command.CmdType.MoveR:
+				case CmdType.MoveF:
+				case CmdType.MoveB:
+				case CmdType.MoveL:
+				case CmdType.MoveR:
 					MoveKey = true;
 					break;
 			}

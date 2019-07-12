@@ -11,7 +11,7 @@ namespace Hubris
 		// Singleton instance of this state
 		public readonly static BNpcAlert Instance = new BNpcAlert();
 
-		public override BhvStatus Invoke( BhvTree b, Npc a )
+		public override BhvStatus Invoke( Npc a, BhvTree b )
 		{
 			if ( a.TargetObj == null )
 			{
@@ -22,6 +22,7 @@ namespace Hubris
 			if ( !b.SeeTarget )
 			{
 				Debug.Log( "SightCheck failed" );
+				a.ResetTargetObj();
 				b.SetStatus( BhvStatus.FAILURE );
 				return b.Status;
 			}
@@ -43,7 +44,7 @@ namespace Hubris
 			if (b.TimerCheck >= a.Params.ChkAlert)
 			{
 				b.TimerCheck = 0.0f;
-				CheckEnv(a);
+				CheckEnv( a, b );
 			}
 
 			if (a.NavAgent.hasPath)

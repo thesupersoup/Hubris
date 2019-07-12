@@ -9,8 +9,11 @@ namespace Hubris
 		// Singleton instance of this class
 		public readonly static BNpcDead Instance = new BNpcDead();
 
-		public override BhvStatus Invoke( BhvTree b, Npc a )
+		public override BhvStatus Invoke( Npc a, BhvTree b )
 		{
+			if ( a.NavAgent.hasPath )
+				StopMove( a );
+
 			if (!a.Stats.IsDead)
 			{
 				SetAnimBool(a, "isDead", false);

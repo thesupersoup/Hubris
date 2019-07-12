@@ -5,61 +5,14 @@
 	/// </summary>
 	public sealed class Variable
 	{
-
-		///--------------------------------------------------------------------
-		/// 
-		/// Variable Data (VarData) enum
-		/// Represents the different variable datatypes
-		/// 
-		///--------------------------------------------------------------------
-
-		public enum VarData
-		{
-			OBJECT = 0,
-			FLOAT,
-			BOOL,
-			INT,
-			STRING,
-			NUM_TYPES   // Keep at the end for handy enum length hack
-		}
-
-
-		///--------------------------------------------------------------------
-		/// 
-		/// Variable Type (VarType) enum
-		/// Should have one-to-one parity with the static Variable array
-		/// 
-		///--------------------------------------------------------------------
-
-		public enum VarType
-		{
-			None = 0,
-
-			// Player settings 
-			Sens,
-			MSmooth,
-
-			// Dev settings
-			Useaccel,
-			Debug,
-
-			Num_Vars   // Keep at the end for handy enum length hack
-		}
-
-
 		///---------------------------------------------------------------------
-		///
 		/// Variable Instance variables
-		/// 
 		///--------------------------------------------------------------------- 
 
 		private object _data;
 
-
 		///---------------------------------------------------------------------
-		///
 		/// Variable properties
-		/// 
 		///--------------------------------------------------------------------- 
 
 		public string Name { get; }
@@ -215,6 +168,53 @@
 		{
 			Data = InitData;
 			Dirty = true;
+		}
+
+		public static void DisplayVarHelp( Variable nVar )
+		{
+			string helpStr = "";
+
+			switch ( nVar.Type )
+			{
+				case VarType.Sens:
+					helpStr += "Mouse sensitivity, both X and Y";
+					break;
+				case VarType.Useaccel:
+					helpStr += "Enable acceleration values for player movement";
+					break;
+				case VarType.Debug:
+					helpStr += "Enable debug mode and verbose console logging";
+					break;
+				default:
+					helpStr += "Enter a variable name and value (e.g. \"setvar sens 1.5\")";
+					break;
+			}
+
+			if ( nVar.Type != VarType.None )
+			{
+				helpStr += " "; // Add space before data type
+
+				switch ( nVar.DataType )
+				{
+					case VarData.BOOL:
+						helpStr += "[Boolean]";
+						break;
+					case VarData.FLOAT:
+						helpStr += "[Float]";
+						break;
+					case VarData.INT:
+						helpStr += "[Integer]";
+						break;
+					case VarData.STRING:
+						helpStr += "[String]";
+						break;
+					case VarData.OBJECT:
+						helpStr += "[Object]";
+						break;
+				}
+			}
+
+			LocalConsole.Instance.Log( helpStr );
 		}
 	}
 }

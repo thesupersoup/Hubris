@@ -9,8 +9,11 @@ namespace Hubris
 		// Singleton instance of this class
 		public readonly static BNpcAsleep Instance = new BNpcAsleep();
 
-		public override BhvStatus Invoke( BhvTree b, Npc a )
+		public override BhvStatus Invoke( Npc a, BhvTree b )
 		{
+			if ( a.NavAgent.hasPath )
+				StopMove( a );
+
 			if (a.Stats.IsDead)
 			{
 				b.SetStatus( BhvStatus.FAILURE );

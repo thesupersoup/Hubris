@@ -1,11 +1,13 @@
-﻿namespace Hubris
+﻿using UnityEngine;
+
+namespace Hubris
 {
 	/// <summary>
 	/// Interface for Items in the Inventory which have primary and secondary functions when equipped
 	/// </summary>
 	public interface IItem
 	{
-		void Interact0();
-		void Interact1();
+		void Interact0( Camera pCam, LayerMask mask, LiveEntity owner );
+		void Interact1( Camera pCam, LayerMask mask, LiveEntity owner );
 	}
 }

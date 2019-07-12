@@ -5,6 +5,6 @@
 	/// </summary>
 	public interface IBhvNode
 	{
-		BhvStatus Invoke( BhvTree b, Npc a );
+		BhvStatus Invoke( Npc a, BhvTree b );
 	}
 }

@@ -36,6 +36,10 @@ namespace Hubris
 		/// </summary>
 		public virtual void EmitSoundEvent( SoundEvent ev )
 		{
+			// Shouldn't be emitting sounds if we're dead
+			if ( this.Stats.IsDead )
+				return;
+
 			Collider[] colArr = Physics.OverlapSphere( ev.Origin, ev.Radius, SoundEventLayer );
 			if ( colArr != null && colArr.Length > 0 )
 			{

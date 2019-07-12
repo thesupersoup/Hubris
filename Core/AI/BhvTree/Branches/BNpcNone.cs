@@ -11,7 +11,7 @@ namespace Hubris
 	{
 		public static BNpcNone Instance = new BNpcNone();
 
-		public override BhvStatus Invoke( BhvTree b, Npc a )
+		public override BhvStatus Invoke( Npc a, BhvTree b )
 		{
 			SetAnimTrigger( a, "Idle" );
 

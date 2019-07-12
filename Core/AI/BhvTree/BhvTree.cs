@@ -22,6 +22,7 @@ namespace Hubris
 		private float _distTarget = 0.0f;
 		private float _distMove = 0.0f;
 		private Vector3 _prevPos = Vector3.zero;
+		private Vector3 _prevMovePos = Vector3.zero;
 		private AnimatorStateInfo _animInfo;
 		private bool _seeTarget = false;
 
@@ -155,7 +156,7 @@ namespace Hubris
 		/// </summary>
 		private void UpdateSeeTarget( Npc a )
 		{
-			SeeTarget = a.SightCheck();
+			SeeTarget = a.SightCheck( a.TargetObj, a.TargetDistSqr );
 		}
 
 		/// <summary>
@@ -167,9 +168,13 @@ namespace Hubris
 			SetActionReady( true );
 
 			if ( HubrisCore.Instance.Debug )
-				LocalConsole.Instance.Log( $"{a.Name}: {nameof( ActiveBranch )} requested change due to status: {(int)Status}", true );
+				LocalConsole.Instance.Log( $"{a.Name}: {nameof( ActiveBranch )} {ActiveBranch.GetType().Name} requested change due to status: {(int)Status}", true );
 
 			ActiveBranch = n;
+
+			if ( HubrisCore.Instance.Debug )
+				LocalConsole.Instance.Log( $"{a.Name}: {nameof( ActiveBranch )} is now {ActiveBranch.GetType().Name}", true );
+
 			SetStatus( BhvStatus.RUNNING );
 		}
 
@@ -258,7 +263,7 @@ namespace Hubris
 			RootChecks( a );
 
 			// What should we do if the active behavior branch succeeds or fails
-			if( ActiveBranch.Invoke( this, a ) != BhvStatus.RUNNING )
+			if( ActiveBranch.Invoke( a, this ) != BhvStatus.RUNNING )
 			{				
 				if ( a.TargetObj == null || !SeeTarget )
 				{
@@ -276,9 +281,9 @@ namespace Hubris
 					 */
 
 					// Check how close the Npc is
-					if ( DistTarget > Util.GetSquare( a.Params.AwareMed ) )	// If target is further than the medium awareness distance
-						ChangeBranch( BNpcAlert.Instance, a );	// We become alert
-					else if ( DistTarget > Util.GetSquare( a.Params.AwareClose ) )	// If target is nearer than the medium distance but further than the close distance
+					if ( DistTarget > Util.GetSquare( a.Params.AwareMed ) ) // If target is further than the medium awareness distance
+						ChangeBranch( BNpcAlert.Instance, a );  // We become alert
+					else if ( DistTarget > Util.GetSquare( a.Params.AwareClose ) )  // If target is nearer than the medium distance but further than the close distance
 					{
 						if ( a.Params.Predator )	// If we're a predatory Npc...
 							ChangeBranch( BNpcHunt.Instance, a );	// ... we go hunting
@@ -293,7 +298,11 @@ namespace Hubris
 							ChangeBranch( BNpcFlee.Instance, a );	// ... we run away
 					}
 					else	// And then the fight started
-						ChangeBranch( BNpcAtk.Instance, a );
+					{
+						// Only attack live entities
+						if( a.TargetEnt != null )
+							ChangeBranch( BNpcAtk.Instance, a );
+					}
 				}
 			}
 		}

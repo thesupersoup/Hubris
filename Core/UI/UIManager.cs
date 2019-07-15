@@ -316,17 +316,12 @@ namespace Hubris
 			{
 				if (InputList != null && InputList.Count > 0)
 				{
-					if (InputIndex >= 0 && InputIndex <= InputList.Count)
+					if ( InputIndex > 0 )
 					{
-						if (InputIndex > 0)
-						{
-							InputIndex--;
-						}
+						InputIndex--;
 
 						if (ConInput != null)
-						{
 							ConInput.text = InputList[InputIndex];
-						}
 
 						ConInput.MoveToEndOfLine(false, false);
 					}
@@ -340,19 +335,23 @@ namespace Hubris
 			{
 				if (InputList != null && InputList.Count > 0)
 				{
-					if (InputIndex >= 0 && InputIndex <= InputList.Count)
+					int max = InputList.Count - 1;
+
+					if ( InputIndex < max )
 					{
-						if (InputIndex < InputList.Count - 1)
-						{
-							InputIndex++;
-						}
+						InputIndex++;
 
 						if (ConInput != null)
-						{
 							ConInput.text = InputList[InputIndex];
-						}
 
 						ConInput.MoveToEndOfLine(false, false);
+					}
+					else if ( InputIndex == max )
+					{
+						if ( ConInput != null )
+							ConInput.text = "";
+
+						ConInput.MoveToEndOfLine( false, false );
 					}
 				}
 			}

@@ -20,75 +20,79 @@ namespace Hubris
 				return b.Status;
 			}
 
+			if ( a.TargetEnt?.Stats.IsDead ?? false )
+			{
+				StopMove( a );
+				a.ResetTargetObj();
+				b.SetStatus( BhvStatus.SUCCESS );
+				return b.Status;
+			}
+
+			if ( !b.PathFailed && b.TimerCheck >= a.Params.ChkAlert )
+			{
+				b.TimerCheck = 0.0f;
+				CheckEnv( a, b );
+			}
+
+			// Set Speed accordingly
+			if ( a.NavAgent.speed != a.Params.MoveSpd )
+				SetSpeed( a, a.Params.MoveSpd );
+
 			if ( a.MovePos == Vector3.zero )
 			{
 				Vector3 nPos = FindFleePoint( a );
 
 				if ( nPos == Vector3.zero )
 				{
-					b.SetStatus( BhvStatus.FAILURE );
-					return b.Status;
+					Debug.Log( "Unable to find flee point" );
+					if ( !b.AnimInfo.IsName( AnimString.IDLE ) )
+						SetAnimTrigger( a, AnimString.IDLE );
+					return BhvStatus.RUNNING;
 				}
 
-				// Set Speed accordingly
-				SetSpeed( a, a.Params.MoveSpd );
+				Debug.Log( "Found flee point" );
 				a.SetMovePos( nPos );
 			}
 
-			if ( b.DistMove <= Util.GetSquare(a.Params.StopDist) )
+			if ( !a.NavAgent.hasPath )
 			{
-				StopMove( a );
-				b.SetStatus( BhvStatus.SUCCESS );
-				return b.Status;
-			}
-
-			if( !b.AnimInfo.IsName( AnimString.RUN ) )
-				SetAnimTrigger( a, AnimString.RUN );
-
-			if ( b.TimerCheck >= a.Params.ChkAlert )
-			{
-				b.TimerCheck = 0.0f;
-				CheckEnv( a, b );
-			}
-
-			if ( a.NavAgent.destination != a.MovePos )
+				Debug.Log( "Setting new NavMeshAgent destination" );
 				a.NavAgent.SetDestination( a.MovePos );
+			}
+			else
+			{
+				if ( !b.AnimInfo.IsName( AnimString.RUN ) )
+					SetAnimTrigger( a, AnimString.RUN );
+
+				if ( a.MovePos != a.NavAgent.destination )
+					a.SetMovePos( a.NavAgent.destination );
+			}
+
+			if ( a.NavAgent.pathPending )
+				return BhvStatus.RUNNING;
 
 			TurnToward( a, a.MovePos );
 
+			// Need to include NavAgent.radius or else the Npc won't ever reach the MovePos
+			if ( b.DistMove <= Util.GetSquare( a.Params.StopDist + a.NavAgent.radius ) && a.NavAgent.hasPath )
+			{
+				if ( ( a.TargetDistSqr > Util.GetSquare( a.Params.AwareMax + 10.0f ) ) )
+				{
+					StopMove( a );
+					Debug.Log( "Safe distance from target, flight over" );
+					a.ResetTargetObj();
+					b.SetPathFailed( false );
+					b.SetStatus( BhvStatus.SUCCESS );
+					return b.Status;
+				}
+				else
+				{
+					StopMove( a );
+					Debug.Log( "Resetting move for recalculation" );
+				}
+			}
+
 			return b.Status;
-		}
-
-		public Vector3 FindFleePoint( Npc a )
-		{
-			bool invalid = false;
-
-			// Tighten up the search distance at target location
-			float searchDist = a.Params.RoamDist / AIParams.FLEE_DIVISOR;
-
-			Vector3 roamPoint = UnityEngine.Random.insideUnitSphere * searchDist;
-
-			// Search for a position away from the target, or at least behind the Npc
-			if ( a.TargetObj != null )
-				roamPoint += (a.TargetObj.transform.position - a.transform.position).normalized * searchDist;
-			else
-				roamPoint += -(a.transform.forward).normalized * searchDist;
-
-			NavMesh.SamplePosition( roamPoint, out NavMeshHit point, searchDist, NavMesh.AllAreas );
-
-			if ( point.position.x == Mathf.Infinity || point.position.x == Mathf.NegativeInfinity )
-				invalid = true;
-
-			if ( point.position.y == Mathf.Infinity || point.position.y == Mathf.NegativeInfinity )
-				invalid = true;
-
-			if ( point.position.z == Mathf.Infinity || point.position.z == Mathf.NegativeInfinity )
-				invalid = true;
-
-			if ( !invalid )
-				return point.position;
-			else
-				return Vector3.zero;
 		}
 	}
 }

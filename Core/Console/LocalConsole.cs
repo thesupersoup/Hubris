@@ -200,6 +200,9 @@ namespace Hubris
 			}
 		}
 
+		/// <summary>
+		/// Attempts to parse user input into a command or a variable; returns success
+		/// </summary>
 		public bool ProcessInput( string nIn )
 		{
 			bool success = false;
@@ -207,45 +210,54 @@ namespace Hubris
 
 			Log( nIn );
 
-			if ( nIn != null )
+			if ( nIn == null || nIn.Length == 0 )
+				return false;
+
+			// User requested help
+			if ( nIn.ToCharArray()[0] == HELP_CHAR )
 			{
-				strArr = nIn.Split( new char[] { ' ' }, 2 ); // Split at whitespace, max two strings (Cmd and data)
+				for ( int i = 0; i < Settings.VarArrLength; i++ )
+					Variable.DisplayVarHelp( Settings.GetVariable( i ) );
 
-				if ( UIManager.Instance != null )
+				return true;
+			}
+
+			strArr = nIn.Split( new char[] { ' ' }, 2 ); // Split at whitespace, max two strings (Cmd and data)
+
+			if ( UIManager.Instance != null )
+			{
+				UIManager.Instance.AddInput( nIn );
+			}
+
+			if ( strArr != null && strArr.Length > 0 )
+			{
+				Command temp = Command.GetCmdByName( strArr[0] );
+				string data = null;
+
+				if ( temp != Command.None )
 				{
-					UIManager.Instance.AddInput( nIn );
+					if ( strArr.Length > 1 )
+						data = strArr[1];
+
+					success = true;
+					AddToQueue( temp, data );
 				}
-
-				if ( strArr != null && strArr.Length > 0 )
+				else
 				{
-					Command temp = Command.GetCmdByName( strArr[0] );
-					string data = null;
-
-					if ( temp != Command.None )
+					_setVarTemp = Settings.GetVarByName( strArr[0] );
+					if ( _setVarTemp != Settings.None )
 					{
-						if ( strArr.Length > 1 )
-							data = strArr[1];
+						temp = Command.GetCommand( CmdType.SetVar );
 
 						success = true;
-						AddToQueue( temp, data );
+						AddToQueue( temp, nIn );
 					}
 					else
 					{
-						_setVarTemp = Settings.GetVarByName( strArr[0] );
-						if ( _setVarTemp != Settings.None )
-						{
-							temp = Command.GetCommand( CmdType.SetVar );
-
-							success = true;
-							AddToQueue( temp, nIn );
-						}
+						if ( HubrisCore.Instance.Debug )
+							Log( "LocalConsole ProcessInput(): Unrecognized command \'" + strArr[0] + "\'", true );
 						else
-						{
-							if ( HubrisCore.Instance.Debug )
-								Log( "LocalConsole ProcessInput(): Unrecognized command \'" + strArr[0] + "\'", true );
-							else
-								Log( "Unrecognized command \'" + strArr[0] + "\'" );
-						}
+							Log( "Unrecognized command \'" + strArr[0] + "\'" );
 					}
 				}
 			}
@@ -256,56 +268,54 @@ namespace Hubris
 		public void ProcessSetVar( string data )
 		{
 			string[] strArr = null;
-			bool change = true;
+			bool change = false;
 
-			if ( data != null )
-				strArr = data.Split( new char[] { ' ' } ); // Split at whitespace
-			else
-				strArr = null;
-
-			if ( strArr != null )
+			if ( data == null || data.Length == 0 )
 			{
-				if ( strArr.Length >= 2 ) // One string for the variable, one for the value
-				{
-					if ( _setVarTemp == Settings.None )   // If _setVarTemp hasn't been set yet, try to set it
-						_setVarTemp = Settings.GetVarByName( strArr[0] );
+				Log( "Invalid data" );
+				return;
+			}
 
-					if ( strArr[1] != null && strArr[1][0] != HELP_CHAR )
-					{
-						Settings.PushChanges( _setVarTemp.Type, strArr[1] );
-						change = true;
-					}
-					else
-						Variable.DisplayVarHelp( _setVarTemp );
-				}
-				else if ( strArr.Length == 1 )    // Only the value provided
-				{
-					switch ( _setVarTemp.DataType )
-					{
-						case VarData.BOOL:
-							Settings.PushChanges( _setVarTemp.Type, !(bool)_setVarTemp.Data );   // Toggle if boolean
-							change = true;
-							break;
-						default:
-							Log( "Invalid variable (or no value provided): " + strArr[0] );
-							break;
-					}
-				}
+			strArr = data.Split( new char[] { ' ' } );	// Split at whitespace
+
+			if ( strArr.Length >= 2 )		// One string for the variable, one for the value
+			{
+				if ( strArr[1] == null || strArr[1].Length == 0 || strArr[1].ToCharArray()[0] == HELP_CHAR )
+					Variable.DisplayVarHelp( _setVarTemp );
 				else
-					Log( "Unexpected data length" );
+				{
+					Settings.PushChanges( _setVarTemp.Type, strArr[1] );
+					change = true;
+				}
+			}
+			else if ( strArr.Length == 1 )	// Only the variable provided
+			{
+				switch ( _setVarTemp.DataType )
+				{
+					case VarData.BOOL:
+						Settings.PushChanges( _setVarTemp.Type, !(bool)_setVarTemp.Data );	// Toggle if boolean
+						change = true;
+						break;
+					default:
+						Variable.DisplayVarHelp( _setVarTemp );
+						break;
+				}
 			}
 			else
-				Log( "Invalid data" );
+				Log( "Unexpected data length" );
 
 			if ( change )
 			{
 				if ( !Settings.GetVariable( _setVarTemp.Type ).Dirty )
-					Log( "Invalid value [" + strArr[1] + "] provided for variable " + _setVarTemp.Name );
+				{
+					Log( $"Invalid value entered for {_setVarTemp.Name}" );
+					Variable.DisplayVarHelp( _setVarTemp ); // Assume the player entered the wrong data
+				}
 				else
 					Settings.UpdateDirtyVar( _setVarTemp.Type );
 			}
 
-			_setVarTemp = Settings.None;    // Reset temp variable
+			_setVarTemp = Settings.None;	// Reset temp variable
 		}
 
 		public void SendData( string nData, bool reliable )

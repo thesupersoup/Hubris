@@ -5,6 +5,8 @@
 	/// </summary>
 	public sealed class Variable
 	{
+		public const string NO_HELP = "No help info available";
+
 		///---------------------------------------------------------------------
 		/// Variable Instance variables
 		///--------------------------------------------------------------------- 
@@ -16,6 +18,7 @@
 		///--------------------------------------------------------------------- 
 
 		public string Name { get; }
+		public string Help { get; }
 		public VarData DataType { get; }
 		public VarType Type { get; }
 		public bool Dirty { get; private set; }
@@ -136,6 +139,7 @@
 		public Variable()
 		{
 			Name = "DefaultVarName";
+			Help = NO_HELP;
 			DataType = VarData.BOOL;
 			Type = VarType.None;
 			Dirty = true;
@@ -143,9 +147,10 @@
 			InitData = Data;
 		}
 
-		public Variable(string sName = "DefaultVarName", VarData eData = VarData.BOOL, VarType eType = VarType.None, object oData = null)
+		public Variable( string sName = "DefaultVarName", string sHelp = NO_HELP, VarData eData = VarData.BOOL, VarType eType = VarType.None, object oData = null)
 		{
 			Name = sName;
+			Help = sHelp;
 			DataType = eData;
 			Type = eType;
 			Dirty = true;
@@ -172,46 +177,30 @@
 
 		public static void DisplayVarHelp( Variable nVar )
 		{
-			string helpStr = "";
+			// Let's not waste our time
+			if ( nVar.Type == VarType.None )
+				return;
 
-			switch ( nVar.Type )
+			// Get Variable name, help text, and add space before data type
+			string helpStr = nVar.Name + " : " + nVar.Help + " ";
+
+			switch ( nVar.DataType )
 			{
-				case VarType.Sens:
-					helpStr += "Mouse sensitivity, both X and Y";
+				case VarData.BOOL:
+					helpStr += "[Boolean]";
 					break;
-				case VarType.Useaccel:
-					helpStr += "Enable acceleration values for player movement";
+				case VarData.FLOAT:
+					helpStr += "[Float]";
 					break;
-				case VarType.Debug:
-					helpStr += "Enable debug mode and verbose console logging";
+				case VarData.INT:
+					helpStr += "[Integer]";
 					break;
-				default:
-					helpStr += "Enter a variable name and value (e.g. \"setvar sens 1.5\")";
+				case VarData.STRING:
+					helpStr += "[String]";
 					break;
-			}
-
-			if ( nVar.Type != VarType.None )
-			{
-				helpStr += " "; // Add space before data type
-
-				switch ( nVar.DataType )
-				{
-					case VarData.BOOL:
-						helpStr += "[Boolean]";
-						break;
-					case VarData.FLOAT:
-						helpStr += "[Float]";
-						break;
-					case VarData.INT:
-						helpStr += "[Integer]";
-						break;
-					case VarData.STRING:
-						helpStr += "[String]";
-						break;
-					case VarData.OBJECT:
-						helpStr += "[Object]";
-						break;
-				}
+				case VarData.OBJECT:
+					helpStr += "[Object]";
+					break;
 			}
 
 			LocalConsole.Instance.Log( helpStr );

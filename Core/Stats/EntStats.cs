@@ -9,6 +9,11 @@ namespace Hubris
 	[Serializable]
 	public class EntStats
 	{
+		#region InstanceVars
+		///--------------------------------------------------------------------
+		/// EntStats instance vars
+		///--------------------------------------------------------------------
+
 		[SerializeField]
 		protected int _hp;
 		[SerializeField]
@@ -25,6 +30,12 @@ namespace Hubris
 		protected bool _invisible;
 		[SerializeField]
 		protected bool _demigod;
+		#endregion InstanceVars
+
+		#region Properties
+		///--------------------------------------------------------------------
+		/// EntStats properties
+		///--------------------------------------------------------------------
 
 		public bool IsDead => Health <= 0.0f;
 		public bool IsAsleep => Stamina <= 0.0f;
@@ -34,8 +45,23 @@ namespace Hubris
 		public int ArmorMax { get { return _apMax; } protected set { _apMax = value; } }
 		public int Stamina { get { return _sta; } protected set { _sta = value; } }
 		public int StaminaMax { get { return _sta; } protected set { _staMax = value; } }
+
+		/// <summary>
+		/// Invisible determines whether this LiveEntity can be detected by others,
+		/// and whether it emits sounds
+		/// </summary>
 		public bool Invisible { get { return _invisible; } protected set { _invisible = value; } }
+
+		/// <summary>
+		/// Demigod prevents any incoming damage sources
+		/// </summary>
 		public bool Demigod { get { return _demigod; } protected set { _demigod = value; } }
+		#endregion Properties
+
+		#region Methods
+		///--------------------------------------------------------------------
+		/// EntStats methods
+		///--------------------------------------------------------------------
 
 		public EntStats Init( int nHp, int nHpMax, int nAp, int nApMax, int nSt, int nStMax, bool nInvis = false, bool nDemi = false )
 		{
@@ -62,64 +88,46 @@ namespace Hubris
 
 		public bool AddHealth( int nHP ) // Returns true for successful addition, false if health is full
 		{
-			if ( Health < HealthMax )
-			{
-				if ( Health + nHP <= HealthMax )
-				{
-					Health += nHP;
-					return true;
-				}
-				else // (Health + nHP > HealthMax)
-				{
-					Health = HealthMax;
-					return true;
-				}
-			}
-			else
+			if ( Health >= HealthMax )
 				return false; // Health is full, ideally
+
+			Health += nHP;
+			
+			if ( Health > HealthMax )
+				Health = HealthMax;
+
+			return true;
 		}
 
 		public bool AddArmor( int nArmor ) // Returns true for successful addition, false if armor is full
 		{
-			if ( Armor < ArmorMax )
-			{
-				if ( Armor + nArmor <= ArmorMax )
-				{
-					Armor += nArmor;
-					return true;
-				}
-				else // (Armor + nArmor > ArmorMax)
-				{
-					Armor = ArmorMax;
-					return true;
-				}
-			}
-			else
+			if ( Armor >= ArmorMax )
 				return false; // Armor is full, ideally
+
+			Armor += nArmor;
+			
+			if ( Armor > ArmorMax )
+				Armor = ArmorMax;
+
+			return true;
 		}
 
 		public bool AddStamina( int nStamina ) // Returns true for successful addition, false if stamina is full
 		{
-			if ( Stamina < StaminaMax )
-			{
-				if ( Stamina + nStamina <= StaminaMax )
-				{
-					Stamina += nStamina;
-					return true;
-				}
-				else // (Stamina + nStamina > StaminaMax)
-				{
-					Stamina = StaminaMax;
-					return true;
-				}
-			}
-			else
+			if ( Stamina >= StaminaMax )
 				return false; // Stamina is full, ideally
+
+			Stamina += nStamina;
+			
+			if ( Stamina > StaminaMax )
+				Stamina = StaminaMax;
+
+			return true;
 		}
 
 		public bool ReduceHealth( int nHP ) // Returns true for successful reduction, false if Health can not be reduced
 		{
-			if ( Demigod )
+			if ( Demigod || Health <= 0 )
 				return false;
 
 			Health -= nHP;
@@ -132,7 +140,7 @@ namespace Hubris
 
 		public bool ReduceArmor( int nArmor ) // Returns true for successful reduction, false if Armor can not be reduced
 		{
-			if ( Demigod )
+			if ( Demigod || Armor <= 0 )
 				return false;
 
 			Armor -= nArmor;
@@ -145,7 +153,7 @@ namespace Hubris
 
 		public bool ReduceStamina( int nStamina ) // Returns true for successful reduction, false if Stamina can not be reduced
 		{
-			if ( Demigod )
+			if ( Demigod || Stamina <= 0 )
 				return false;
 
 			Stamina -= nStamina;
@@ -160,5 +168,6 @@ namespace Hubris
 		{
 			return new EntStats().Init( 100, 100, 0, 100, 100, 100 );
 		}
+		#endregion Methods
 	}
 }

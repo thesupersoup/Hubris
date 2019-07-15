@@ -145,6 +145,9 @@ namespace Hubris
 		[Tooltip( "Time after the damage check to wait before another attack can begin (seconds)" )]
 		[Range( 0.0f, LOW_MED_RANGE )]
 		private float _atkEnd;
+		[SerializeField]
+		[Tooltip( "Npc damage types and amounts" )]
+		private NpcDamageStats _dmgStats;
 
 		///--------------------------------------------------------------------
 		/// Parameter modifiers
@@ -317,6 +320,11 @@ namespace Hubris
 		/// Time after the damage check to wait before another attack can begin (seconds)
 		/// </summary>
 		public float AtkEnd { get { return _atkEnd; } protected set { _atkEnd = value; } }
+
+		/// <summary>
+		/// Npc damage types and values
+		/// </summary>
+		public NpcDamageStats DamageStats { get { return _dmgStats; } protected set { _dmgStats = value; } }
 
 		///--------------------------------------------------------------------
 		/// Parameter modifiers
@@ -585,6 +593,14 @@ namespace Hubris
 		{
 			if ( nEnd >= AtkInit )
 				AtkEnd = nEnd;
+		}
+
+		/// <summary>
+		/// [NpcDamageStats] Change damage stats to provided
+		/// </summary>
+		public void SetDamageStats ( NpcDamageStats stats )
+		{
+			DamageStats = stats;
 		}
 
 		/// <summary>

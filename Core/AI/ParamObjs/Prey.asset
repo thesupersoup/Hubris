@@ -10,39 +10,39 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 89d1aba2f731e5c4b864150954ec1764, type: 3}
-  m_Name: Default
+  m_Name: Prey
   m_EditorClassIdentifier: 
   _type: 1
   _awareMax: 80
-  _awareMed: 50
-  _awareClose: 25
-  _atkDist: 4.25
-  _stopDist: 2.5
+  _awareMed: 32
+  _awareClose: 16
+  _atkDist: 8.5
+  _stopDist: 6
   _chkIdle: 0.5
   _chkAlert: 0.33
-  _moveSpd: 14
-  _moveWalk: 0.25
+  _moveSpd: 8.5
+  _moveWalk: 0.55
   _roam: 1
-  _roamDist: 20
-  _roamTime: 10
+  _roamDist: 40
+  _roamTime: 15
   _roamPts: 5
-  _predator: 1
+  _predator: 0
   _territorial: 0
-  _squad: 1
-  _flighty: 0
+  _squad: 0
+  _flighty: 1
   _retarget: 1
   _proxPct: 0.8
-  _rotSpd: 0.065
+  _rotSpd: 0.15
   _rotAngle: 0.25
-  _fov: 4
-  _animDelay: 0
+  _fov: 3
+  _animDelay: 0.45
   _accelBase: 100
-  _atkSlow: 0.3
+  _atkSlow: 0.5
   _atkInit: 0.6
   _atkEnd: 1.8
   _dmgStats:
     _commonType: 0
-    _commonAmt: 15
+    _commonAmt: 27
     _specType: 0
-    _specAmt: 25
+    _specAmt: 37
   _awareMod: 1

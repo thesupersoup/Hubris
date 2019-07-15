@@ -22,6 +22,14 @@ namespace Hubris
 		}
 
 		/// <summary>
+		/// Check if position A is closer to the source than position B
+		/// </summary>
+		public static bool IsCloser( Vector3 src, Vector3 posA, Vector3 posB )
+		{
+			return ( CheckDistSqr( src, posA ) < CheckDistSqr( src, posB ) );
+		}
+
+		/// <summary>
 		/// Get the square of a floating point value; use this method for clarity of code and to prevent simple mistakes
 		/// </summary>
 		public static float GetSquare( float val )

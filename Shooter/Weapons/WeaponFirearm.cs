@@ -55,12 +55,12 @@ namespace Hubris
 			_ammo = nAmmo;
 		}
 
-		public override void Interact0()
+		public override void Interact0( Camera pCam, LayerMask mask, LiveEntity owner )
 		{
 
 		}
 
-		public override void Interact1()
+		public override void Interact1( Camera pCam, LayerMask mask, LiveEntity owner )
 		{
 			
 		}

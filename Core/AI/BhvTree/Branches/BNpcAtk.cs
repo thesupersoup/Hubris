@@ -34,6 +34,14 @@ namespace Hubris
 				return b.Status;
 			}
 
+			if ( a.NavAgent.pathStatus == NavMeshPathStatus.PathPartial || a.NavAgent.pathStatus == NavMeshPathStatus.PathInvalid )
+			{
+				StopMove( a );
+				b.SetPathFailed( true );
+				b.SetStatus( BhvStatus.FAILURE );
+				return b.Status;
+			}
+
 			GetFlatVectors( a, out Vector3 targetPos, out Vector3 thisPos, out Vector3 fwd );
 
 			float angle = Vector3.Angle( fwd, (targetPos - thisPos) );
@@ -58,6 +66,12 @@ namespace Hubris
 			{
 				if ( b.TimerAct >= a.Params.AtkInit )
 				{
+					if ( a.TargetEnt != null )
+					{
+						if ( b.ActionReady )
+							a.TargetEnt.TakeDmg( a, a.Params.DamageStats.CommonType, a.Params.DamageStats.CommonAmount, false );
+					}
+
 					b.SetActionReady( false );
 					SetAnimTrigger( a, AnimString.ATK );
 				}

@@ -6,6 +6,7 @@ namespace Hubris
 	/// <summary>
 	/// Represents an NPCs field-of-view cone
 	/// </summary>
+	[Serializable]
 	public sealed class FOV
 	{
 		// Pre-baked constants for common unit circle sin(x)/cos(x) values
@@ -28,8 +29,8 @@ namespace Hubris
 		public FOVDegrees Degrees { get => _deg; set { _deg = value; UpdateTrigValues( _deg, ref _x, ref _y );} }
 		public float X { get => _x; set => _x = value; }
 		public float Y { get => _y; set => _y = value; }
-		public Vector3 LeftVect { get => _lVect; }
-		public Vector3 RightVect { get => _rVect; }
+		public Vector3 LeftVect => _lVect;
+		public Vector3 RightVect => _rVect;
 
 		///--------------------------------------------------------------------
 		/// FOV methods
@@ -62,10 +63,23 @@ namespace Hubris
 		/// <summary>
 		/// Draw FOV vectors in Unity Editor scene view for debug purposes
 		/// </summary>
-		public void DebugDrawVectors( Npc a )
+		public void DebugDrawVectors( Npc a, bool robust = false )
 		{
-			Debug.DrawRay( a.transform.position, LeftVect * 100, Color.green );
-			Debug.DrawRay( a.transform.position, RightVect * 100, Color.red );
+			// Draw viewcone starting from origin position
+			Debug.DrawRay( a.ViewConeOriginPos, LeftVect * 100, Color.green );
+			Debug.DrawRay( a.ViewConeOriginPos, RightVect * 100, Color.red );
+
+			if( robust )
+			{ 
+				// Base Npc forward
+				Debug.DrawRay( a.transform.position, a.transform.forward * 10.0f, Color.blue );
+
+				if ( a.TargetObj == null )
+					return;
+
+				// Line from viewcone origin to target
+				Debug.DrawRay( a.ViewConeOriginPos, (a.TargetPos - a.ViewConeOriginPos) * a.TargetDistSqr, Color.white );
+			}
 		}
 
 		private Vector3 GetVectorLeft( Vector3 src )

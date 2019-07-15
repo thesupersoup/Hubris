@@ -1,6 +1,4 @@
-﻿using System;
-using UnityEngine;
-using UnityEngine.AI;
+﻿using UnityEngine;
 
 namespace Hubris
 {
@@ -108,31 +106,6 @@ namespace Hubris
 			}
 
 			return b.Status;
-		}
-
-		public Vector3 FindRoamPoint( Npc a )
-		{
-			bool invalid = false;
-
-			Vector3 roamPoint = UnityEngine.Random.insideUnitSphere * a.Params.RoamDist;
-
-			roamPoint += a.transform.position;
-
-			NavMesh.SamplePosition( roamPoint, out NavMeshHit point, a.Params.RoamDist, NavMesh.AllAreas );
-
-			if ( point.position.x == Mathf.Infinity || point.position.x == Mathf.NegativeInfinity )
-				invalid = true;
-
-			if ( point.position.y == Mathf.Infinity || point.position.y == Mathf.NegativeInfinity )
-				invalid = true;
-
-			if ( point.position.z == Mathf.Infinity || point.position.z == Mathf.NegativeInfinity )
-				invalid = true;
-
-			if ( !invalid )
-				return point.position;
-			else
-				return Vector3.zero;
 		}
 	}
 }

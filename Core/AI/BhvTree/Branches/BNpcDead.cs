@@ -11,8 +11,11 @@ namespace Hubris
 
 		public override BhvStatus Invoke( Npc a, BhvTree b )
 		{
-			if ( a.NavAgent.hasPath )
+			if ( a.NavAgent.hasPath || a.MovePos != Vector3.zero )
 				StopMove( a );
+
+			if ( a.TargetObj != null )
+				a.SetTargetObj( null );
 
 			if (!a.Stats.IsDead)
 			{

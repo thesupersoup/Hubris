@@ -33,8 +33,13 @@ namespace Hubris
 
 		[SerializeField]
 		private BhvTree _bhvTree = new BhvTree( BNpcIdle.Instance );
-		[SerializeField]
+
 		private FOV _fov;
+		[SerializeField]
+		private Transform _fovOrigin = null;
+		[SerializeField]
+		[Tooltip( "Will cause the viewcone to be shown in the Unity editor scene view" )]
+		private bool _debugShowViewCone = false;
 
 		private List<LiveEntity> _trackList = new List<LiveEntity>(), 
 								_removeList = new List<LiveEntity>();
@@ -67,6 +72,18 @@ namespace Hubris
 			protected set
 			{ ViewCone.Degrees = value; }
 		}
+
+		public Transform ViewConeOrigin => _fovOrigin;
+
+		/// <summary>
+		/// Get the appropriate viewcone origin position vector depending on whether the origin transform is set
+		/// </summary>
+		public Vector3 ViewConeOriginPos => _fovOrigin != null ? _fovOrigin.position : this.transform.position;
+
+		/// <summary>
+		/// Will cause the viewcone to be shown in the Unity editor scene view
+		/// </summary>
+		public bool DebugShowViewCone => _debugShowViewCone;
 
 		public Animator Anim
 		{
@@ -159,8 +176,7 @@ namespace Hubris
 					NavAgent = this.gameObject.AddComponent<NavMeshAgent>();
 			}
 
-			NavAgent.stoppingDistance = Params.StopDist;
-			NavAgent.acceleration = Params.AccelBase;
+			InitNavAgent();
 
 			if( Anim == null )
 			{
@@ -169,9 +185,22 @@ namespace Hubris
 					Debug.Log(this.gameObject.name + " doesn't have an Animator!");
 			}
 
-			ViewCone = new FOV( this.transform.forward, _aiParams.FOV );
+			ViewCone = new FOV( (ViewConeOrigin != null ? ViewConeOrigin.position + this.transform.forward : this.transform.forward), _aiParams.FOV );
 
 			EntType = EntityType.NPC;
+		}
+
+		/// <summary>
+		/// Initialize NavMeshAgent variables; auto repath set as parameter which defaults to false
+		/// </summary>
+		/// <param name="repath"></param>
+		public void InitNavAgent( bool repath = false )
+		{
+			NavAgent.stoppingDistance = Params.StopDist;
+			NavAgent.acceleration = Params.AccelBase;
+
+			// Default to false, so we can handle situations where a path can't be found in behaviors
+			NavAgent.autoRepath = repath;
 		}
 
 		public void SetTargetObj( GameObject obj )
@@ -235,17 +264,18 @@ namespace Hubris
 			if ( target == null )
 				return false;
 
-			Vector3 dir = ( target.transform.position - this.transform.position ).normalized;
+			Vector3 dir = ( target.transform.position - ViewConeOriginPos ).normalized;
+			Vector3 viewChk = dir;
+			viewChk.y = 0.0f;
 
-			if ( ViewCone.IsInView( this.transform.forward, dir ) )
+			if ( ViewCone.IsInView( this.transform.forward, viewChk ) )
 			{
-				if ( Physics.Raycast( this.transform.position, dir, out RaycastHit hit, TargetDistSqr, SightMask ) )
+				if ( Physics.Raycast( ViewConeOriginPos, dir, out RaycastHit hit, TargetDistSqr, SightMask ) )
 				{
-					if ( hit.transform.root.gameObject == target )
-					{
-						Debug.DrawRay( this.transform.position, dir * dist );
-						return true;
-					}
+					if( hit.transform.root.gameObject != target )
+						return false;
+
+					return true;
 				}
 			}
 
@@ -289,6 +319,30 @@ namespace Hubris
 			}
 		}
 
+		/// <summary>
+		/// Handles taking damage from another entity; use nDirect true to directly damage health or false to obey restrictions
+		/// </summary>
+		public override bool TakeDmg( LiveEntity damageEnt, DmgType nType, int nDmg, bool nDirect )
+		{
+			if ( damageEnt != null )
+			{
+				GameObject damageObj = damageEnt.transform.root.gameObject;
+
+				if ( TargetObj == null )
+					SetTargetObj( damageObj, damageEnt );
+				else
+				{
+					if ( damageObj != TargetObj )
+					{
+						if ( Util.IsCloser( this.transform.position, damageObj.transform.position, TargetPos ) )
+							SetTargetObj( damageObj, damageEnt );
+					}
+				}
+			}
+
+			return base.TakeDmg( damageEnt, nType, nDmg, nDirect );
+		}
+
 		void Start()
 		{
 
@@ -304,6 +358,9 @@ namespace Hubris
 			Behavior.Invoke( this );
 			ProcessSoundEvents();
 			ViewCone.UpdateVectors( this.transform.forward );
+
+			if ( DebugShowViewCone )
+				ViewCone.DebugDrawVectors( this, true );
 		}
 
 		void LateUpdate()

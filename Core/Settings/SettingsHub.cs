@@ -30,6 +30,8 @@ namespace Hubris
 
 		private Variable[] varArr = VariableDef.GetVarArr();
 
+		public int VarArrLength => varArr?.Length ?? 0;
+
 		#region QuickVariables
 		///---------------------------------------------------------------------
 		/// Specific Variable properties
@@ -74,13 +76,24 @@ namespace Hubris
 		public Variable GetVarByName( string nName )
 		{
 			Variable varObj = varArr[(int)VarType.None];
+			char[] nameArr = nName.ToCharArray();
+			string varTest = "";
 
-			// Test only the first four characters in standardized lower case
-			string varTest = nName.Substring(0, MIN_STRING_SIZE).ToLower();
+			// Test up to the first four characters in standardized lower case
+			for ( int i = 0; i < MIN_STRING_SIZE; i++ )
+			{
+				if ( i >= nameArr.Length )
+				{
+					varTest += " ";
+					continue;
+				}
+
+				varTest += char.ToLower( nameArr[i] );
+			}
 
 			for (int i = 0; i < varArr.Length; i++)
 			{
-				if ( varArr[i].Name.Substring( 0, MIN_STRING_SIZE ).Equals( varTest ) )
+				if ( varArr[i].Name.Substring( 0, varTest.Length ).Equals( varTest ) )
 				{
 					varObj = varArr[i];
 					break;  // Found it, don't need to keep searching

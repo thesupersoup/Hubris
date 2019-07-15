@@ -1,6 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.AI;
 
 namespace Hubris
 {
@@ -162,6 +161,66 @@ namespace Hubris
 		}
 
 		/// <summary>
+		/// Tries to find a random point up to RoamDist away from the Npc
+		/// </summary>
+		public Vector3 FindRoamPoint( Npc a )
+		{
+			bool invalid = false;
+
+			Vector3 roamPoint = UnityEngine.Random.insideUnitSphere * a.Params.RoamDist;
+
+			roamPoint += a.transform.position;
+
+			NavMesh.SamplePosition( roamPoint, out NavMeshHit point, a.Params.RoamDist, NavMesh.AllAreas );
+
+			if ( point.position.x == Mathf.Infinity || point.position.x == Mathf.NegativeInfinity )
+				invalid = true;
+
+			if ( point.position.y == Mathf.Infinity || point.position.y == Mathf.NegativeInfinity )
+				invalid = true;
+
+			if ( point.position.z == Mathf.Infinity || point.position.z == Mathf.NegativeInfinity )
+				invalid = true;
+
+			if ( !invalid )
+				return point.position;
+			else
+				return Vector3.zero;
+		}
+
+		/// <summary>
+		/// Tries to find a point in the opposite direction of the target object
+		/// </summary>
+		public Vector3 FindFleePoint( Npc a )
+		{
+			bool invalid = false;
+
+			Vector3 fleePoint = a.transform.position + (a.transform.position - a.TargetPos) + (UnityEngine.Random.insideUnitSphere * (a.Params.RoamDist / AIParams.FLEE_DIVISOR));
+
+			// fleePoint += a.transform.position;
+
+			Debug.Log( $"Flee Point: {fleePoint}" );
+
+			NavMesh.SamplePosition( fleePoint, out NavMeshHit point, a.Params.RoamDist / AIParams.FLEE_DIVISOR, NavMesh.AllAreas );
+
+			if ( point.position.x == Mathf.Infinity || point.position.x == Mathf.NegativeInfinity )
+				invalid = true;
+
+			if ( point.position.y == Mathf.Infinity || point.position.y == Mathf.NegativeInfinity )
+				invalid = true;
+
+			if ( point.position.z == Mathf.Infinity || point.position.z == Mathf.NegativeInfinity )
+				invalid = true;
+
+			Debug.Log( $"Invalid is {invalid}" );
+
+			if ( !invalid )
+				return point.position;
+			else
+				return Vector3.zero;
+		}
+
+		/// <summary>
 		/// Provides the TargetObj position, Npc position, and Npc forward vectors via the out parameters with the y-value zeroed out
 		/// </summary>
 		public void GetFlatVectors( Npc a, out Vector3 targetPos, out Vector3 thisPos, out Vector3 fwd )
@@ -233,7 +292,7 @@ namespace Hubris
 					if ( a.TrackList.Contains( ent ) )
 						continue;
 							
-					Debug.Log("Found " + ent.gameObject.name);
+					Debug.Log( $"{a.gameObject.name} found {ent.gameObject.name}" );
 					a.TrackList.Add(ent);
 				}
 			}

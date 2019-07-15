@@ -189,6 +189,12 @@ namespace Hubris
 			}
 		}
 
+		public void SetIngame( bool game )
+		{
+			_ingame = game;
+			Console.Log( "HubrisCore switching to " + (Ingame ? "ingame" : "not ingame") + " mode");
+		}
+
 		void FixedUpdate()
 		{
 			_im?.FixedUpdate();

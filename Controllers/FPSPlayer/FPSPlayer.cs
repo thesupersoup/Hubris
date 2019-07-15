@@ -70,12 +70,16 @@ namespace Hubris
 			protected set { _stickiness = value; }
 		}
 
+		public LayerMask WeaponMask => _weaponMask;
+
 		///--------------------------------------------------------------------
 		/// FPSPlayer methods
 		///--------------------------------------------------------------------
 
-		void OnEnable()
+		public override void OnEnable()
 		{
+			base.OnEnable();
+
 			if (Instance == null)
 			{
 				Instance = this;
@@ -121,23 +125,20 @@ namespace Hubris
 			{
 				if (PlayerInv.Slots[PlayerInv.ActiveIndex] is WeaponBase nWeapon)
 				{
-					if (Physics.Raycast(PlayerCam.transform.position, PlayerCam.transform.forward, out RaycastHit hit, nWeapon.Range, _weaponMask))
-					{
-						GameObject target = hit.transform.root.gameObject;  // Grab root because hitboxes
-						IDamageable ent = target.GetComponent<IDamageable>();
-
-						if (ent != null)
-						{
-							ent.TakeDmg(nWeapon.DamageType, nWeapon.Damage, false);
-						}
-					}
+					nWeapon.Interact0( PlayerCam, WeaponMask, this );
 				}
 			}
 		}
 
 		public override void Interact1()
 		{
-
+			if ( PlayerInv.Slots[PlayerInv.ActiveIndex] != null && PlayerCam != null )
+			{
+				if ( PlayerInv.Slots[PlayerInv.ActiveIndex] is WeaponBase nWeapon )
+				{
+					nWeapon.Interact1( PlayerCam, WeaponMask, this );
+				}
+			}
 		}
 
 		public override void Move(InputManager.Axis ax, float val)

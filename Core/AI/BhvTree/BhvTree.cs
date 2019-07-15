@@ -22,9 +22,12 @@ namespace Hubris
 		private float _distTarget = 0.0f;
 		private float _distMove = 0.0f;
 		private Vector3 _prevPos = Vector3.zero;
-		private Vector3 _prevMovePos = Vector3.zero;
+		private bool _pathFailed = false;
 		private AnimatorStateInfo _animInfo;
 		private bool _seeTarget = false;
+
+		// temporary for testing
+		private UnityEngine.AI.NavMeshPathStatus _pathStatus = UnityEngine.AI.NavMeshPathStatus.PathInvalid;
 
 		///--------------------------------------------------------------------
 		/// BhvTree properties
@@ -69,6 +72,11 @@ namespace Hubris
 		/// Position of the Npc as of the previous behavior invocation
 		/// </summary>
 		public Vector3 PrevPos => _prevPos;
+
+		/// <summary>
+		/// Set true when Npc can't reach its target
+		/// </summary>
+		public bool PathFailed => _pathFailed;
 
 		/// <summary>
 		/// Current Animator state info for the Npc
@@ -144,6 +152,14 @@ namespace Hubris
 		}
 
 		/// <summary>
+		/// Set whether the Npc's pathfinding failed
+		/// </summary>
+		public void SetPathFailed( bool fail )
+		{
+			_pathFailed = fail;
+		}
+
+		/// <summary>
 		/// Update the stored animator state info
 		/// </summary>
 		private void UpdateAnimInfo( Npc a, int layer )
@@ -160,11 +176,21 @@ namespace Hubris
 		}
 
 		/// <summary>
+		/// Resets NavMeshAgent flags that may have been changed by behaviors
+		/// </summary>
+		public void ResetNavAgent( Npc a )
+		{
+			if ( !a.NavAgent.updateRotation )
+				a.NavAgent.updateRotation = true;
+		}
+
+		/// <summary>
 		/// Change the active behavior branch
 		/// </summary>
 		public void ChangeBranch( IBhvNode n, Npc a )
 		{
 			ResetTimers();
+			ResetNavAgent( a );
 			SetActionReady( true );
 
 			if ( HubrisCore.Instance.Debug )
@@ -264,7 +290,15 @@ namespace Hubris
 
 			// What should we do if the active behavior branch succeeds or fails
 			if( ActiveBranch.Invoke( a, this ) != BhvStatus.RUNNING )
-			{				
+			{
+				// Unable to reach target, pathfinding failed
+				if ( PathFailed )
+				{
+					Debug.Log( "Pathfinding failed, fleeing..." );
+					ChangeBranch( BNpcFlee.Instance, a );
+					return;
+				}
+
 				if ( a.TargetObj == null || !SeeTarget )
 				{
 					// If we have a destination

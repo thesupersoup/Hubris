@@ -19,7 +19,7 @@ namespace Hubris
 				return b.Status;
 			}
 
-			if ( !b.SeeTarget )
+			if ( !b.SeeTarget && b.DistTarget > Util.GetSquare( a.Params.AwareMed ) )
 			{
 				Debug.Log( "SightCheck failed" );
 				a.ResetTargetObj();

@@ -182,6 +182,11 @@ namespace Hubris
 			base.OnEnable();
 			base.Init();
 
+			if( !HubrisCore.Instance?.Ingame ?? false )
+			{
+				HubrisCore.Instance.SetIngame( true );
+			}
+
 			EntType = EntityType.PLAYER;
 			SpeedTarget = Movement.SpeedLow;
 		}

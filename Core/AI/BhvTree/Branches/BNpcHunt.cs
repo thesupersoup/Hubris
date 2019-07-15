@@ -50,6 +50,14 @@ namespace Hubris
 				return b.Status;
 			}
 
+			if( a.NavAgent.pathStatus == NavMeshPathStatus.PathPartial || a.NavAgent.pathStatus == NavMeshPathStatus.PathInvalid )
+			{
+				StopMove( a );
+				b.SetPathFailed( true );
+				b.SetStatus( BhvStatus.FAILURE );
+				return b.Status;
+			}
+
 			if ( a.MovePos == Vector3.zero )
 				a.SetMovePos( a.TargetPos );
 

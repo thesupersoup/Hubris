@@ -24,15 +24,42 @@ namespace Hubris
 		}
 
 		/// <summary>
+		/// Initiates a move to the indicated position
+		/// </summary>
+		public void StartMove( Npc a, Vector3 pos )
+		{
+			if ( a.NavAgent == null )
+				return;
+
+			// Something is wrong with the NavAgent's NavMesh binding
+			if ( !a.NavAgent.isOnNavMesh && !a.NavAgent.isOnOffMeshLink )
+				return;
+
+			// Safeguard against spamming new destinations while a path is pending
+			if ( a.NavAgent.pathPending )
+				return;
+
+			Debug.Log( $"Starting new move to {pos}" );
+			a.NavAgent.SetDestination( pos );
+		}
+
+
+		/// <summary>
 		/// Resets NavMeshAgent path and sets MovePos to Vector3.zero
 		/// </summary>
 		/// <param name="a"></param>
 		public void StopMove( Npc a )
 		{
-			if ( a.NavAgent != null )
-				a.NavAgent.ResetPath();
-
 			a.SetMovePos( Vector3.zero );
+
+			if ( a.NavAgent == null )
+				return;
+
+			// Something is wrong with the NavAgent's NavMesh binding
+			if ( !a.NavAgent.isOnNavMesh && !a.NavAgent.isOnOffMeshLink )
+				return;
+
+			a.NavAgent.ResetPath();
 		}
 
 		public void SetAnimTrigger( Npc a, AnimT e )

@@ -7,7 +7,7 @@
 	{
 		public const int major = 0,
 							minor = 4,
-							patch = 2;
+							patch = 3;
 
 		public static int Major => major;
 		public static int Minor => minor;

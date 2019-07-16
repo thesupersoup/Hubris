@@ -60,10 +60,7 @@ namespace Hubris
 				return BhvStatus.RUNNING;
 
 			if ( !a.NavAgent.hasPath && a.MovePos != Vector3.zero )
-			{
-				Debug.Log( "Setting new NavMeshAgent destination" );
-				a.NavAgent.SetDestination( a.MovePos );
-			}
+				StartMove( a, a.MovePos );
 			else
 			{
 				if ( a.MovePos != a.NavAgent.destination )

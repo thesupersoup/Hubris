@@ -87,7 +87,7 @@ namespace Hubris
 			}
 
 			if ( a.NavAgent.destination != a.MovePos )
-				a.NavAgent.SetDestination( a.MovePos );
+				StartMove( a, a.MovePos );
 
 			return b.Status;
 		}

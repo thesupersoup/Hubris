@@ -54,11 +54,11 @@ namespace Hubris
 				a.SetMovePos( nPos );
 			}
 
+			if ( a.NavAgent.pathPending )
+				return BhvStatus.RUNNING;
+
 			if ( !a.NavAgent.hasPath )
-			{
-				Debug.Log( "Setting new NavMeshAgent destination" );
-				a.NavAgent.SetDestination( a.MovePos );
-			}
+				StartMove( a, a.MovePos );
 			else
 			{
 				if ( !b.AnimInfo.IsName( AnimString.RUN ) )
@@ -67,9 +67,6 @@ namespace Hubris
 				if ( a.MovePos != a.NavAgent.destination )
 					a.SetMovePos( a.NavAgent.destination );
 			}
-
-			if ( a.NavAgent.pathPending )
-				return BhvStatus.RUNNING;
 
 			TurnToward( a, a.MovePos );
 

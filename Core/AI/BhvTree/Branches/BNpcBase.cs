@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.AI;
 
 namespace Hubris
@@ -39,7 +40,7 @@ namespace Hubris
 			if ( a.NavAgent.pathPending )
 				return;
 
-			Debug.Log( $"Starting new move to {pos}" );
+			// Debug.Log( $"Starting new move to {pos}" );
 			a.NavAgent.SetDestination( pos );
 		}
 
@@ -183,6 +184,15 @@ namespace Hubris
 		/// </summary>
 		public void TurnToward( Npc a, Vector3 target )
 		{
+			if ( float.IsNaN( target.sqrMagnitude ) )
+				return;
+
+			if ( target == Vector3.zero )
+				return;
+
+			if ( target == Vector3.negativeInfinity || target == Vector3.positiveInfinity )
+				return;
+
 			a.transform.rotation = Quaternion.Slerp( a.transform.rotation,
 					Quaternion.LookRotation( target - a.transform.position ), a.Params.RotSpd );
 		}
@@ -226,7 +236,7 @@ namespace Hubris
 
 			// fleePoint += a.transform.position;
 
-			Debug.Log( $"Flee Point: {fleePoint}" );
+			// Debug.Log( $"Flee Point: {fleePoint}" );
 
 			NavMesh.SamplePosition( fleePoint, out NavMeshHit point, a.Params.RoamDist / AIParams.FLEE_DIVISOR, NavMesh.AllAreas );
 
@@ -239,7 +249,7 @@ namespace Hubris
 			if ( point.position.z == Mathf.Infinity || point.position.z == Mathf.NegativeInfinity )
 				invalid = true;
 
-			Debug.Log( $"Invalid is {invalid}" );
+			// Debug.Log( $"Invalid is {invalid}" );
 
 			if ( !invalid )
 				return point.position;
@@ -278,74 +288,34 @@ namespace Hubris
 		}
 
 		/// <summary>
-		/// Scan the environment for entities, then process tracked entities
+		/// Process tracked entities in the Npc's environment
 		/// </summary>
 		public void CheckEnv( Npc a, BhvTree b )
 		{
-			AreaScan( a );
-			if ( a.TrackList != null )
-				ProcessTrackList( a, b );
+			if ( a.TrackDict != null )
+				ProcessTrackDict( a, b );
 		}
 
 		/// <summary>
-		/// Uses a Physics.OverlapSphere to scan the area up to this entity's Awareness Max Distance and log any GameObjects on Layers specified in the EntMask
+		/// Process the entities in the TrackDict, finds closest and removes ents that are beyond MAX_DIST or dead
 		/// </summary>
-		public void AreaScan( Npc a ) 
+		public void ProcessTrackDict( Npc a, BhvTree b )
 		{
-			Collider[] localEnts = Physics.OverlapSphere(a.transform.position, a.Params.AwareMax, a.EntMask);
-
-			if (localEnts != null && localEnts.Length > 0)
-			{
-				foreach (Collider col in localEnts)
-				{
-					GameObject obj = col.transform.root.gameObject;
-					LiveEntity ent = obj.GetComponent<LiveEntity>();
-
-					if ( ent == null )
-					{
-						Debug.LogWarning( a.gameObject.name + " couldn't find a LiveEntity script for a detected object (" + obj.name + "), can't add to trackList" );
-						continue;
-					}
-
-					// Check if we found ourselves
-					if ( ent == a )
-						continue;
-
-					// Ignore if the entity is dead or invisible
-					if ( ent.Stats.IsDead || ent.Stats.Invisible )
-						continue;
-
-					// Check if we're already tracking this entity
-					if ( a.TrackList.Contains( ent ) )
-						continue;
-							
-					Debug.Log( $"{a.gameObject.name} found {ent.gameObject.name}" );
-					a.TrackList.Add(ent);
-				}
-			}
-		}
-
-		/// <summary>
-		/// Process the entities in the TrackList, finds closest and removes ents that are beyond MAX_DIST or dead
-		/// </summary>
-		public void ProcessTrackList( Npc a, BhvTree b )
-		{
-			bool resetTrackList = false;
-
-			if (a.TrackList != null && a.TrackList.Count > 0)
+			if ( a.TrackDict != null && a.TrackDict.Count > 0 )
 			{
 				float closestEntDistSqr = 0.0f;
 				LiveEntity closestEnt = null;
 				bool fresh = true;
 
-				for (int i = 0; i < a.TrackList.Count; i++)
+				foreach ( ulong id in a.TrackDict.Keys )
 				{
-					LiveEntity ent = a.TrackList[i];
+					LiveEntity ent;
+					a.TrackDict.TryGetValue( id, out ent );
 
 					// If the entity dies and is cleaned up before the trackBook is processed, it will be null
 					if ( ent == null ) 
 					{
-						resetTrackList = true;
+						a.RemoveList.Add( id );
 						continue;
 					}
 
@@ -354,39 +324,50 @@ namespace Hubris
 					{
 						// If the entity is dead and the same type as this one, set behavior to aggro or hunt or something
 
-						a.RemoveList.Add( ent );
+						a.RemoveList.Add( id );
 						continue;
+					}
+
+					// If we're prey
+					if ( !a.Params.Predator )
+					{
+						if ( ent is Npc npc )
+						{
+							// Prey should ignore other prey
+							if ( !npc.Params.Predator )
+								continue;
+						}
 					}
 
 					// Check if we want to make a squad with other entities of the same type
 					//
 					//
 
-					float distSqr = Util.CheckDistSqr( a.transform.position, ent.transform.position );
+					float maxDist = a.Params.AwareMax;
 
 					// Check if it's beyond our max awareness distance
-					if ( distSqr > Util.GetSquare( a.Params.AwareMax ) )
+					if ( !Util.CheckDistSqr( a.transform.position, ent.transform.position, maxDist ) )
 					{
-						a.RemoveList.Add( ent );
+						a.RemoveList.Add( id );
 						continue;
 					}
 
 					// Field-of-view and Line-of-sight check
-					if ( !a.SightCheck( ent.gameObject, distSqr ) )
+					if ( !a.SightCheck( ent.gameObject, Util.GetSquare( maxDist ) ) )
 						continue;
 					
 					// If we haven't set our closest entity info yet
 					if ( fresh )
 					{
-						closestEntDistSqr = distSqr;
+						closestEntDistSqr = maxDist;
 						closestEnt = ent;
 						fresh = false;
 					}
 					else
 					{
-						if ( distSqr < closestEntDistSqr )
+						if ( maxDist < closestEntDistSqr )
 						{
-							closestEntDistSqr = distSqr;
+							closestEntDistSqr = maxDist;
 							closestEnt = ent;
 						}
 					}
@@ -415,31 +396,21 @@ namespace Hubris
 			{
 				for ( int i = 0; i < a.RemoveList.Count; i++ )
 				{
-					LiveEntity ent = a.RemoveList[i];
-					if (ent != null) // If the entity dies and is cleaned up before the removeBook is processed, it will be null
-						Untrack(a, ent, ref resetTrackList);
+					LiveEntity ent = null;
+					a.TrackDict.TryGetValue( a.RemoveList[i], out ent );
+					Untrack( a, a.RemoveList[i]);
 				}
 
 				a.RemoveList.Clear();
 			}
-
-			if ( resetTrackList )
-				a.TrackList.Clear();
 		}
 
 		/// <summary>
 		/// Attempts to remove the specified entity from the TrackList, checks for null entity and sets TrackList reset flag if one is found
 		/// </summary>
-		public void Untrack( Npc a, LiveEntity ent, ref bool resetTrackList )
+		public void Untrack( Npc a, ulong id )
 		{
-			// If the entity dies and is cleaned up before it can be untracked, it will be null
-			if ( ent == null )
-			{
-				resetTrackList = true;
-				return;
-			}
-
-			a.TrackList.Remove(ent);
+			a.TrackDict.Remove( id );
 		}
 	}
 }

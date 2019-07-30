@@ -22,6 +22,7 @@ namespace Hubris
 			{
 				if ( a.Params.Flighty )
 				{
+					a.PlaySound( SndT.ALERT );
 					// Too close, should flee
 					b.SetStatus( BhvStatus.FAILURE );
 					return b.Status;
@@ -39,13 +40,15 @@ namespace Hubris
 
 				if ( nPos == Vector3.zero )
 				{
-					Debug.Log( "Unable to find flee point" );
+					// Debug.Log( "Unable to find flee point" );
 					if ( !b.AnimInfo.IsName( AnimString.IDLE ) )
 						SetAnimTrigger( a, AnimString.IDLE );
 					return BhvStatus.RUNNING;
 				}
 
-				Debug.Log( "Found flee point" );
+				// Debug.LogError( $"WaryFlee: {a.name} to position {nPos}" );
+
+				// Debug.Log( "Found flee point" );
 				b.TimerAct = 0.0f;
 				a.SetMovePos( nPos );
 			}
@@ -69,8 +72,6 @@ namespace Hubris
 
 			if( a.MovePos != Vector3.zero )
 			{
-				TurnToward( a, a.MovePos );
-
 				if ( a.NavAgent.hasPath)
 				{
 					if ( !b.AnimInfo.IsName( AnimString.WALK ) )
@@ -78,6 +79,9 @@ namespace Hubris
 				}
 				else
 				{
+					if( a.NavAgent.velocity == Vector3.zero )
+						a.SetMovePos( Vector3.zero );
+
 					if ( !b.AnimInfo.IsName( AnimString.IDLE ) )
 						SetAnimTrigger( a, AnimString.IDLE );
 				}
@@ -87,8 +91,9 @@ namespace Hubris
 			{
 				if ( a.TargetDistSqr > Util.GetSquare( a.Params.AwareMax + 10.0f ) )
 				{
+					a.PlaySound( SndT.ALERT );
 					StopMove( a );
-					Debug.Log( "Safe distance from target, flight over" );
+					// Debug.Log( "Safe distance from target, flight over" );
 					a.ResetTargetObj();
 					b.SetPathFailed( false );
 					b.SetStatus( BhvStatus.SUCCESS );
@@ -97,7 +102,7 @@ namespace Hubris
 				else
 				{
 					StopMove( a );
-					Debug.Log( "Resetting move for recalculation" );
+					// Debug.Log( "Resetting move for recalculation" );
 				}
 			}
 

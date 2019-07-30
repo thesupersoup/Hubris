@@ -16,11 +16,13 @@ namespace Hubris
 		/// static Variable array
 		///--------------------------------------------------------------------
 
-		public const int MIN_STRING_SIZE = 4;
+		public const int DEF_CROSSCOLOR = 0, DEF_HUDCOLOR = 1,
+							MIN_STRING_SIZE = 4;
 
-		public const float DEF_SENS = 1.0f;
-		public const bool DEF_MSMOOTH = false, DEF_USEACCEL = true, DEF_DEBUG = true,
-							DEF_INVIS = false;
+		public const float DEF_SENS = 1.0f, DEF_MASTERVOL = 1.0f, DEF_MENUVOL = 1.0f, 
+							DEF_MUSICVOL = 1.0f;
+		public const bool DEF_MSMOOTH = false, DEF_USEACCEL = true, DEF_DEBUG = false,
+							DEF_INVIS = false, DEF_CROSSDOT = false, DEF_ALWAYSRUN = false;
 		#endregion Constants
 		
 		///---------------------------------------------------------------------
@@ -40,9 +42,18 @@ namespace Hubris
 		public Variable None => varArr[(int)VarType.None];
 		public Variable Sens => varArr[(int)VarType.Sens];
 		public Variable MSmooth => varArr[(int)VarType.MSmooth];
+		public Variable CrossColor => varArr[(int)VarType.CrossColor];
+		public Variable CrossDot => varArr[(int)VarType.CrossDot];
+		public Variable HudColor => varArr[(int)VarType.HudColor];
+		public Variable AlwaysRun => varArr[(int)VarType.AlwaysRun];
+		public Variable Volume => varArr[(int)VarType.MasterVol];
+		public Variable MenuVolume => varArr[(int)VarType.MenuVol];
+		public Variable MusicVolume => varArr[(int)VarType.MusicVol];
 		public Variable Useaccel => varArr[(int)VarType.Useaccel];
 		public Variable Debug => varArr[(int)VarType.Debug];
 		public Variable Invis => varArr[(int)VarType.Invis];
+		public Variable Dork => varArr[(int)VarType.Dork];
+		public Variable N0thing => varArr[(int)VarType.N0thing];
 
 		#endregion QuickVariables
 
@@ -118,7 +129,7 @@ namespace Hubris
 		/// <summary>
 		/// Checks if the variable specified by the VarType param is dirty, and if so, sends the new value
 		/// </summary>
-		public bool UpdateDirtyVar( VarType nType )
+		public bool UpdateDirtyVar( VarType nType, bool verbose = true )
 		{
 			if ( nType == VarType.None )  // Let's not waste our time
 				return false;
@@ -139,6 +150,22 @@ namespace Hubris
 						if ( HubrisPlayer.Instance != null )
 							HubrisPlayer.Instance.MSmooth = (bool)varArr[index].Data;
 						break;
+					case VarType.CrossColor:
+						if ( UIManager.Instance != null )
+							UIManager.Instance.SetCrosshairColor( (int)varArr[index].Data );
+						break;
+					case VarType.CrossDot:
+						if ( UIManager.Instance != null )
+							UIManager.Instance.SetCrosshairDot( (bool)varArr[index].Data );
+						break;
+					case VarType.HudColor:
+						if ( UIManager.Instance != null )
+							UIManager.Instance.SetHudColor( (int)varArr[index].Data );
+						break;
+					case VarType.AlwaysRun:
+						if ( HubrisPlayer.Instance != null )
+							HubrisPlayer.Instance.AlwaysRun = (bool)varArr[index].Data;
+						break;
 					case VarType.Useaccel:
 						if ( HubrisPlayer.Instance != null )
 							HubrisPlayer.Instance.Movement.SetUseAccel( (bool)varArr[index].Data );
@@ -150,6 +177,12 @@ namespace Hubris
 						if ( HubrisPlayer.Instance != null )
 							HubrisPlayer.Instance.Stats.SetInvisible( (bool)varArr[(int)VarType.Invis].Data );
 						break;
+					case VarType.Dork:
+						// Nowhere to send it yet
+						break;
+					case VarType.N0thing:
+						// Nowhere to send it yet
+						break;
 					default:
 						success = false;
 						break;
@@ -157,7 +190,8 @@ namespace Hubris
 
 				if ( success )
 				{
-					LocalConsole.Instance.Log( varArr[index].Name + " : " + varArr[index].Data );
+					if( verbose )
+						LocalConsole.Instance.Log( varArr[index].Name + " : " + varArr[index].Data );
 					varArr[index].CleanVar();
 				}
 				else
@@ -175,11 +209,11 @@ namespace Hubris
 		/// <summary>
 		/// Updates all dirty variables in the static array
 		/// </summary>
-		public void UpdateAllDirtyVars()
+		public void UpdateAllDirtyVars( bool verbose = true )
 		{
 			for (int i = 0; i < varArr.Length; i++)
 			{
-				UpdateDirtyVar((VarType)i);
+				UpdateDirtyVar((VarType)i, verbose );
 			}
 		}
 	}

@@ -16,12 +16,13 @@ namespace Hubris
 			if ( a.TargetObj == null )
 			{
 				b.SetStatus( BhvStatus.FAILURE );
+				b.SetPatient( true );
 				return b.Status;
 			}
 
 			if ( !b.SeeTarget && b.DistTarget > Util.GetSquare( a.Params.AwareMed ) )
 			{
-				Debug.Log( "SightCheck failed" );
+				// Debug.Log( "SightCheck failed" );
 				a.ResetTargetObj();
 				b.SetStatus( BhvStatus.FAILURE );
 				return b.Status;
@@ -37,6 +38,19 @@ namespace Hubris
 				else
 				{
 					b.SetStatus( BhvStatus.FAILURE );
+					return b.Status;
+				}
+			}
+
+			if( b.TimerAct >= a.Params.PatienceTime )
+			{
+				b.TimerAct = 0.0f;
+
+				if ( UnityEngine.Random.Range( 1, 20 ) >= 10 )
+				{
+					b.SetPatient( false );
+					a.PlaySound( SndT.ALERT );
+					b.SetStatus( a.Params.Predator ? BhvStatus.SUCCESS : BhvStatus.FAILURE );
 					return b.Status;
 				}
 			}

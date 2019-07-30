@@ -203,6 +203,8 @@
 					break;
 			}
 
+			helpStr += " (value : " + nVar.Data.ToString() + ")";
+
 			LocalConsole.Instance.Log( helpStr );
 		}
 	}

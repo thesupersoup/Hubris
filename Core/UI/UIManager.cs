@@ -111,27 +111,29 @@ namespace Hubris
 
 
 		// UIManager methods
-		void OnEnable()
+		public override void OnEnable()
 		{
-			if (Instance == null)
+			base.OnEnable();
+
+			if ( Instance == null )
 			{
 				Instance = this;
 			}
-			else if (Instance != null)
+			else if ( Instance != this )
 			{
-				Destroy(this.gameObject);
+				Destroy( this.gameObject );
+				return;
 			}
 
-			if(Instance == this)
-			{
-				if(DevCanvas != null)
-				{
-					DevCanvas.SetActive(HubrisCore.Instance.Debug);
-				}
+			DontDestroyOnLoad( this );
 
-				_msgList = new List<Msg>();
-				_inputList = new List<string>();
+			if(DevCanvas != null)
+			{
+				DevCanvas.SetActive( HubrisCore.Instance.Debug );
 			}
+
+			_msgList = new List<Msg>();
+			_inputList = new List<string>();
 		}
 
 		private bool CheckActive(Behaviour b)
@@ -387,6 +389,36 @@ namespace Hubris
 		private void ClearExcess(int nLen)  // nLen is the num of chars to clear
 		{
 			_conTxt.text = _conTxt.text.Substring(nLen);    // Trim the oldest text first
+		}
+
+		public virtual void SetCrosshairTransformSize( float size )
+		{
+			// Handle crosshair size here
+		}
+
+		public virtual void SetCrosshairColor( int color )
+		{
+			// Handle crosshair color change (and conversion from int) here
+		}
+
+		public virtual void SetCrosshairColor( Color color )
+		{
+			// Handle crosshair color change here
+		}
+
+		public virtual void SetCrosshairDot( bool dot )
+		{
+			// Handle crosshair dot enable/disable here
+		}
+
+		public virtual void SetHudColor( int color )
+		{
+			// Handle hud color change (and conversion from int) here
+		}
+
+		public virtual void SetHudColor( Color color )
+		{
+			// Handle HUD color change here
 		}
 
 		void Update()

@@ -29,7 +29,7 @@ namespace Hubris
 
 		/// Constants for default values
 		public const float DEF_AWARE_MAX = 10.0f, DEF_AWARE_MED = 5.0f, DEF_AWARE_CLOSE = 2.5f, DEF_ATK_DIST = 2.0f, DEF_STOP_DIST = 1.0f,
-							DEF_CHK_IDLE = 0.5f, DEF_CHK_ALERT = 0.33f, DEF_MOVE_SPD = 14.0f, DEF_MOVE_WALK = 0.36f,
+							DEF_CHK_IDLE = 0.5f, DEF_CHK_ALERT = 0.33f, DEF_MOVE_SPD = 14.0f, DEF_MOVE_WALK = 0.36f, DEF_PATIENCE_TIME = 5.0f,
 							DEF_ROAM_DIST = 10.0f, DEF_ROAM_TIME = 10.0f, DEF_PROX_PCT = 0.8f, DEF_ROT_ANGLE = 40.0f, DEF_ROT_SPD = 0.15f,
 							DEF_ACCEL_BASE = 100.0f, DEF_ATK_SLOW = 0.5f, DEF_FLEE_DIST = 10.0f, FLEE_DIVISOR = 2.0f, WARY_DIVISOR = 4.0f;
 
@@ -95,6 +95,10 @@ namespace Hubris
 		[Tooltip( "Number of possible roam points to consider when roaming; set lower to increase performance" )]
 		[Range( MIN_PTS, MAX_PTS )]
 		private int _roamPts;
+		[SerializeField]
+		[Tooltip( "Time to wait before deciding whether or not to take action in certain situations, in seconds" )]
+		[Range( 0.0f, LARGE_RANGE )]
+		private float _patienceTime;
 		[SerializeField]
 		[Tooltip( "Will this Npc hunt targets?" )]
 		private bool _predator;
@@ -249,6 +253,11 @@ namespace Hubris
 		///--------------------------------------------------------------------
 		/// Additional behavior properties
 		///--------------------------------------------------------------------
+
+		/// <summary>
+		/// Time to wait before deciding whether or not to take action in certain situations, in seconds
+		/// </summary>
+		public float PatienceTime { get { return _patienceTime; } protected set { _patienceTime = value; } }
 
 		/// <summmary>
 		/// Will this Npc hunt targets?
@@ -471,6 +480,15 @@ namespace Hubris
 		}
 
 		/// <summary>
+		/// [Seconds, float] Should be positive
+		/// </summary>
+		public void SetPatienceTime( float nPat )
+		{
+			if ( nPat >= 0.0f )
+				PatienceTime = nPat;
+		}
+
+		/// <summary>
 		/// [bool] Will this Npc hunt targets?
 		/// </summary>
 		public void SetPredator( bool nPred )
@@ -641,6 +659,7 @@ namespace Hubris
 			p.SetRoamDist( DEF_ROAM_DIST );
 			p.SetRoamTime( DEF_ROAM_TIME );
 			p.SetRoamPts( 0 );
+			p.SetPatienceTime( DEF_PATIENCE_TIME );
 			p.SetPredator( false );
 			p.SetTerritorial( false );
 			p.SetSquad( false );

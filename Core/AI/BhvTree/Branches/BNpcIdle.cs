@@ -14,6 +14,7 @@ namespace Hubris
 		{
 			if ( a.TargetObj != null && b.SeeTarget)
 			{
+				a.PlaySound( SndT.ALERT );
 				b.SetStatus( BhvStatus.FAILURE );
 				return b.Status;
 			}
@@ -28,7 +29,7 @@ namespace Hubris
 
 			// Set Speed accordingly
 			if ( a.NavAgent.speed != nSpd )
-			SetSpeed( a, nSpd );
+				SetSpeed( a, nSpd );
 
 			if ( b.TimerAct >= a.Params.RoamTime )
 			{
@@ -40,13 +41,15 @@ namespace Hubris
 				if ( a.Params.Roam )
 				{
 					bool doRoam = false;
-					Debug.Log( "Checking if " + a.Name + " should roam..." );
+					// Debug.Log( "Checking if " + a.Name + " should roam..." );
 
 					if ( a.TargetPos == Vector3.zero )
 					{
 						if ( UnityEngine.Random.Range( 1, 20 ) > 10 )
 						{
-							Debug.Log( a.Name + " is attempting to roam" );
+							// Debug.Log( a.Name + " is attempting to roam" );
+
+							a.PlaySound( SndT.IDLE );
 
 							Vector3 nPos = FindRoamPoint( a );
 
@@ -66,7 +69,7 @@ namespace Hubris
 
 					if ( doRoam )
 					{
-						Debug.Log( a.Name + " is roaming" );
+						// Debug.Log( a.Name + " is roaming" );
 						b.SetStatus( BhvStatus.SUCCESS );
 						return b.Status;
 					}

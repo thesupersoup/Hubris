@@ -10,12 +10,20 @@ namespace Hubris
 	/// </summary>
 	public class Npc : LiveEntity
 	{
+		#region Npc instance vars
+		///--------------------------------------------------------------------
+		/// Npc instance vars
+		///--------------------------------------------------------------------
+
 		[SerializeField]
 		private AIParams _aiParams = null;
 		[SerializeField]
 		private Animator _anim = null;
 		[SerializeField]
 		private NavMeshAgent _navAgent = null;
+		[SerializeField]
+		private SoundManager _soundMgr = null;
+
 		[SerializeField]
 		private LayerMask _entMask;					// What other entities should this Npc be aware of?
 		[SerializeField]
@@ -33,6 +41,8 @@ namespace Hubris
 
 		[SerializeField]
 		private BhvTree _bhvTree = new BhvTree( BNpcIdle.Instance );
+		[SerializeField]
+		private string _bhvBranch;		// Visual feedback purposes only
 
 		private FOV _fov;
 		[SerializeField]
@@ -40,13 +50,18 @@ namespace Hubris
 		[SerializeField]
 		[Tooltip( "Will cause the viewcone to be shown in the Unity editor scene view" )]
 		private bool _debugShowViewCone = false;
+		[SerializeField]
+		private SphereCollider _areaScanCol = null;
+		[SerializeField]
+		private Rigidbody _rigidBody = null;
 
-		private List<LiveEntity> _trackList = new List<LiveEntity>(), 
-								_removeList = new List<LiveEntity>();
+		private Dictionary<ulong, LiveEntity> _trackDict = new Dictionary<ulong, LiveEntity>();
+		private List<ulong> _removeList = new List<ulong>();
+		#endregion Npc instance vars
 
-		#region Npc Properties
+		#region Npc properties
 		///--------------------------------------------------------------------
-		/// Npc Properties
+		/// Npc properties
 		///--------------------------------------------------------------------
 
 		public BhvTree Behavior
@@ -56,6 +71,8 @@ namespace Hubris
 			protected set
 			{ _bhvTree = value; }
 		}
+
+		public string BhvBranch { get { return _bhvBranch; } set { _bhvBranch = value; } }
 
 		public FOV ViewCone
 		{
@@ -105,6 +122,12 @@ namespace Hubris
 			protected set { _navAgent = value; }
 		}
 
+		public SoundManager SoundMgr
+		{
+			get { return _soundMgr; }
+			protected set { _soundMgr = value; }
+		}
+
 		public LayerMask EntMask => _entMask;
 
 		public LayerMask SightMask => _sightMask;
@@ -143,19 +166,16 @@ namespace Hubris
 
 		public float MoveDistSqr => Util.CheckDistSqr( this.transform.position, MovePos );
 
-		public List<LiveEntity> TrackList
-		{
-			get { return _trackList; }
-		}
+		public SphereCollider AreaScanCol => _areaScanCol;
+		public Rigidbody RigidBody => _rigidBody;
+		public Dictionary<ulong, LiveEntity> TrackDict => _trackDict;
+		public List<ulong> RemoveList => _removeList;
 
-		public List<LiveEntity> RemoveList
-		{
-			get { return _removeList; }
-		}
 		#endregion Npc Properties
 
+		#region Npc methods
 		///--------------------------------------------------------------------
-		/// Npc Methods
+		/// Npc methods
 		///--------------------------------------------------------------------
 
 		public override void OnEnable()
@@ -166,9 +186,6 @@ namespace Hubris
 				Params = Instantiate( AIParams.GetDefault() );
 			}
 
-			base.OnEnable();
-			base.Init();
-
 			if ( NavAgent == null )
 			{
 				NavAgent = GetComponent<NavMeshAgent>();
@@ -178,29 +195,169 @@ namespace Hubris
 
 			InitNavAgent();
 
-			if( Anim == null )
+			if ( Anim == null )
 			{
 				Anim = GetComponent<Animator>();
 				if (Anim == null)
-					Debug.Log(this.gameObject.name + " doesn't have an Animator!");
+					Debug.Log( $"{this.gameObject.name} doesn't have a doesn't have an Animator attached!" );
 			}
+
+			if ( SoundMgr == null )
+			{
+				SoundMgr = GetComponent<SoundManager>();
+				if ( SoundMgr == null )
+					Debug.Log( $"{this.gameObject.name} doesn't have a SoundManager attached!" );
+			}
+
+			InitSoundMgr();
+
+			if ( RigidBody == null )
+			{
+				Rigidbody rb = this.gameObject.AddComponent<Rigidbody>();
+				rb.isKinematic = true;
+				_rigidBody = rb;
+			}
+
+			InitRigidBody();
+
+			if ( AreaScanCol == null )
+			{
+				Debug.LogError( $"{this.gameObject.name} is missing its AreaScanCol, assign in editor! Attempting to recover..." );
+
+				GameObject child = Instantiate( new GameObject() );
+				child.transform.parent = this.transform.root;
+				child.layer = LayerMask.NameToLayer( "Ignore Raycast" );
+
+				SphereCollider newCol = this.gameObject.AddComponent<SphereCollider>();
+				newCol.isTrigger = true;
+				_areaScanCol = newCol;
+
+				if( AreaScanCol == null )
+					Debug.LogError( $"{this.gameObject.name} AreaScanCol is still null after attempt!" );
+			}
+
+			InitAreaScanCol();
 
 			ViewCone = new FOV( (ViewConeOrigin != null ? ViewConeOrigin.position + this.transform.forward : this.transform.forward), _aiParams.FOV );
 
 			EntType = EntityType.NPC;
 		}
 
+		protected override void Start()
+		{
+			InitTrackDict();
+			base.OnEnable();
+			base.Init();
+		}
+
 		/// <summary>
 		/// Initialize NavMeshAgent variables; auto repath set as parameter which defaults to false
 		/// </summary>
 		/// <param name="repath"></param>
-		public void InitNavAgent( bool repath = false )
+		protected virtual void InitNavAgent( bool repath = false )
 		{
 			NavAgent.stoppingDistance = Params.StopDist;
 			NavAgent.acceleration = Params.AccelBase;
 
+			NavAgent.updateRotation = true;
+
 			// Default to false, so we can handle situations where a path can't be found in behaviors
 			NavAgent.autoRepath = repath;
+		}
+
+		/// <summary>
+		/// Initialize the SoundManager if it's present
+		/// </summary>
+		protected virtual void InitSoundMgr()
+		{
+			if ( SoundMgr != null )
+				SoundMgr.InitSoundManager( this, this.gameObject );
+		}
+
+		protected virtual void InitRigidBody()
+		{
+			if ( RigidBody != null )
+			{
+				RigidBody.isKinematic = true;
+			}
+		}
+
+		protected virtual void InitAreaScanCol()
+		{
+			// Null check again, in case an attempt to recover fails
+			if ( AreaScanCol != null )
+			{
+				// Should be on a child GameObject
+				Transform t = AreaScanCol.transform;
+				Transform root = this.transform.root;
+
+				// Set the scale of the child appropriately
+				t.localScale = new Vector3( (1.0f / root.localScale.x), (1.0f / root.localScale.y), (1.0f / root.localScale.z) );
+
+				AreaScanCol.radius = Params.AwareMax;
+			}
+		}
+
+		/// <summary>
+		/// Performs a SphereCast for the initial population of the TrackDict
+		/// </summary>
+		protected virtual void InitTrackDict()
+		{
+			Collider[] localEnts = Physics.OverlapSphere( this.transform.position, Params.AwareMax, EntMask );
+
+			if ( localEnts != null && localEnts.Length > 0 )
+			{
+				foreach ( Collider col in localEnts )
+				{
+					GameObject obj = col.transform.root.gameObject;
+					LiveEntity ent = obj.GetComponent<LiveEntity>();
+
+					if ( ent == null )
+					{
+						Debug.LogWarning( $"{this.gameObject.name} couldn't find a LiveEntity script for a detected object ({obj.name}), can't add to TrackDict" );
+						continue;
+					}
+
+					// Check if we found ourselves
+					if ( ent.UniqueId == UniqueId )
+						continue;
+
+					// Ignore if the entity is dead or invisible
+					if ( ent.Stats.IsDead || ent.Stats.Invisible )
+						continue;
+
+					TrackEntity( ent );
+				}
+			}
+		}
+
+		/// <summary>
+		/// Calls this Npc's SoundManager to play a sound of the specified type
+		/// </summary>
+		public virtual bool PlaySound( SndT type, float delay = 0.0f, bool rand = true, int index = 0 )
+		{
+			return SoundMgr != null ? SoundMgr.TriggerSound( type, delay, rand, index ) : false;
+		}
+
+		/// <summary>
+		/// Adds the specified LiveEntity to the track list if it's not null, and if we're not already tracking it
+		/// </summary>
+		public void TrackEntity( LiveEntity ent )
+		{
+			// Null check
+			if ( ent == null )
+				return;
+
+			// Check if we're already tracking this entity
+			if ( TrackDict.ContainsKey( ent.UniqueId ) )
+				return;
+
+			Debug.LogWarning( $"{this.gameObject.name} added {ent.gameObject.name} to track list" );
+
+			if ( ent.EntType == EntityType.PLAYER )
+				Debug.LogWarning( $"{this.gameObject.name} is tracking the player" );
+
+			TrackDict.Add( ent.UniqueId, ent );
 		}
 
 		public void SetTargetObj( GameObject obj )
@@ -233,7 +390,7 @@ namespace Hubris
 
 		public void ResetTargetObj()
 		{
-			Debug.Log( $"{this.name} resetting target object" );
+			// Debug.Log( $"{this.name} resetting target object" );
 
 			TargetObj = null;
 			TargetEnt = null;
@@ -264,20 +421,13 @@ namespace Hubris
 			if ( target == null )
 				return false;
 
-			Vector3 dir = ( target.transform.position - ViewConeOriginPos ).normalized;
+			// Vector3 dir = ( target.transform.position - ViewConeOriginPos ).normalized;
+			Vector3 dir = target.transform.position - ViewConeOriginPos;
 			Vector3 viewChk = dir;
 			viewChk.y = 0.0f;
 
 			if ( ViewCone.IsInView( this.transform.forward, viewChk ) )
-			{
-				if ( Physics.Raycast( ViewConeOriginPos, dir, out RaycastHit hit, TargetDistSqr, SightMask ) )
-				{
-					if( hit.transform.root.gameObject != target )
-						return false;
-
-					return true;
-				}
-			}
+				return Util.RayCheckTarget( ViewConeOriginPos, dir, TargetDistSqr, target, SightMask );
 
 			return false;
 		}
@@ -291,27 +441,48 @@ namespace Hubris
 			{
 				for ( int i = 0; i < SoundEventList.Count; i++ )
 				{
-					GameObject src = SoundEventList[i].Source;
 					Vector3 origin = SoundEventList[i].Origin;
+					float dist = SoundEventList[i].Radius;
+
+					// Check if it's in range; if not, continue
+					if ( !Util.CheckDistSqr( origin, this.transform.position, dist ) )
+						continue;
+
+					LiveEntity ent = SoundEventList[i].Source;
+					GameObject src = SoundEventList[i].Source?.gameObject;
 					SoundIntensity intensity = SoundEventList[i].Intensity;
 
-					if ( TargetObj == null )
+					Debug.Log( $"{this.gameObject.name} heard {src?.name}" );
+
+					// Predators investigate sounds if they don't currently have a target and the source did not come from an object
+					if ( TargetObj == null && Params.Predator )
 					{
 						if ( src == null )
 						{
-							if ( intensity >= SoundIntensity.NOTEWORTHY || MovePos == Vector3.zero )
+							if ( intensity >= SoundIntensity.NOTEWORTHY || (MovePos == Vector3.zero && TargetPos == Vector3.zero) )
 								SetTargetPos( origin );
 
 							continue;
 						}
-
-						SetTargetObj( src );
 					}
-					else
+
+					// If the heard entity is another Npc
+					if ( ent is Npc npc )
 					{
-						// Check if the sound event is closer than the current target
-						if ( TargetDistSqr > Util.CheckDistSqr( this.transform.position, origin ) )
-							SetTargetObj( src );
+						// Prey ignore other prey
+						if ( !Params.Predator && !npc.Params.Predator )
+							continue;
+					}
+
+					if( ent != null )
+					{
+						TrackEntity( ent );
+
+						if ( intensity >= SoundIntensity.NOTEWORTHY )
+						{
+							Behavior.SetIgnoreSightCheck( true );
+							SetTargetObj( src, ent );
+						}
 					}
 				}
 
@@ -324,33 +495,58 @@ namespace Hubris
 		/// </summary>
 		public override bool TakeDmg( LiveEntity damageEnt, DmgType nType, int nDmg, bool nDirect )
 		{
-			if ( damageEnt != null )
-			{
-				GameObject damageObj = damageEnt.transform.root.gameObject;
+			bool wasDamaged = base.TakeDmg( damageEnt, nType, nDmg, nDirect );
 
-				if ( TargetObj == null )
-					SetTargetObj( damageObj, damageEnt );
-				else
+			if ( wasDamaged )
+			{
+				PlaySound( SndT.HURT );
+
+				if ( damageEnt != null )
 				{
-					if ( damageObj != TargetObj )
+					GameObject damageObj = damageEnt.transform.root.gameObject;
+
+					if ( TargetObj == null )
+						SetTargetObj( damageObj, damageEnt );
+					else
 					{
-						if ( Util.IsCloser( this.transform.position, damageObj.transform.position, TargetPos ) )
-							SetTargetObj( damageObj, damageEnt );
+						if ( damageObj != TargetObj )
+						{
+							if ( Util.IsCloser( this.transform.position, damageObj.transform.position, TargetPos ) )
+								SetTargetObj( damageObj, damageEnt );
+						}
 					}
 				}
 			}
 
-			return base.TakeDmg( damageEnt, nType, nDmg, nDirect );
+			return wasDamaged;
 		}
 
-		void Start()
+		private void OnTriggerEnter( Collider col )
 		{
+			GameObject obj = col.transform.root.gameObject;
 
-		}
+			Debug.Log( $"Object {obj.name} entered {this.gameObject.name}'s AreaScanCol" );
 
-		public override void Tick()
-		{
+			if ( obj.layer != EntMask.value )
+				return;
 
+			LiveEntity ent = obj.GetComponent<LiveEntity>();
+
+			if ( ent == null )
+			{
+				Debug.LogWarning( $"{this.gameObject.name} couldn't find a LiveEntity script for a detected object ({obj.name}), can't add to trackList" );
+				return;
+			}
+
+			// Check if we found ourselves
+			if ( ent.UniqueId == UniqueId )
+				return;
+
+			// Ignore if the entity is dead or invisible
+			if ( ent.Stats.IsDead || ent.Stats.Invisible )
+				return;
+
+			TrackEntity( ent );
 		}
 
 		void FixedUpdate()
@@ -373,5 +569,6 @@ namespace Hubris
 				}
 			}
 		}
+		#endregion Npc methods
 	}
 }

@@ -54,40 +54,43 @@ namespace Hubris
 			_kbList.Clear();
 
 			// General
-			_kbList.Add(new KeyBind(KeyCode.None, Command.None));
-			_kbList.Add(new KeyBind(KeyCode.Return, Command.Submit));
-			_kbList.Add(new KeyBind(KeyCode.Mouse0, Command.Interact0));
-			_kbList.Add(new KeyBind(KeyCode.Mouse1, Command.Interact1));
+			_kbList.Add( new KeyBind( KeyCode.None, Command.None ) );
+			_kbList.Add( new KeyBind( KeyCode.Return, Command.Submit ) );
+			_kbList.Add( new KeyBind( KeyCode.Mouse0, Command.Interact0 ) );
+			_kbList.Add( new KeyBind( KeyCode.Mouse1, Command.Interact1 ) );
+			_kbList.Add( new KeyBind( KeyCode.R, Command.Interact2 ) );
 
 			// Basic movement
-			_kbList.Add(new KeyBind(KeyCode.W, Command.MoveF));
-			_kbList.Add(new KeyBind(KeyCode.S, Command.MoveB));
-			_kbList.Add(new KeyBind(KeyCode.A, Command.MoveL));
-			_kbList.Add(new KeyBind(KeyCode.D, Command.MoveR));
-			_kbList.Add(new KeyBind(KeyCode.Q, Command.RotLeft));
-			_kbList.Add(new KeyBind(KeyCode.E, Command.RotRight));
-			_kbList.Add(new KeyBind(KeyCode.Space, Command.Jump));
-			_kbList.Add(new KeyBind(KeyCode.LeftShift, Command.RunHold));
-			_kbList.Add(new KeyBind(KeyCode.LeftControl, Command.CrouchHold));
+			_kbList.Add( new KeyBind( KeyCode.W, Command.MoveF ) );
+			_kbList.Add( new KeyBind( KeyCode.S, Command.MoveB ) );
+			_kbList.Add( new KeyBind( KeyCode.A, Command.MoveL ) );
+			_kbList.Add( new KeyBind( KeyCode.D, Command.MoveR ) );
+			_kbList.Add( new KeyBind( KeyCode.Q, Command.RotLeft ) );
+			_kbList.Add( new KeyBind( KeyCode.E, Command.RotRight ) );
+			_kbList.Add( new KeyBind( KeyCode.Space, Command.Jump ) );
+			_kbList.Add( new KeyBind( KeyCode.LeftShift, Command.RunHold ) );
+			_kbList.Add( new KeyBind( KeyCode.LeftControl, Command.CrouchHold ) );
 
 			// Weapons
-			_kbList.Add(new KeyBind(KeyCode.Alpha1, Command.Slot1));
-			_kbList.Add(new KeyBind(KeyCode.Alpha2, Command.Slot2));
-			_kbList.Add(new KeyBind(KeyCode.Alpha3, Command.Slot3));
-			_kbList.Add(new KeyBind(KeyCode.Alpha4, Command.Slot4));
+			_kbList.Add( new KeyBind( KeyCode.Alpha1, Command.Slot1 ) );
+			_kbList.Add( new KeyBind( KeyCode.Alpha2, Command.Slot2 ) );
+			_kbList.Add( new KeyBind( KeyCode.Alpha3, Command.Slot3 ) );
+			_kbList.Add( new KeyBind( KeyCode.Alpha4, Command.Slot4 ) );
+			_kbList.Add( new KeyBind( KeyCode.None, Command.NextSlot ) );	// InputManager maps ScrollUp to Mouse5
+			_kbList.Add( new KeyBind( KeyCode.None, Command.PrevSlot ) );	// InputManager maps ScrollDown to Mouse6
 
 			// Multiplayer
-			_kbList.Add(new KeyBind(KeyCode.V, Command.ChatPublic));
-			_kbList.Add(new KeyBind(KeyCode.B, Command.ChatPrivate));
+			_kbList.Add( new KeyBind( KeyCode.V, Command.ChatPublic ) );
+			_kbList.Add( new KeyBind( KeyCode.B, Command.ChatPrivate ) );
 
 			// Console and console-only cmds
-			_kbList.Add(new KeyBind(KeyCode.BackQuote, Command.Console)); // KeyCode.BackQuote is the ~/` (Tilde) key
-			_kbList.Add(new KeyBind(KeyCode.UpArrow, Command.PrevCmd));
-			_kbList.Add(new KeyBind(KeyCode.DownArrow, Command.NextCmd));
+			_kbList.Add( new KeyBind( KeyCode.BackQuote, Command.Console ) ); // KeyCode.BackQuote is the ~/` (Tilde) key
+			_kbList.Add( new KeyBind( KeyCode.UpArrow, Command.PrevCmd ) );
+			_kbList.Add( new KeyBind( KeyCode.DownArrow, Command.NextCmd ) );
 
 			// FreeLook specific
-			_kbList.Add(new KeyBind(KeyCode.LeftArrow, Command.RotLeft));
-			_kbList.Add(new KeyBind(KeyCode.RightArrow, Command.RotRight));
+			_kbList.Add( new KeyBind( KeyCode.LeftArrow, Command.RotLeft ) );
+			_kbList.Add( new KeyBind( KeyCode.RightArrow, Command.RotRight ) );
 
 			_kbList.Sort(); // Sorted in case we need to perform a binary search or some such eventually. KeyBind.CompareTo compares the KeyCode value.
 		}

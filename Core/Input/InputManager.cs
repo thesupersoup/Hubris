@@ -60,7 +60,7 @@ namespace Hubris
 			// Force lite mode when there's no player instance, or if were not ingame (in a menu)
 			if( HubrisPlayer.Instance == null || !HubrisCore.Instance.Ingame )
 			{
-				SetLite( false );
+				SetLite( true );
 				return;
 			}
 
@@ -139,6 +139,17 @@ namespace Hubris
 
 			if ( !Lite )
 			{
+				// Temporary mouse scroll behavior
+				float mouseScroll = Input.mouseScrollDelta.y;
+
+				if( mouseScroll != 0.0f )
+				{
+					if ( mouseScroll > 0.0f )
+						LocalConsole.Instance.AddToQueue( Command.NextSlot );
+					else
+						LocalConsole.Instance.AddToQueue( Command.PrevSlot );
+				}
+
 				if ( Input.anyKey )
 				{
 					for ( int i = 0; i < KeyMap.KeysInUse.Length; i++ )

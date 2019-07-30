@@ -11,11 +11,23 @@
 		// Player settings 
 		Sens,
 		MSmooth,
+		CrossColor,
+		CrossDot,
+		HudColor,
+		AlwaysRun,
+
+		// Game settings
+		MasterVol,
+		MenuVol,
+		MusicVol,
 
 		// Dev settings
 		Useaccel,
 		Debug,
 		Invis,
+
+		// ??
+		// EasterEgg,
 
 		Num_Vars	// Keep at the end for handy enum length hack
 	}

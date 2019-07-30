@@ -54,7 +54,7 @@ namespace Hubris
 				if (_gObj != null && _pCon != null && _pBod != null && _pCam != null)
 				{
 					Activate();
-					_mLook = new MouseLook(_gObj.transform, _pCam.transform, _sens, _sens, _mSmooth, _mSmoothAmt);
+					base.Init();
 					_mLook.SetCursorLock(false);
 				}
 			}
@@ -87,6 +87,11 @@ namespace Hubris
 		public override void Interact1()   // For RTSPlayer, Interact1 is deselect
 		{
 			RTSGameManager.Instance.Deselect();
+		}
+
+		public override void Interact2()
+		{
+			
 		}
 
 		// Basic Movement

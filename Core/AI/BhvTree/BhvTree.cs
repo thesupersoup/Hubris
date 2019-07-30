@@ -16,6 +16,7 @@ namespace Hubris
 
 		private IBhvNode _active;
 		private BhvStatus _activeStatus;
+		private float _timerRoot = 0.0f;
 		private float _timerAct = 0.0f;
 		private float _timerChk = 0.0f;
 		private bool _actReady = false;
@@ -25,6 +26,8 @@ namespace Hubris
 		private bool _pathFailed = false;
 		private AnimatorStateInfo _animInfo;
 		private bool _seeTarget = false;
+		private bool _ignoreSightCheck = false;
+		private bool _patient = true;
 
 		// temporary for testing
 		private UnityEngine.AI.NavMeshPathStatus _pathStatus = UnityEngine.AI.NavMeshPathStatus.PathInvalid;
@@ -42,6 +45,11 @@ namespace Hubris
 		/// ActiveBranch current status
 		/// </summary>
 		public BhvStatus Status { get { return _activeStatus; } protected set { _activeStatus = value; } }
+
+		/// <summary>
+		/// Timer for certain root behaviors
+		/// </summary>
+		public float TimerRoot { get { return _timerRoot; } protected set { _timerRoot = value; } }
 
 		/// <summary>
 		/// Timer for certain actions in behaviors
@@ -84,9 +92,19 @@ namespace Hubris
 		public AnimatorStateInfo AnimInfo => _animInfo;
 
 		/// <summary>
-		/// Can the Npc see the target, if there is any?
+		/// Can the Npc see the target, if there is any? Will also return true if IgnoreSightCheck is true.
 		/// </summary>
-		public bool SeeTarget { get { return _seeTarget; } protected set { _seeTarget = value; } }
+		public bool SeeTarget { get { return _seeTarget || _ignoreSightCheck; } protected set { _seeTarget = value; } }
+
+		/// <summary>
+		/// Are we temporarily ignoring the sight check?
+		/// </summary>
+		public bool IgnoreSightCheck { get { return _ignoreSightCheck; } protected set { _ignoreSightCheck = value; } }
+
+		/// <summary>
+		/// Will we wait to act? False forces action
+		/// </summary>
+		public bool Patient { get { return _patient; } protected set { _patient = value; } }
 
 		///--------------------------------------------------------------------
 		/// BhvTree methods
@@ -119,6 +137,7 @@ namespace Hubris
 		/// </summary>
 		private void UpdateTimers()
 		{
+			TimerRoot += Time.deltaTime;
 			TimerAct += Time.deltaTime;
 			TimerCheck += Time.deltaTime;
 		}
@@ -173,6 +192,26 @@ namespace Hubris
 		private void UpdateSeeTarget( Npc a )
 		{
 			SeeTarget = a.SightCheck( a.TargetObj, a.TargetDistSqr );
+
+			// If we can see the target, reset ignore sight check
+			if ( SeeTarget )
+				_ignoreSightCheck = false;
+		}
+
+		/// <summary>
+		/// Public method to set ignore sight check
+		/// </summary>
+		public void SetIgnoreSightCheck( bool check )
+		{
+			_ignoreSightCheck = check;
+		}
+
+		/// <summary>
+		/// Public method to set patience
+		/// </summary>
+		public void SetPatient( bool p )
+		{
+			_patient = p;
 		}
 
 		/// <summary>
@@ -193,13 +232,14 @@ namespace Hubris
 			ResetNavAgent( a );
 			SetActionReady( true );
 
-			if ( HubrisCore.Instance.Debug )
-				LocalConsole.Instance.Log( $"{a.Name}: {nameof( ActiveBranch )} {ActiveBranch.GetType().Name} requested change due to status: {(int)Status}", true );
+			// if ( HubrisCore.Instance.Debug )
+				// LocalConsole.Instance.Log( $"{a.Name}: {nameof( ActiveBranch )} {ActiveBranch.GetType().Name} requested change due to status: {(int)Status}", true );
 
 			ActiveBranch = n;
+			a.BhvBranch = n.GetType().Name;
 
-			if ( HubrisCore.Instance.Debug )
-				LocalConsole.Instance.Log( $"{a.Name}: {nameof( ActiveBranch )} is now {ActiveBranch.GetType().Name}", true );
+			// if ( HubrisCore.Instance.Debug )
+				// LocalConsole.Instance.Log( $"{a.Name}: {nameof( ActiveBranch )} is now {ActiveBranch.GetType().Name}", true );
 
 			SetStatus( BhvStatus.RUNNING );
 		}
@@ -213,6 +253,7 @@ namespace Hubris
 			{
 				if ( ActiveBranch != BNpcDead.Instance )
 				{
+					a.PlaySound( SndT.DIE );
 					// Whatever you were doing, something failed if you died ...
 					SetStatus( BhvStatus.FAILURE );
 					ChangeBranch( BNpcDead.Instance, a );
@@ -229,6 +270,10 @@ namespace Hubris
 						ChangeBranch( BNpcAsleep.Instance, a );
 					}
 				}
+
+				// Reset patient if no target
+				if ( a.TargetObj == null )
+					SetPatient( true );
 			}
 		}
 
@@ -282,19 +327,26 @@ namespace Hubris
 			if ( ActiveBranch == null )
 				return;
 
+			// Root methods which should be invoked each time
 			UpdateTimers();
 			UpdateDistances( a );
 			UpdateAnimInfo( a, 0 );
-			UpdateSeeTarget( a );
 			RootChecks( a );
 
+			// Root methods which should be invoked on a timer
+			if ( TimerRoot >= a.Params.ChkAlert )
+			{
+				UpdateSeeTarget( a );
+				TimerRoot = 0.0f;
+			}
+
 			// What should we do if the active behavior branch succeeds or fails
-			if( ActiveBranch.Invoke( a, this ) != BhvStatus.RUNNING )
+			if ( ActiveBranch.Invoke( a, this ) != BhvStatus.RUNNING )
 			{
 				// Unable to reach target, pathfinding failed
 				if ( PathFailed )
 				{
-					Debug.Log( "Pathfinding failed, fleeing..." );
+					// Debug.Log( "Pathfinding failed, fleeing..." );
 					ChangeBranch( BNpcFlee.Instance, a );
 					return;
 				}
@@ -315,11 +367,11 @@ namespace Hubris
 					 */
 
 					// Check how close the Npc is
-					if ( DistTarget > Util.GetSquare( a.Params.AwareMed ) ) // If target is further than the medium awareness distance
+					if ( DistTarget > Util.GetSquare( a.Params.AwareMed ) && Patient ) // If target is further than the medium awareness distance and Npc is still patient
 						ChangeBranch( BNpcAlert.Instance, a );  // We become alert
 					else if ( DistTarget > Util.GetSquare( a.Params.AwareClose ) )  // If target is nearer than the medium distance but further than the close distance
 					{
-						if ( a.Params.Predator )	// If we're a predatory Npc...
+						if ( a.Params.Predator || a.Params.Territorial )	// If we're a predatory Npc or territorial...
 							ChangeBranch( BNpcHunt.Instance, a );	// ... we go hunting
 						else	// Otherwise...
 							ChangeBranch( BNpcWary.Instance, a );	// ... we become wary

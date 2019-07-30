@@ -12,8 +12,9 @@
 			// General commands
 			cmds[(int)CmdType.None] = new Command( "Null", "none", CmdType.None );
 			cmds[(int)CmdType.Submit] = new Command( "Submit", "submit", CmdType.Submit, false );
-			cmds[(int)CmdType.Interact0] = new Command( "Interact0", "inter0", CmdType.Interact0, false );
+			cmds[(int)CmdType.Interact0] = new Command( "Interact0", "inter0", CmdType.Interact0, true );
 			cmds[(int)CmdType.Interact1] = new Command( "Interact1", "inter1", CmdType.Interact1, false );
+			cmds[(int)CmdType.Interact2] = new Command( "Interact2", "inter2", CmdType.Interact2, false );
 
 			// Basic movement commands
 			cmds[(int)CmdType.MoveF] = new Command( "Move Forward", "movef", CmdType.MoveF, true );
@@ -31,6 +32,8 @@
 			cmds[(int)CmdType.Slot2] = new Command( "Weapon Slot - Secondary", "slot2", CmdType.Slot2, false );
 			cmds[(int)CmdType.Slot3] = new Command( "Weapon Slot - Melee", "slot3", CmdType.Slot3, false );
 			cmds[(int)CmdType.Slot4] = new Command( "Weapon Slot - Special", "slot4", CmdType.Slot4, false );
+			cmds[(int)CmdType.NextSlot] = new Command( "Weapon Slot - Next", "nextslot", CmdType.NextSlot, false );
+			cmds[(int)CmdType.PrevSlot] = new Command( "Weapon Slot - Previous", "prevslot", CmdType.PrevSlot, false );
 
 			// Multiplayer commands
 			cmds[(int)CmdType.ChatPublic] = new Command( "Chat (all)", "chatall", CmdType.ChatPublic, false );

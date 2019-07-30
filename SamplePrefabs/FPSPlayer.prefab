@@ -94,8 +94,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 773647b86fc5708459ec25c20662ad3e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  syncInterval: 0.1
   _act: 1
   _name: 
+  _uId: 0
   _type: 1
   _stats:
     _hp: 0
@@ -104,7 +106,12 @@ MonoBehaviour:
     _apMax: 0
     _sta: 0
     _staMax: 0
+    _invisible: 0
+    _demigod: 0
   _alignSurface: 1
+  _soundEventLayer:
+    serializedVersion: 2
+    m_Bits: 0
   _pType: 1
   _gObj: {fileID: 3666192215026667068}
   _pCon: {fileID: 7742244644908830517}
@@ -113,20 +120,31 @@ MonoBehaviour:
   _sens: 2
   _mSmooth: 0
   _mSmoothAmt: 1
-  _speedLow: 4
-  _speedHigh: 8
-  _speedTarget: 0
-  _speed: 4
-  _useAccel: 1
-  _accel: 0.12
-  _decay: 0.17
-  _gravBase: 10
-  _gravFactor: 2
-  _jumpSpd: 8
+  _moveParams:
+    _speedLow: 0
+    _speedHigh: 0
+    _useAccel: 0
+    _accel: 0
+    _decay: 0
+    _gravBase: 0
+    _gravFactor: 0
+    _jumpSpd: 0
+  _alwaysRun: 0
+  _inv:
+    _activeIndex: 0
+    _slots:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
   _airAccel: 0.04
   _airDecay: 0.02
   _speedLoss: 0.4
   _stickiness: 0.55
+  _weaponMask:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!143 &7742244644908830517
 CharacterController:
   m_ObjectHideFlags: 0

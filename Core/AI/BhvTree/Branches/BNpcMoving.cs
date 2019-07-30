@@ -35,7 +35,7 @@ namespace Hubris
 				// Something caught our attention midmove
 				if ( a.TargetPos != Vector3.zero )
 				{
-					Debug.Log( "Something caught our attention midmove" );
+					// Debug.Log( "Something caught our attention midmove" );
 					StopMove( a );
 					b.SetStatus( BhvStatus.FAILURE );
 					return b.Status;
@@ -67,7 +67,7 @@ namespace Hubris
 				CheckEnv( a, b );
 			}
 
-			if( a.NavAgent.destination != a.MovePos )
+			if ( a.NavAgent.destination != a.MovePos )
 				StartMove( a, a.MovePos );
 
 			return b.Status;

@@ -86,6 +86,8 @@ namespace Hubris
 			get { return cmdArr[(int)CmdType.Interact1]; }
 		}
 
+		public static Command Interact2 => cmdArr[(int)CmdType.Interact2];
+
 		public static Command MoveF
 		{
 			get { return cmdArr[(int)CmdType.MoveF]; }
@@ -150,6 +152,9 @@ namespace Hubris
 		{
 			get { return cmdArr[(int)CmdType.Slot4]; }
 		}
+
+		public static Command NextSlot => cmdArr[(int)CmdType.NextSlot];
+		public static Command PrevSlot => cmdArr[(int)CmdType.PrevSlot];
 
 		public static Command ChatPublic
 		{

@@ -54,6 +54,8 @@ namespace Hubris
 			SubTick();
 
 			_objectives = new List<Objective>();
+			_interestPts = new List<InterestPoint>();
+			_spawnPts = new List<SpawnPoint>();
 
 			if (_interestPts != null && _interestPts.Count > 0)
 			{

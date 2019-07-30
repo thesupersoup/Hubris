@@ -1,12 +1,14 @@
 ﻿using System;
 using UnityEngine;
+using Mirror;
 
 namespace Hubris
 {
 	/// <summary>
 	/// Abstract class for deriving tangible in-game objects, with virtual ITickable and IActivatable implementation
 	/// </summary> 
-	public abstract class Entity : MonoBehaviour, ITickable, IActivatable
+	[RequireComponent( typeof( NetworkIdentity ) )]
+	public abstract class Entity : NetworkBehaviour, IActivatable //, ITickable 
 	{
 		///--------------------------------------------------------------------
 		/// Entity instance vars
@@ -82,10 +84,10 @@ namespace Hubris
 			/* IMPORTANT! */
 			// Include SubTick() in all derived/overridden OnEnable() (or similar) methods for Hubris Tick-based behavior
 			// and include UnsubTick() in CleanUp()
-			SubTick();
+			// SubTick();
 		}
 
-		protected virtual void SubTick()    // Subscribe to ITickable GameManager Actions
+		/*protected virtual void SubTick()    // Subscribe to ITickable GameManager Actions
 		{
 			if (HubrisCore.Instance != null)
 			{
@@ -103,9 +105,9 @@ namespace Hubris
 				HubrisCore.Instance.AcLateTick -= LateTick;
 				HubrisCore.Instance.AcFixedTick -= FixedTick;
 			}
-		}
+		}*/
 
-		public virtual void Tick()
+		/*public virtual void Tick()
 		{
 			// To be called in response to GameManager event
 			// Override in derived class with unique implementation
@@ -121,7 +123,7 @@ namespace Hubris
 		{
 			// To be called in response to GameManager event
 			// Override in derived class with unique implementation
-		}
+		}*/
 
 		public virtual void CleanUp(bool full = true)
 		{
@@ -133,7 +135,7 @@ namespace Hubris
 					_name = null;
 				}
 
-				UnsubTick();    // Need to Unsubscribe from Tick Event to prevent errors
+				// UnsubTick();    // Need to Unsubscribe from Tick Event to prevent errors
 				_disposed = true;
 			}
 		}

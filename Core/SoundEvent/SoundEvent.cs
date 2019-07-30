@@ -13,7 +13,7 @@ namespace Hubris
 		///--------------------------------------------------------------------
 
 		[SerializeField]
-		private GameObject _source;
+		private LiveEntity _source;
 		[SerializeField]
 		private Vector3 _origin;
 		[SerializeField]
@@ -25,7 +25,7 @@ namespace Hubris
 		/// Sound Event properties
 		///--------------------------------------------------------------------
 
-		public GameObject Source => _source;
+		public LiveEntity Source => _source;
 		public Vector3 Origin => _origin;
 		public float Radius => _radius;
 		public SoundIntensity Intensity => _intensity;
@@ -34,7 +34,7 @@ namespace Hubris
 		/// Sound Event methods
 		///--------------------------------------------------------------------
 
-		public SoundEvent( GameObject src, Vector3 pos, float rad, SoundIntensity val = SoundIntensity.NORMAL )
+		public SoundEvent( LiveEntity src, Vector3 pos, float rad, SoundIntensity val = SoundIntensity.NORMAL )
 		{
 			_source = src;
 			_origin = pos;

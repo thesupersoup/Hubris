@@ -11,6 +11,7 @@
 		Submit,
 		Interact0,
 		Interact1,
+		Interact2,
 
 		// Basic movement commands
 		MoveF,
@@ -28,6 +29,8 @@
 		Slot2,
 		Slot3,
 		Slot4,
+		NextSlot,
+		PrevSlot,
 
 		// Multiplayer commands
 		ChatPublic,

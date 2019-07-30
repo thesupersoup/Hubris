@@ -36,7 +36,7 @@ namespace Hubris
 			{
 				lock (_lock)
 				{
-					if(_i == null)
+					if(_i == null || value == null)
 						_i = value;
 				}
 			}
@@ -46,7 +46,6 @@ namespace Hubris
 		protected bool _canModSpdTgt = true;
 		protected bool _prevGrounded = false;
 		protected bool _moving = false;
-		protected bool _fastMove = false;
 
 		// Player instance variables
 		[Header("Player type and components")]
@@ -75,6 +74,10 @@ namespace Hubris
 		[SerializeField]
 		protected MoveParams _moveParams = null;
 
+		[SerializeField]
+		[Tooltip( "Should the player move quickly by default?" )]
+		private bool _alwaysRun;
+
 		protected float _spd = 0.0f;
 		protected float _spdTar = 0.0f;
 
@@ -93,8 +96,14 @@ namespace Hubris
 
 		// Player properties
 		public Camera PlayerCam => _pCam;
-
 		public MoveParams Movement => _moveParams;
+		public virtual int ActiveSlot => PlayerInv.ActiveIndex;
+
+		public bool AlwaysRun
+		{
+			get { return _alwaysRun; }
+			set { _alwaysRun = value; }
+		}
 
 		public float Speed
 		{
@@ -137,13 +146,16 @@ namespace Hubris
 			}
 		}
 
+		public MouseLook MLook => _mLook;
+
 		public bool MSmooth
 		{
 			get { return _mSmooth; }
 			set
 			{
 				_mSmooth = value;
-				_mLook.EnableMouseSmooth(value);
+				if ( _mLook != null )
+					_mLook.EnableMouseSmooth(value);
 			}
 		}
 
@@ -153,7 +165,8 @@ namespace Hubris
 			set
 			{
 				_mSmoothAmt = value;
-				_mLook.SetSmoothAmt(value);
+				if ( _mLook != null )
+					_mLook.SetSmoothAmt(value);
 			}
 		}
 
@@ -165,7 +178,8 @@ namespace Hubris
 				if (value >= 0.0f)
 				{
 					_sens = value;
-					_mLook.SetSensitivity(value);
+					if ( _mLook != null )
+						_mLook.SetSensitivity(value);
 				}
 			}
 		}
@@ -173,30 +187,48 @@ namespace Hubris
 		// Player methods
 		public abstract void Interact0();
 		public abstract void Interact1();
+		public abstract void Interact2();
 		public abstract void Move(InputManager.Axis ax, float val);
 		public abstract void SpecMove(SpecMoveType nType, InputManager.Axis ax, float val);
 		public abstract void Rotate(InputManager.Axis ax, float val);
 
-		protected override void Init()
+		public override void OnEnable()
 		{
 			base.OnEnable();
-			base.Init();
+		}
 
-			if( !HubrisCore.Instance?.Ingame ?? false )
+		protected override void Start()
+		{
+			Init();
+		}
+
+		protected override void Init()
+		{
+			_uId = HubrisCore.Instance.RegisterPlayer( this );
+			this.gameObject.name += "_" + _uId;
+
+			if ( !HubrisCore.Instance?.Ingame ?? false )
 			{
 				HubrisCore.Instance.SetIngame( true );
+				HubrisCore.Instance.Input.SetLite( false );
 			}
 
+			_mLook = new MouseLook( _gObj.transform, _pCam.transform, Sensitivity, Sensitivity, MSmooth, MSmoothAmt );
+
+			// Initiate mouselook 
+			MLook.SetCursorLock( true );
+
 			EntType = EntityType.PLAYER;
+
 			SpeedTarget = Movement.SpeedLow;
 		}
 
-		public void SetActiveSlot(int nSlot)
+		public virtual void SetActiveSlot( int nSlot, bool trySkip = false )
 		{
 			PlayerInv.SetActiveSlot(nSlot);
 		}
 
-		public void SetSpeedTarget(float nTar)
+		public void SetSpeedTarget( float nTar )
 		{
 			SpeedTarget = nTar;
 		}
@@ -238,6 +270,11 @@ namespace Hubris
 			}
             
 			return dir.normalized;
+		}
+
+		public virtual void UpdateUI()
+		{
+			// UI update code goes here
 		}
 
 		protected virtual void ProcessGravity()
@@ -333,7 +370,7 @@ namespace Hubris
 					_name = null;
 				}
 
-				UnsubTick();    // Need to Unsubscribe from Tick Event to prevent errors
+				// UnsubTick();    // Need to Unsubscribe from Tick Event to prevent errors
 				_disposed = true;
 			}
 		}

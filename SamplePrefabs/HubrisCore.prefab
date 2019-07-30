@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 6482430645408080299}
   - component: {fileID: 7015523284075767936}
-  - component: {fileID: 2352669621766220107}
   m_Layer: 0
   m_Name: HubrisCore
   m_TagString: Untagged
@@ -49,25 +48,4 @@ MonoBehaviour:
   _tick: 1.5
   _ui: {fileID: 3818872976495289613}
   _enableInputMgr: 1
-  _net: {fileID: 2352669621766220107}
---- !u!114 &2352669621766220107
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3818872976495289613}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ee3bbba4ddfe73d4bae9a33072b1995f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _ready: 0
-  _isServer: 0
-  _local: 0
-  _connected: 0
-  _session: 
-  _localUdpPort: 0
-  _localTcpPort: 0
-  _remoteUdpPort: 27770
-  _remoteTcpPort: 27870
+  _net: {fileID: 0}

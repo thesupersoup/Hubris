@@ -78,8 +78,6 @@ namespace Hubris
 
 		public override void OnEnable()
 		{
-			base.OnEnable();
-
 			if (Instance == null)
 			{
 				Instance = this;
@@ -89,15 +87,15 @@ namespace Hubris
 				Deactivate();
 				Destroy(this.gameObject);
 			}
+
+			base.OnEnable();
 		}
 
-		void Start()
+		public virtual void Start()
 		{
 			if (Instance == this)
 			{
 				PlayerType = PType.FPS;
-
-				base.Init();
 
 				if (_gObj == null)
 					_gObj = this.gameObject;
@@ -113,12 +111,15 @@ namespace Hubris
 
 				if (_gObj != null && _pCon != null && _pBod != null && _pCam != null)
 				{
+					base.Init();
 					Activate();
-					_mLook = new MouseLook(_gObj.transform, _pCam.transform, _sens, _sens, _mSmooth, _mSmoothAmt);
 				}
 			}
 		}
 
+		/// <summary>
+		/// Primary fire
+		/// </summary>
 		public override void Interact0()
 		{
 			if (PlayerInv.Slots[PlayerInv.ActiveIndex] != null && PlayerCam != null)
@@ -130,6 +131,9 @@ namespace Hubris
 			}
 		}
 
+		/// <summary>
+		/// Alt fire
+		/// </summary>
 		public override void Interact1()
 		{
 			if ( PlayerInv.Slots[PlayerInv.ActiveIndex] != null && PlayerCam != null )
@@ -141,16 +145,21 @@ namespace Hubris
 			}
 		}
 
+		/// <summary>
+		/// Reload
+		/// </summary>
+		public override void Interact2()
+		{
+			// Override for unique behavior
+		}
+
 		public override void Move(InputManager.Axis ax, float val)
 		{
 			if (Active)
 			{
 				_moving = true;
 
-				if (_fastMove)
-					SpeedTarget = Movement.SpeedHigh;
-				else
-					SpeedTarget = Movement.SpeedLow;
+				SpeedTarget = CheckSpeedTarget();
 
 				// Isolate the new movement vector requested
 				Vector3 newMove = GetMoveAsVector(ax, val, true);
@@ -172,6 +181,14 @@ namespace Hubris
 			}
 		}
 
+		public float CheckSpeedTarget()
+		{
+			if ( !AlwaysRun )
+				return Movement.SpeedLow;
+			else
+				return Movement.SpeedHigh;
+		}
+
 		public override void SpecMove(SpecMoveType nType, InputManager.Axis ax, float val)
 		{
 			switch (nType)
@@ -184,7 +201,7 @@ namespace Hubris
 						{
 							// Move this flag to a Jump/Air state
 							_jumping = true;
-							SpeedTarget = Movement.SpeedLow;
+							SpeedTarget = CheckSpeedTarget();
 							_canModSpdTgt = false;
 
 							Move(ax, val);
@@ -242,7 +259,7 @@ namespace Hubris
 					if (!_prevGrounded)
 					{
 						// Emit landing sound
-						EmitSoundEvent( new SoundEvent( this.gameObject, this.transform.position, 10.0f ) );
+						EmitSoundEvent( new SoundEvent( this, this.transform.position, 60.0f, SoundIntensity.NOTEWORTHY ) );
 
 						if (!_moving)
 						{
@@ -432,6 +449,12 @@ namespace Hubris
 
 				_prevMove = _move;
 			}
+		}
+
+		public override void OnDestroy()
+		{
+			if ( Instance == this )
+				Instance = null;
 		}
 	}
 }

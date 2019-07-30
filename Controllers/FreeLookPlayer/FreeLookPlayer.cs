@@ -28,9 +28,7 @@ namespace Hubris
 		{
 			if (Instance == this)
 			{
-				PlayerType = PType.FL;
-
-				base.Init();
+				PlayerType = PType.FL;				
 
 				if (_gObj == null)
 					_gObj = this.gameObject;
@@ -46,20 +44,34 @@ namespace Hubris
 
 				if (_gObj != null && _pCon != null && _pBod != null && _pCam != null)
 				{
+					base.Init();
 					Activate();
-					_mLook = new MouseLook(_gObj.transform, _pCam.transform, _sens, _sens, _mSmooth, _mSmoothAmt);
 				}
 			}
 		}
 
+		/// <summary>
+		/// Primary
+		/// </summary>
 		public override void Interact0()
 		{
 
 		}
 
+		/// <summary>
+		/// Alt 
+		/// </summary>
 		public override void Interact1()
 		{
 
+		}
+
+		/// <summary>
+		/// Tertiary
+		/// </summary>
+		public override void Interact2()
+		{
+			// Override for unique behavior
 		}
 
 		public override void Move(InputManager.Axis ax, float val)

@@ -44,13 +44,13 @@ namespace Hubris
 
 				if ( nPos == Vector3.zero )
 				{
-					Debug.Log( "Unable to find flee point" );
+					// Debug.Log( "Unable to find flee point" );
 					if ( !b.AnimInfo.IsName( AnimString.IDLE ) )
 						SetAnimTrigger( a, AnimString.IDLE );
 					return BhvStatus.RUNNING;
 				}
 
-				Debug.Log( "Found flee point" );
+				// Debug.Log( "Found flee point" );
 				a.SetMovePos( nPos );
 			}
 
@@ -76,7 +76,7 @@ namespace Hubris
 				if ( ( a.TargetDistSqr > Util.GetSquare( a.Params.AwareMax + 10.0f ) ) )
 				{
 					StopMove( a );
-					Debug.Log( "Safe distance from target, flight over" );
+					// Debug.Log( "Safe distance from target, flight over" );
 					a.ResetTargetObj();
 					b.SetPathFailed( false );
 					b.SetStatus( BhvStatus.SUCCESS );
@@ -85,7 +85,7 @@ namespace Hubris
 				else
 				{
 					StopMove( a );
-					Debug.Log( "Resetting move for recalculation" );
+					// Debug.Log( "Resetting move for recalculation" );
 				}
 			}
 

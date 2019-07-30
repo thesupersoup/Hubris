@@ -69,7 +69,10 @@ namespace Hubris
 					if ( a.TargetEnt != null )
 					{
 						if ( b.ActionReady )
+						{
+							a.PlaySound( SndT.ATK );
 							a.TargetEnt.TakeDmg( a, a.Params.DamageStats.CommonType, a.Params.DamageStats.CommonAmount, false );
+						}
 					}
 
 					b.SetActionReady( false );

@@ -8,27 +8,106 @@ namespace Hubris
 	{
 		public const float ARMOR_ABSORB = 0.75f;
 
+		#region LiveEntity instance vars
+		///--------------------------------------------------------------------
+		/// LiveEntity instance vars
+		///--------------------------------------------------------------------
+
+		[SerializeField]
+		protected ulong _uId = 0;
 		[SerializeField]
 		EntityType _type;
 		[SerializeField]
 		EntStats _stats;
 		[SerializeField]
-		private bool _alignSurface = true;		// Should this NPC align itself to the surface normal?
+		protected bool _alignSurface = true;		// Should this NPC align itself to the surface normal?
 		[SerializeField]
-		private LayerMask _soundEventLayer;		// What layer should sound events check when emitting
+		protected LayerMask _soundEventLayer;		// What layer should sound events check when emitting
 
-		private List<SoundEvent> _soundEventList = new List<SoundEvent>();
+		protected List<SoundEvent> _soundEventList = new List<SoundEvent>();
+		#endregion LiveEntity instance vars
 
-		public EntityType EntType { get { return _type; } protected set { _type = value; } }
-		public EntStats Stats { get { return _stats; } protected set { _stats = value; } }
-		public bool AlignToSurface { get { return _alignSurface; } protected set { _alignSurface = value; } }
+		#region LiveEntity properties
+		///--------------------------------------------------------------------
+		/// LiveEntity properties
+		///--------------------------------------------------------------------
+
+		public ulong UniqueId => _uId;
+
+		public EntityType EntType
+		{
+			get
+			{ return _type; }
+			protected set
+			{ _type = value; }
+		}
+
+		public EntStats Stats
+		{
+			get
+			{ return _stats; }
+			protected set
+			{ _stats = value; }
+		}
+
+		public bool AlignToSurface
+		{
+			get
+			{ return _alignSurface; }
+			protected set
+			{ _alignSurface = value; }
+		}
+
 		public LayerMask SoundEventLayer => _soundEventLayer;
 		public List<SoundEvent> SoundEventList => _soundEventList;
+		#endregion LiveEntity properties
+
+		#region LiveEntity methods
+		///--------------------------------------------------------------------
+		/// LiveEntity methods
+		///--------------------------------------------------------------------
+		
+		public override void OnEnable()
+		{
+			base.OnEnable();
+
+			if( HubrisCore.Instance == null )
+			{
+				Debug.LogError( $"LiveEntity {this.gameObject.name} could not locate HubrisCore, fatal error" );
+				return;
+			}
+
+			SubActions();
+		}
+
+		protected virtual void Start()
+		{
+			Init();
+		}
 
 		// Start is called before the first frame update
 		protected virtual void Init()
 		{
-			
+			_uId = HubrisCore.Instance.RegisterEnt( this );
+			this.gameObject.name += "_" + _uId;
+		}
+
+		private void SubActions()
+		{
+			HubrisCore.Instance.AcSoundEvent += AddSoundEvent;
+			HubrisCore.Instance.AcCleanUp += CleanUp;
+		}
+
+		private void UnsubActions()
+		{
+			if ( HubrisCore.Instance == null )
+			{
+				Debug.LogError( $"LiveEntity {this.gameObject.name} can't unsub actions due to null HubrisCore" );
+				return;
+			}
+
+			HubrisCore.Instance.AcSoundEvent -= AddSoundEvent;
+			HubrisCore.Instance.AcCleanUp -= CleanUp;
 		}
 
 		/// <summary>
@@ -36,15 +115,26 @@ namespace Hubris
 		/// </summary>
 		public virtual void EmitSoundEvent( SoundEvent ev )
 		{
+			if ( HubrisCore.Instance == null )
+			{
+				Debug.LogError( $"LiveEntity {this.gameObject.name} can't emit an event, HubrisCore is null" );
+				return;
+			}
+
 			// Shouldn't be emitting sounds if we're dead or invisible
 			if ( Stats.IsDead || Stats.Invisible )
 				return;
 
-			Collider[] colArr = Physics.OverlapSphere( ev.Origin, ev.Radius, SoundEventLayer );
+			HubrisCore.Instance.BroadcastSoundEvent( ev );
+
+			/*Collider[] colArr = Physics.OverlapSphere( ev.Origin, ev.Radius, SoundEventLayer );
 			if ( colArr != null && colArr.Length > 0 )
 			{
 				for( int i = 0; i < colArr.Length; i++ )
 				{
+					if ( colArr[i].gameObject.layer != SoundEventLayer )
+						continue;
+
 					LiveEntity ent = colArr[i].gameObject.GetComponent<LiveEntity>();
 
 					if ( ent != null && ent != this )
@@ -53,7 +143,7 @@ namespace Hubris
 						ent.AddSoundEvent( ev );
 					}
 				}
-			}
+			}*/
 		}
 
 		/// <summary>
@@ -62,6 +152,9 @@ namespace Hubris
 		public virtual void AnimEventHandler( int ev )
 		{
 			// Add event handling
+			// Integers:
+			// 0 = Footstep
+			// 1 = BodyFall
 		}
 
 		/// <summary>
@@ -75,8 +168,9 @@ namespace Hubris
 		/// <summary>
 		/// Do something with received sound events
 		/// </summary>
-		protected virtual void ProcessSoundEvents()
+		protected virtual void ProcessSoundEvents( )
 		{
+			Debug.Log( "Base ProcessSoundEvent called, accident?" );
 			/*if ( SoundEventList != null && SoundEventList.Count > 0 )
 			{
 				for ( int i = 0; i < SoundEventList.Count; i++ )
@@ -129,5 +223,18 @@ namespace Hubris
 		{
 
 		}
+
+		public override void CleanUp( bool full = true )
+		{
+			base.CleanUp( full );
+			UnsubActions();
+		}
+
+		public override void OnDestroy()
+		{
+			if ( !_disposed )
+				CleanUp();
+		}
+		#endregion LiveEntity methods
 	}
 }

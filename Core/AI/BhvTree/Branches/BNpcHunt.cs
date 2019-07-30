@@ -45,6 +45,7 @@ namespace Hubris
 
 			if ( b.DistTarget <= Util.GetSquare( a.Params.AwareClose ) )
 			{
+				a.PlaySound( SndT.HUNT );
 				StopMove( a );
 				b.SetStatus( BhvStatus.SUCCESS );
 				return b.Status;
@@ -74,8 +75,11 @@ namespace Hubris
 			if ( a.NavAgent.speed != nSpd )
 				SetSpeed( a, nSpd );
 
-			if( !b.AnimInfo.IsName( AnimString.WALK ) )
+			if ( !b.AnimInfo.IsName( AnimString.WALK ) )
+			{
+				a.PlaySound( SndT.HUNT );
 				SetAnimTrigger( a, AnimString.WALK );
+			}
 
 			if ( b.TimerCheck >= a.Params.ChkAlert )
 			{

@@ -1,13 +1,17 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Mirror;
 
 namespace Hubris
 {
 	/// <summary>
 	/// The central hub for all Hubris-related behavior. Must be present in every scene using Hubris Entities.
 	/// </summary>
-	public class HubrisCore : MonoBehaviour
+	[RequireComponent( typeof( NetworkIdentity ) )]
+	public class HubrisCore : NetworkBehaviour
 	{
 		///--------------------------------------------------------------------
 		/// HubrisCore singleton instance
@@ -60,6 +64,10 @@ namespace Hubris
 		private GameManager _gm = new GameManager();        // "new GameManager()" required to prevent null errors
 		private LocalConsole _con = new LocalConsole();     // "new LocalConsole()" required to prevent null errors
 
+		private ulong _uId = 0;
+		private Dictionary<ulong, LiveEntity> _entDict = new Dictionary<ulong, LiveEntity>();
+		private Dictionary<ulong, HubrisPlayer> _playerDict = new Dictionary<ulong, HubrisPlayer>();
+
 		[SerializeField]
 		[Tooltip( "Set to false if providing own input manager" )]
 		private bool _enableInputMgr = true;
@@ -76,6 +84,7 @@ namespace Hubris
 		public Action AcTick;
 		public Action AcLateTick;
 		public Action AcFixedTick;
+		public Action<SoundEvent> AcSoundEvent;
 		public Action<bool> AcCleanUp;
 
 		///--------------------------------------------------------------------
@@ -193,6 +202,89 @@ namespace Hubris
 		{
 			_ingame = game;
 			Console.Log( "HubrisCore switching to " + (Ingame ? "ingame" : "not ingame") + " mode");
+		}
+
+		/// <summary>
+		/// Pull the current unique Id then increment
+		/// </summary>
+		private ulong PullUniqueId()
+		{
+			ulong id = _uId;
+
+			_uId++;
+
+			return id;
+		}
+
+		/// <summary>
+		/// Register the LiveEntity in the dictionary and return the unique Id assigned
+		/// </summary>
+		public ulong RegisterEnt( LiveEntity ent )
+		{
+			ulong id = PullUniqueId();
+
+			_entDict.Add( id, ent );
+
+			return id;
+		}
+
+		/// <summary>
+		/// Attempt to unregister a LiveEntity by unique Id
+		/// </summary>
+		public bool UnregisterEnt( ulong id )
+		{
+			return _entDict.Remove( id );
+		}
+
+		public LiveEntity GetEnt( ulong id )
+		{
+			if ( _entDict.TryGetValue( id, out LiveEntity ent ) )
+				return ent;
+
+			return null;
+		}
+
+		public Dictionary<ulong, LiveEntity> GetEntDict()
+		{
+			return _entDict;
+		}
+
+		/// <summary>
+		/// Register the HubrisPlayer in the dictionary and return the unique Id assigned
+		/// </summary>
+		public ulong RegisterPlayer( HubrisPlayer player )
+		{
+			ulong id = PullUniqueId();
+
+			_playerDict.Add( id, player );
+
+			return id;
+		}
+
+		/// <summary>
+		/// Attempt to unregister a HubrisPlayer by unique Id
+		/// </summary>
+		public bool UnregisterPlayer( ulong id )
+		{
+			return _playerDict.Remove( id );
+		}
+
+		public HubrisPlayer GetPlayer( ulong id )
+		{
+			if ( _playerDict.TryGetValue( id, out HubrisPlayer player ) )
+				return player;
+
+			return null;
+		}
+
+		public Dictionary<ulong, HubrisPlayer> GetPlayerDict()
+		{
+			return _playerDict;
+		}
+
+		public void BroadcastSoundEvent( SoundEvent ev )
+		{
+			AcSoundEvent?.Invoke( ev );
 		}
 
 		void FixedUpdate()

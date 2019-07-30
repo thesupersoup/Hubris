@@ -15,6 +15,7 @@ namespace Hubris
 		///--------------------------------------------------------------------
 
 		public const char HELP_CHAR = '?';  // Character which triggers printing of help text
+		public const char SPEC_CHAR = '*';	// For special commands and variables
 		public const int CMD_LIMIT = 16;    // Max number of commands to be processed per Tick
 
 		///--------------------------------------------------------------------
@@ -95,6 +96,8 @@ namespace Hubris
 						case CmdType.Interact1:
 							HubrisPlayer.Instance.Interact1();
 							break;
+							HubrisPlayer.Instance.Interact2();
+							break;
 						case CmdType.Slot1:
 							HubrisPlayer.Instance.SetActiveSlot( 0 );
 							break;
@@ -106,6 +109,12 @@ namespace Hubris
 							break;
 						case CmdType.Slot4:
 							HubrisPlayer.Instance.SetActiveSlot( 3 );
+							break;
+						case CmdType.NextSlot:
+							HubrisPlayer.Instance.SetActiveSlot( HubrisPlayer.Instance.ActiveSlot + 1, true );
+							break;
+						case CmdType.PrevSlot:
+							HubrisPlayer.Instance.SetActiveSlot( HubrisPlayer.Instance.ActiveSlot - 1, true );
 							break;
 						case CmdType.Submit:
 							UIManager.Instance.ConsoleSubmitInput();
@@ -129,7 +138,7 @@ namespace Hubris
 							}
 							break;
 						case CmdType.RunHold:
-							HubrisPlayer.Instance.SetSpeedTarget( HubrisPlayer.Instance.Movement.SpeedHigh );
+							HubrisPlayer.Instance.SetSpeedTarget( !HubrisPlayer.Instance.AlwaysRun ? HubrisPlayer.Instance.Movement.SpeedHigh : HubrisPlayer.Instance.Movement.SpeedLow );
 							break;
 						case CmdType.Console:
 							UIManager.Instance.ConsoleToggle();
@@ -217,7 +226,10 @@ namespace Hubris
 			if ( nIn.ToCharArray()[0] == HELP_CHAR )
 			{
 				for ( int i = 0; i < Settings.VarArrLength; i++ )
-					Variable.DisplayVarHelp( Settings.GetVariable( i ) );
+				{
+					if ( Settings.GetVariable( i ).Name.ToCharArray()[0] != SPEC_CHAR )
+						Variable.DisplayVarHelp( Settings.GetVariable( i ) );
+				}
 
 				return true;
 			}
@@ -362,7 +374,7 @@ namespace Hubris
 			if ( _pScript == null && HubrisPlayer.Instance != null )
 			{
 				_pScript = HubrisPlayer.Instance;
-				Settings.UpdateAllDirtyVars();
+				// Settings.UpdateAllDirtyVars( false );	// False because we don't want to spam the console with them
 				if ( HubrisCore.Instance.Debug )
 					Log( "LocalConsole Update(): FPSControl.Player found" );
 			}

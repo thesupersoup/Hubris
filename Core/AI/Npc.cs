@@ -234,6 +234,7 @@ namespace Hubris
 
 		protected override void Start()
 		{
+			InitLiveEntity();
 			InitTrackDict();
 		}
 

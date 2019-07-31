@@ -328,20 +328,27 @@ namespace Hubris
 						continue;
 					}
 
-					// If we're prey
-					if ( !a.Params.Predator )
+					if ( ent is Npc npc )
 					{
-						if ( ent is Npc npc )
+						// Check if we want to make a squad with other entities of the same type
+						//
+						//
+
+						// If we're prey
+						if ( !a.Params.Predator )
 						{
 							// Prey should ignore other prey
 							if ( !npc.Params.Predator )
 								continue;
 						}
-					}
 
-					// Check if we want to make a squad with other entities of the same type
-					//
-					//
+						// For now, ignore same species
+						if ( ent is Apex.ApexNpc other && a is Apex.ApexNpc my )
+						{
+							if ( other.Species == my.Species )
+								continue;
+						}
+					}
 
 					float maxDist = a.Params.AwareMax;
 

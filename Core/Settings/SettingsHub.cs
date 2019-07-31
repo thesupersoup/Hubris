@@ -166,6 +166,11 @@ namespace Hubris
 						if ( HubrisPlayer.Instance != null )
 							HubrisPlayer.Instance.AlwaysRun = (bool)varArr[index].Data;
 						break;
+					case VarType.MasterVol:
+					case VarType.MenuVol:
+					case VarType.MusicVol:
+						// Automatically handled, nothing to do
+						break;
 					case VarType.Useaccel:
 						if ( HubrisPlayer.Instance != null )
 							HubrisPlayer.Instance.Movement.SetUseAccel( (bool)varArr[index].Data );
@@ -184,7 +189,8 @@ namespace Hubris
 						// Nowhere to send it yet
 						break;
 					default:
-						success = false;
+						if( (int)nType < 0 || nType >= VarType.Num_Vars )
+							success = false;
 						break;
 				}
 

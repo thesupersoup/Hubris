@@ -64,7 +64,7 @@ namespace Hubris
 		private GameManager _gm = new GameManager();        // "new GameManager()" required to prevent null errors
 		private LocalConsole _con = new LocalConsole();     // "new LocalConsole()" required to prevent null errors
 
-		private ulong _uId = 0;
+		private ulong _uId = 1;	// Start at 1, so 0 can represent unassigned
 		private Dictionary<ulong, LiveEntity> _entDict = new Dictionary<ulong, LiveEntity>();
 		private Dictionary<LiveEntity, GameObject> _rootObjDict = new Dictionary<LiveEntity, GameObject>();
 		private Dictionary<GameObject, LiveEntity> _objToEntDict = new Dictionary<GameObject, LiveEntity>();

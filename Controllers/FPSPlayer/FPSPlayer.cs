@@ -167,7 +167,7 @@ namespace Hubris
 					float dotAmt = Vector3.Dot(newMove.normalized, _prevMove.normalized);
 					if (dotAmt < DOT_THRESHOLD)
 					{
-						Debug.Log("DOT_THRESHOLD reached: " + dotAmt);
+						// Debug.Log("DOT_THRESHOLD reached: " + dotAmt);
 						Speed = 0.0f;
 					}
 				}
@@ -254,7 +254,7 @@ namespace Hubris
 					if (!_prevGrounded)
 					{
 						// Emit landing sound
-						EmitSoundEvent( new SoundEvent( this, this.transform.position, 60.0f, SoundIntensity.NOTEWORTHY ) );
+						EmitSoundEvent( new SoundEvent( this, this.transform.position, SND_PLAYER_MED_DIST, SoundIntensity.NOTEWORTHY ) );
 
 						if (!_moving)
 						{

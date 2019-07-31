@@ -8,7 +8,8 @@ namespace Hubris
 	public abstract class HubrisPlayer : LiveEntity
 	{
 		// HubrisPlayer constants
-		public const float DIST_CHK_GROUND = 2.0f, ACCEL_THRESHOLD = 0.1f, DOT_THRESHOLD = -0.75f;
+		public const float DIST_CHK_GROUND = 2.0f, ACCEL_THRESHOLD = 0.1f, DOT_THRESHOLD = -0.75f,
+							SND_PLAYER_SMALL_DIST = 30.0f, SND_PLAYER_MED_DIST = 60.0f, SND_PLAYER_LARGE_DIST = 80.0f;
 
 		// Player Type; whether First Person, Free Look, or others
 		public enum PType { NONE = 0, FPS, FL, RTS, NUM_TYPES };
@@ -194,15 +195,32 @@ namespace Hubris
 
 		public override void OnEnable()
 		{
-			base.OnEnable();
+			HubrisPlayerEnable();
+
+			EntityEnable();
+			LiveEntityEnable();
 		}
 
 		protected override void Start()
 		{
-			Init();
+			InitHubrisPlayer();
 		}
 
-		protected override void Init()
+		public void HubrisPlayerEnable()
+		{
+			if ( Instance == null )
+			{
+				Instance = this;
+			}
+			else if ( Instance != null && Instance != this )
+			{
+				Deactivate();
+				Destroy( this.gameObject );
+				return;
+			}
+		}
+
+		protected void InitHubrisPlayer()
 		{
 			_uId = HubrisCore.Instance.RegisterPlayer( this );
 			this.gameObject.name += "_" + _uId;

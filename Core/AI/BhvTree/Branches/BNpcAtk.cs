@@ -71,7 +71,7 @@ namespace Hubris
 						if ( b.ActionReady )
 						{
 							a.PlaySound( SndT.ATK );
-							a.TargetEnt.TakeDmg( a, a.Params.DamageStats.CommonType, a.Params.DamageStats.CommonAmount, false );
+							a.TargetEnt.TakeDmg( a, (int)a.Params.DamageStats.CommonType, a.Params.DamageStats.CommonAmount, false );
 						}
 					}
 

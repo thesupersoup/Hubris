@@ -39,7 +39,6 @@ namespace Hubris
 				{
 					if (ent.EntType == EntityType.PLAYER)
 					{
-						Debug.Log( "Destination Reached" );
 						NotifyObservers(true);
 						Deactivate();
 					}

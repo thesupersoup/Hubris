@@ -288,7 +288,7 @@ namespace Hubris
 		}
 
 		/// <summary>
-		/// Process tracked entities in the Npc's environment
+		/// Scan the environment for entities, then process tracked entities
 		/// </summary>
 		public void CheckEnv( Npc a, BhvTree b )
 		{

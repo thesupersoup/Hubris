@@ -47,7 +47,7 @@ namespace Hubris
 
 				if ( ent != null )
 				{
-					ent.TakeDmg( owner, DamageType, Damage, false );
+					ent.TakeDmg( owner, (int)DamageType, Damage, false );
 				}
 			}
 		}

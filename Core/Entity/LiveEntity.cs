@@ -20,7 +20,9 @@ namespace Hubris
 		[SerializeField]
 		EntStats _stats;
 		[SerializeField]
-		protected bool _alignSurface = true;		// Should this NPC align itself to the surface normal?
+		protected bool _alignSurface = true;        // Should this NPC align itself to the surface normal?
+		[SerializeField]
+		private SoundManager _soundMgr = null;
 		[SerializeField]
 		protected LayerMask _soundEventLayer;		// What layer should sound events check when emitting
 
@@ -58,6 +60,12 @@ namespace Hubris
 			{ _alignSurface = value; }
 		}
 
+		public SoundManager SoundMgr
+		{
+			get { return _soundMgr; }
+			protected set { _soundMgr = value; }
+		}
+
 		public LayerMask SoundEventLayer => _soundEventLayer;
 		public List<SoundEvent> SoundEventList => _soundEventList;
 		#endregion LiveEntity properties
@@ -69,27 +77,49 @@ namespace Hubris
 		
 		public override void OnEnable()
 		{
-			base.OnEnable();
+			EntityEnable();
+			LiveEntityEnable();
+		}
 
-			if( HubrisCore.Instance == null )
+		public void LiveEntityEnable()
+		{
+			if ( HubrisCore.Instance == null )
 			{
 				Debug.LogError( $"LiveEntity {this.gameObject.name} could not locate HubrisCore, fatal error" );
 				return;
 			}
 
 			SubActions();
+
+			if ( SoundMgr == null )
+			{
+				SoundMgr = GetComponent<SoundManager>();
+				if ( SoundMgr == null )
+					Debug.Log( $"{this.gameObject.name} doesn't have a SoundManager attached!" );
+			}
+
+			InitSoundMgr();
 		}
 
 		protected virtual void Start()
 		{
-			Init();
+			InitLiveEntity();
 		}
 
 		// Start is called before the first frame update
-		protected virtual void Init()
+		protected virtual void InitLiveEntity()
 		{
-			_uId = HubrisCore.Instance.RegisterEnt( this );
+			_uId = HubrisCore.Instance.RegisterEnt( this, this.transform.root.gameObject );
 			this.gameObject.name += "_" + _uId;
+		}
+
+		/// <summary>
+		/// Initialize the SoundManager if it's present
+		/// </summary>
+		protected virtual void InitSoundMgr()
+		{
+			if ( SoundMgr != null )
+				SoundMgr.InitSoundManager( this, this.gameObject );
 		}
 
 		private void SubActions()
@@ -111,6 +141,14 @@ namespace Hubris
 		}
 
 		/// <summary>
+		/// Calls this LiveEntity's SoundManager to play a sound of the specified type
+		/// </summary>
+		public virtual bool PlaySound( SndT type, float delay = 0.0f, bool rand = true, int index = 0 )
+		{
+			return SoundMgr != null ? SoundMgr.TriggerSound( type, delay, rand, index ) : false;
+		}
+
+		/// <summary>
 		/// Emit the sound event passed as an arguement
 		/// </summary>
 		public virtual void EmitSoundEvent( SoundEvent ev )
@@ -126,24 +164,6 @@ namespace Hubris
 				return;
 
 			HubrisCore.Instance.BroadcastSoundEvent( ev );
-
-			/*Collider[] colArr = Physics.OverlapSphere( ev.Origin, ev.Radius, SoundEventLayer );
-			if ( colArr != null && colArr.Length > 0 )
-			{
-				for( int i = 0; i < colArr.Length; i++ )
-				{
-					if ( colArr[i].gameObject.layer != SoundEventLayer )
-						continue;
-
-					LiveEntity ent = colArr[i].gameObject.GetComponent<LiveEntity>();
-
-					if ( ent != null && ent != this )
-					{
-						// Debug.Log( $"Adding sound event to {ent.gameObject.name}" );
-						ent.AddSoundEvent( ev );
-					}
-				}
-			}*/
 		}
 
 		/// <summary>
@@ -190,13 +210,14 @@ namespace Hubris
 		/// <summary>
 		/// Handles taking damage from another entity; use nDirect true to directly damage health or false to obey restrictions
 		/// </summary>
-		public virtual bool TakeDmg( LiveEntity damageEnt, DmgType nType, int nDmg, bool nDirect )
+		public virtual bool TakeDmg( LiveEntity src, int nType, int nDmg, bool nDirect )
 		{
 			// Handle damageEnt specific code like changing targets on damage in derived classes
+			DmgType dmgType = (DmgType)nType;
 
-			if ( nType == DmgType.STAMINA)
+			if ( dmgType == DmgType.STAMINA)
 				return Stats.ReduceStamina( nDmg );
-			else if ( nType == DmgType.ARMOR )
+			else if ( dmgType == DmgType.ARMOR )
 				return Stats.ReduceArmor( nDmg );
 
 

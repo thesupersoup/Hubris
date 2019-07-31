@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
 namespace Hubris
 {
 	/// <summary>
@@ -96,6 +97,7 @@ namespace Hubris
 						case CmdType.Interact1:
 							HubrisPlayer.Instance.Interact1();
 							break;
+						case CmdType.Interact2:
 							HubrisPlayer.Instance.Interact2();
 							break;
 						case CmdType.Slot1:

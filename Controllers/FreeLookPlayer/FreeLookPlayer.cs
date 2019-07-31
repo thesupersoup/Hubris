@@ -13,18 +13,18 @@ namespace Hubris
 
 
 		// FreeLookPlayer methods
-		void OnEnable()
+
+		public override void OnEnable()
 		{
-			if (Instance == null)
-				Instance = this;
-			else if (Instance != null)
-			{
-				Deactivate();
-				Destroy(this.gameObject);
-			}
+			base.OnEnable();
 		}
 
-		void Start()
+		protected override void Start()
+		{
+			InitFreeLookPlayer();
+		}
+
+		public void InitFreeLookPlayer()
 		{
 			if (Instance == this)
 			{
@@ -44,7 +44,7 @@ namespace Hubris
 
 				if (_gObj != null && _pCon != null && _pBod != null && _pCam != null)
 				{
-					base.Init();
+					InitHubrisPlayer();
 					Activate();
 				}
 			}

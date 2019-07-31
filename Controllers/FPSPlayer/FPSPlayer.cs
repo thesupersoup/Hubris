@@ -78,21 +78,16 @@ namespace Hubris
 
 		public override void OnEnable()
 		{
-			if (Instance == null)
-			{
-				Instance = this;
-			}
-			else if (Instance != null)
-			{
-				Deactivate();
-				Destroy(this.gameObject);
-			}
-
 			base.OnEnable();
 		}
 
-		public virtual void Start()
+		protected override void Start()
 		{
+			InitFPSPlayer();
+		}
+
+		public void InitFPSPlayer()
+		{ 
 			if (Instance == this)
 			{
 				PlayerType = PType.FPS;
@@ -111,7 +106,7 @@ namespace Hubris
 
 				if (_gObj != null && _pCon != null && _pBod != null && _pCam != null)
 				{
-					base.Init();
+					InitHubrisPlayer();
 					Activate();
 				}
 			}

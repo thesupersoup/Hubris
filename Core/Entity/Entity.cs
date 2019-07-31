@@ -73,57 +73,19 @@ namespace Hubris
 
 		public virtual void OnEnable()
 		{
-			if (Name != null && Name.Length > 0)
+			EntityEnable();
+		}
+
+		public void EntityEnable()
+		{
+			if ( Name != null && Name.Length > 0 )
 			{
 				// Set the GameObject name to match the Entity name
 				this.gameObject.name = Name;
 			}
 			else
 				Name = this.gameObject.name;
-
-			/* IMPORTANT! */
-			// Include SubTick() in all derived/overridden OnEnable() (or similar) methods for Hubris Tick-based behavior
-			// and include UnsubTick() in CleanUp()
-			// SubTick();
 		}
-
-		/*protected virtual void SubTick()    // Subscribe to ITickable GameManager Actions
-		{
-			if (HubrisCore.Instance != null)
-			{
-				HubrisCore.Instance.AcTick += Tick;
-				HubrisCore.Instance.AcLateTick += LateTick;
-				HubrisCore.Instance.AcFixedTick += FixedTick;
-			}
-		}
-
-		protected virtual void UnsubTick()  // Unsubscribe to ITickable GameManager Actions
-		{
-			if (HubrisCore.Instance != null)
-			{
-				HubrisCore.Instance.AcTick -= Tick;
-				HubrisCore.Instance.AcLateTick -= LateTick;
-				HubrisCore.Instance.AcFixedTick -= FixedTick;
-			}
-		}*/
-
-		/*public virtual void Tick()
-		{
-			// To be called in response to GameManager event
-			// Override in derived class with unique implementation
-		}
-
-		public virtual void LateTick()
-		{
-			// To be called in response to GameManager event
-			// Override in derived class with unique implementation
-		}
-
-		public virtual void FixedTick()
-		{
-			// To be called in response to GameManager event
-			// Override in derived class with unique implementation
-		}*/
 
 		public virtual void CleanUp(bool full = true)
 		{

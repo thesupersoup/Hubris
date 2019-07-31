@@ -66,6 +66,8 @@ namespace Hubris
 
 		private ulong _uId = 0;
 		private Dictionary<ulong, LiveEntity> _entDict = new Dictionary<ulong, LiveEntity>();
+		private Dictionary<LiveEntity, GameObject> _rootObjDict = new Dictionary<LiveEntity, GameObject>();
+		private Dictionary<GameObject, LiveEntity> _objToEntDict = new Dictionary<GameObject, LiveEntity>();
 		private Dictionary<ulong, HubrisPlayer> _playerDict = new Dictionary<ulong, HubrisPlayer>();
 
 		[SerializeField]
@@ -217,26 +219,41 @@ namespace Hubris
 		}
 
 		/// <summary>
-		/// Register the LiveEntity in the dictionary and return the unique Id assigned
+		/// Register the LiveEntity and its root GameObject in their respective dictionaries and return the unique Id assigned
 		/// </summary>
-		public ulong RegisterEnt( LiveEntity ent )
+		public ulong RegisterEnt( LiveEntity ent, GameObject root = null )
 		{
 			ulong id = PullUniqueId();
+			GameObject obj = root;
+
+			if ( obj == null && ent != null )
+				obj = ent.transform.root.gameObject;
 
 			_entDict.Add( id, ent );
+			_rootObjDict.Add( ent, obj );
+			_objToEntDict.Add( obj, ent );
 
 			return id;
 		}
 
 		/// <summary>
-		/// Attempt to unregister a LiveEntity by unique Id
+		/// Attempt to unregister a LiveEntity/root GameObject combo by unique Id
 		/// </summary>
 		public bool UnregisterEnt( ulong id )
 		{
-			return _entDict.Remove( id );
+			LiveEntity ent = null;
+			GameObject obj = null;
+
+			if ( _entDict.TryGetValue( id, out ent ) )
+				_rootObjDict.TryGetValue( ent, out obj );
+
+			return _entDict.Remove( id ) && _rootObjDict.Remove( ent ) && _objToEntDict.Remove( obj );
 		}
 
-		public LiveEntity GetEnt( ulong id )
+		/// <summary>
+		/// Returns null if no entity is found
+		/// </summary>
+		public LiveEntity TryGetEnt( ulong id )
 		{
 			if ( _entDict.TryGetValue( id, out LiveEntity ent ) )
 				return ent;
@@ -244,9 +261,65 @@ namespace Hubris
 			return null;
 		}
 
+		/// <summary>
+		/// Returns null if no entity is found
+		/// </summary>
+		/// <param name="obj"></param>
+		/// <returns></returns>
+		public LiveEntity TryGetEnt( GameObject obj )
+		{
+			if ( _objToEntDict.TryGetValue( obj, out LiveEntity ent ) )
+				return ent;
+
+			return null;
+		}
+
+		/// <summary>
+		/// Returns null if no object is found
+		/// </summary>
+		public GameObject TryGetRootObj( LiveEntity ent )
+		{
+			if ( _rootObjDict.TryGetValue( ent, out GameObject obj ) )
+				return obj;
+
+			return null;
+		}
+
+		/// <summary>
+		/// Returns null if no object is found
+		/// </summary>
+		public GameObject TryGetRootObj( ulong id )
+		{
+			return TryGetRootObj( TryGetEnt( id ) );
+		}
+
+		/// <summary>
+		/// Attempts to send damage to the specified entity 
+		/// </summary>
+		public virtual bool TrySendDmg( GameObject target, LiveEntity src, int nType, int nDmg, bool nDirect )
+		{
+			if ( target == null )
+				return false;
+
+			if ( src == null )
+				return false;
+
+			LiveEntity ent = TryGetEnt( target );
+
+			if ( ent == null )
+				return false;
+
+			return ent.TakeDmg( src, nType, nDmg, nDirect );
+		}
+
 		public Dictionary<ulong, LiveEntity> GetEntDict()
 		{
 			return _entDict;
+		}
+
+		public Dictionary<LiveEntity, GameObject> GetRootObjDict()
+		{
+			return _rootObjDict;
 		}
 
 		/// <summary>
@@ -269,7 +342,10 @@ namespace Hubris
 			return _playerDict.Remove( id );
 		}
 
-		public HubrisPlayer GetPlayer( ulong id )
+		/// <summary>
+		/// Returns null if no player is found
+		/// </summary>
+		public HubrisPlayer TryGetPlayer( ulong id )
 		{
 			if ( _playerDict.TryGetValue( id, out HubrisPlayer player ) )
 				return player;

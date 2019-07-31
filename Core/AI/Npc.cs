@@ -21,13 +21,11 @@ namespace Hubris
 		private Animator _anim = null;
 		[SerializeField]
 		private NavMeshAgent _navAgent = null;
-		[SerializeField]
-		private SoundManager _soundMgr = null;
 
 		[SerializeField]
-		private LayerMask _entMask;					// What other entities should this Npc be aware of?
+		protected LayerMask _entMask;					// What other entities should this Npc be aware of?
 		[SerializeField]
-		private LayerMask _sightMask;				// What should this Npc be aware of for line-of-sight checks?
+		protected LayerMask _sightMask;				// What should this Npc be aware of for line-of-sight checks?
 		[SerializeField]
 		private GameObject _targetObj = null;
 		[SerializeField]
@@ -51,9 +49,9 @@ namespace Hubris
 		[Tooltip( "Will cause the viewcone to be shown in the Unity editor scene view" )]
 		private bool _debugShowViewCone = false;
 		[SerializeField]
-		private SphereCollider _areaScanCol = null;
-		[SerializeField]
 		private Rigidbody _rigidBody = null;
+		[SerializeField]
+		private SphereCollider _areaScanCol = null;
 
 		private Dictionary<ulong, LiveEntity> _trackDict = new Dictionary<ulong, LiveEntity>();
 		private List<ulong> _removeList = new List<ulong>();
@@ -122,15 +120,9 @@ namespace Hubris
 			protected set { _navAgent = value; }
 		}
 
-		public SoundManager SoundMgr
-		{
-			get { return _soundMgr; }
-			protected set { _soundMgr = value; }
-		}
+		public virtual LayerMask EntMask => _entMask;
 
-		public LayerMask EntMask => _entMask;
-
-		public LayerMask SightMask => _sightMask;
+		public virtual LayerMask SightMask => _sightMask;
 
 		public GameObject TargetObj
 		{
@@ -180,6 +172,13 @@ namespace Hubris
 
 		public override void OnEnable()
 		{
+			EntityEnable();
+			LiveEntityEnable();
+			NpcEnable();
+		}
+
+		public void NpcEnable()
+		{
 			if ( Params == null )
 			{
 				LocalConsole.Instance.Log( $"Npc {this.name} has no associated AIParams object, instantiating default...", true );
@@ -202,16 +201,7 @@ namespace Hubris
 					Debug.Log( $"{this.gameObject.name} doesn't have a doesn't have an Animator attached!" );
 			}
 
-			if ( SoundMgr == null )
-			{
-				SoundMgr = GetComponent<SoundManager>();
-				if ( SoundMgr == null )
-					Debug.Log( $"{this.gameObject.name} doesn't have a SoundManager attached!" );
-			}
-
-			InitSoundMgr();
-
-			if ( RigidBody == null )
+			if( RigidBody == null )
 			{
 				Rigidbody rb = this.gameObject.AddComponent<Rigidbody>();
 				rb.isKinematic = true;
@@ -228,8 +218,7 @@ namespace Hubris
 				child.transform.parent = this.transform.root;
 				child.layer = LayerMask.NameToLayer( "Ignore Raycast" );
 
-				SphereCollider newCol = this.gameObject.AddComponent<SphereCollider>();
-				newCol.isTrigger = true;
+				SphereCollider newCol = child.AddComponent<SphereCollider>();
 				_areaScanCol = newCol;
 
 				if( AreaScanCol == null )
@@ -246,8 +235,6 @@ namespace Hubris
 		protected override void Start()
 		{
 			InitTrackDict();
-			base.OnEnable();
-			base.Init();
 		}
 
 		/// <summary>
@@ -265,18 +252,9 @@ namespace Hubris
 			NavAgent.autoRepath = repath;
 		}
 
-		/// <summary>
-		/// Initialize the SoundManager if it's present
-		/// </summary>
-		protected virtual void InitSoundMgr()
-		{
-			if ( SoundMgr != null )
-				SoundMgr.InitSoundManager( this, this.gameObject );
-		}
-
 		protected virtual void InitRigidBody()
 		{
-			if ( RigidBody != null )
+			if( RigidBody != null )
 			{
 				RigidBody.isKinematic = true;
 			}
@@ -332,14 +310,6 @@ namespace Hubris
 		}
 
 		/// <summary>
-		/// Calls this Npc's SoundManager to play a sound of the specified type
-		/// </summary>
-		public virtual bool PlaySound( SndT type, float delay = 0.0f, bool rand = true, int index = 0 )
-		{
-			return SoundMgr != null ? SoundMgr.TriggerSound( type, delay, rand, index ) : false;
-		}
-
-		/// <summary>
 		/// Adds the specified LiveEntity to the track list if it's not null, and if we're not already tracking it
 		/// </summary>
 		public void TrackEntity( LiveEntity ent )
@@ -351,11 +321,6 @@ namespace Hubris
 			// Check if we're already tracking this entity
 			if ( TrackDict.ContainsKey( ent.UniqueId ) )
 				return;
-
-			Debug.LogWarning( $"{this.gameObject.name} added {ent.gameObject.name} to track list" );
-
-			if ( ent.EntType == EntityType.PLAYER )
-				Debug.LogWarning( $"{this.gameObject.name} is tracking the player" );
 
 			TrackDict.Add( ent.UniqueId, ent );
 		}
@@ -442,17 +407,15 @@ namespace Hubris
 				for ( int i = 0; i < SoundEventList.Count; i++ )
 				{
 					Vector3 origin = SoundEventList[i].Origin;
-					float dist = SoundEventList[i].Radius;
+					float rad = SoundEventList[i].Radius;
 
 					// Check if it's in range; if not, continue
-					if ( !Util.CheckDistSqr( origin, this.transform.position, dist ) )
+					if ( !Util.CheckDistSqr( origin, this.transform.position, rad ) )
 						continue;
 
 					LiveEntity ent = SoundEventList[i].Source;
 					GameObject src = SoundEventList[i].Source?.gameObject;
 					SoundIntensity intensity = SoundEventList[i].Intensity;
-
-					Debug.Log( $"{this.gameObject.name} heard {src?.name}" );
 
 					// Predators investigate sounds if they don't currently have a target and the source did not come from an object
 					if ( TargetObj == null && Params.Predator )
@@ -493,7 +456,7 @@ namespace Hubris
 		/// <summary>
 		/// Handles taking damage from another entity; use nDirect true to directly damage health or false to obey restrictions
 		/// </summary>
-		public override bool TakeDmg( LiveEntity damageEnt, DmgType nType, int nDmg, bool nDirect )
+		public override bool TakeDmg( LiveEntity damageEnt, int nType, int nDmg, bool nDirect )
 		{
 			bool wasDamaged = base.TakeDmg( damageEnt, nType, nDmg, nDirect );
 
@@ -521,13 +484,13 @@ namespace Hubris
 			return wasDamaged;
 		}
 
-		private void OnTriggerEnter( Collider col )
+		protected virtual void OnTriggerEnter( Collider col )
 		{
 			GameObject obj = col.transform.root.gameObject;
 
-			Debug.Log( $"Object {obj.name} entered {this.gameObject.name}'s AreaScanCol" );
-
-			if ( obj.layer != EntMask.value )
+			// Bitshift 1 left by obj.layer ( for 1 * 2^obj.Layer, if obj.layer = 8 then 1 * 2^8 = binary 100000000 = decimal 256 ) 
+			// to check against the EntMask.value (Only Entity (User Layer 8), equivalent to binary 100000000 = decimal 256)
+			if ( 1 << obj.layer != EntMask.value )
 				return;
 
 			LiveEntity ent = obj.GetComponent<LiveEntity>();

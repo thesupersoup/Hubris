@@ -17,27 +17,21 @@ namespace Hubris
 
 
 		// RTSPlayer methods
-		void OnEnable()
+		public override void OnEnable()
 		{
-			if (Instance == null)
-			{
-				Instance = this;
-
-			}
-			else if (Instance != null)
-			{
-				Deactivate();
-				Destroy(this.gameObject);
-			}
+			base.OnEnable();
 		}
 
-		void Start()
+		protected override void Start()
 		{
+			InitRTSPlayer();
+		}
+
+		public void InitRTSPlayer()
+		{ 
 			if (Instance == this)
 			{
 				PlayerType = PType.RTS;
-
-				base.Init();
 
 				if (_gObj == null)
 					_gObj = this.gameObject;
@@ -53,8 +47,8 @@ namespace Hubris
 
 				if (_gObj != null && _pCon != null && _pBod != null && _pCam != null)
 				{
+					InitHubrisPlayer();
 					Activate();
-					base.Init();
 					_mLook.SetCursorLock(false);
 				}
 			}

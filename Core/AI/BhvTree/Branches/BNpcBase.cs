@@ -341,13 +341,6 @@ namespace Hubris
 							if ( !npc.Params.Predator )
 								continue;
 						}
-
-						// For now, ignore same species
-						if ( ent is Apex.ApexNpc other && a is Apex.ApexNpc my )
-						{
-							if ( other.Species == my.Species )
-								continue;
-						}
 					}
 
 					float maxDist = a.Params.AwareMax;

@@ -247,7 +247,7 @@ namespace Hubris
 		/// <summary>
 		/// Universal behavior tree checks for all behavior branches
 		/// </summary>
-		internal void RootChecks( Npc a )
+		internal bool RootChecks( Npc a )
 		{
 			if ( a.Stats.IsDead )
 			{
@@ -257,6 +257,7 @@ namespace Hubris
 					// Whatever you were doing, something failed if you died ...
 					SetStatus( BhvStatus.FAILURE );
 					ChangeBranch( BNpcDead.Instance, a );
+					return false;
 				}
 			}
 			else
@@ -268,6 +269,7 @@ namespace Hubris
 						// ... same for falling asleep
 						SetStatus( BhvStatus.FAILURE );
 						ChangeBranch( BNpcAsleep.Instance, a );
+						return false;
 					}
 				}
 
@@ -275,6 +277,8 @@ namespace Hubris
 				if ( a.TargetObj == null )
 					SetPatient( true );
 			}
+
+			return true;
 		}
 
 		/// <summary>
@@ -331,7 +335,9 @@ namespace Hubris
 			UpdateTimers();
 			UpdateDistances( a );
 			UpdateAnimInfo( a, 0 );
-			RootChecks( a );
+
+			if( !RootChecks( a ) )
+				return;
 
 			// Root methods which should be invoked on a timer
 			if ( TimerRoot >= a.Params.ChkAlert )
@@ -343,12 +349,48 @@ namespace Hubris
 			// What should we do if the active behavior branch succeeds or fails
 			if ( ActiveBranch.Invoke( a, this ) != BhvStatus.RUNNING )
 			{
+				// If we were fleeing but we successfully escaped
+				if ( ActiveBranch == BNpcFlee.Instance && Status == BhvStatus.SUCCESS )
+				{
+					// Replenish stats
+					a.Stats.AddHealth( a.Stats.HealthMax - a.Stats.Health );
+					a.Stats.AddArmor( a.Stats.ArmorMax - a.Stats.Armor );
+					a.Stats.AddStamina( a.Stats.StaminaMax - a.Stats.Stamina );
+				}
+
 				// Unable to reach target, pathfinding failed
 				if ( PathFailed )
 				{
 					// Debug.Log( "Pathfinding failed, fleeing..." );
 					ChangeBranch( BNpcFlee.Instance, a );
 					return;
+				}
+
+				if ( a.Stats.Wounded )
+				{
+					if ( a.TargetObj == null || !SeeTarget )
+					{
+						ChangeBranch( BNpcFlee.Instance, a );
+						return;
+					}
+					else
+					{
+						if ( DistTarget > Util.GetSquare( a.Params.AtkDist ) )
+						{
+							if ( !a.Params.Territorial && (!a.Params.Predator || a.Params.Flighty) )
+								ChangeBranch( BNpcFlee.Instance, a );
+							else
+								ChangeBranch( BNpcAggro.Instance, a );
+						}
+						else
+						{
+							// Only attack live entities
+							if ( a.TargetEnt != null )
+								ChangeBranch( BNpcAtk.Instance, a );
+						}
+
+						return;
+					}
 				}
 
 				if ( a.TargetObj == null || !SeeTarget )
@@ -361,11 +403,6 @@ namespace Hubris
 				}
 				else // If the parent NPC has a target (that can be seen); we're not in idletown anymore
 				{
-					/* if ( TOOK_DAMAGE )
-					 *	ChangeBranch( BNpcAggro, a ); // We go straight to angry (but there needs to be certain caveats)
-					 * else
-					 */
-
 					// Check how close the Npc is
 					if ( DistTarget > Util.GetSquare( a.Params.AwareMed ) && Patient ) // If target is further than the medium awareness distance and Npc is still patient
 						ChangeBranch( BNpcAlert.Instance, a );  // We become alert
@@ -378,7 +415,7 @@ namespace Hubris
 					}
 					else if ( DistTarget > Util.GetSquare( a.Params.AtkDist ) )// If target is too close for comfort
 					{
-						if ( a.Params.Predator )	// If we're a predatory Npc...
+						if ( a.Params.Predator || a.Params.Territorial )	// If we're a predatory Npc...
 							ChangeBranch( BNpcAggro.Instance, a );	// ... we get angry
 						else	// Otherwise...
 							ChangeBranch( BNpcFlee.Instance, a );	// ... we run away

@@ -99,8 +99,6 @@ public class MouseLook
 			character.localRotation = m_CharacterTargetRot;
 			camera.localRotation = m_CameraTargetRot;
 		}
-
-		UpdateCursorLock();
 	}
 
 	public void LookRotationSingleAxis(InputManager.Axis ax, Transform character, Transform camera)
@@ -142,8 +140,6 @@ public class MouseLook
 			character.localRotation = m_CharacterTargetRot;
 			camera.localRotation = m_CameraTargetRot;
 		}
-
-		UpdateCursorLock();
 	}
 
 	public void ToggleCursorLock()
@@ -165,31 +161,6 @@ public class MouseLook
 			Cursor.lockState = CursorLockMode.Locked;
 			Cursor.visible = false;
 		}
-	}
-
-	public void UpdateCursorLock()
-	{
-		bool prevLock = CursorLock;
-
-		if (Input.GetKeyDown(KeyCode.Escape))
-		{
-			prevLock = false;
-		}
-		else if (Input.GetMouseButtonUp(0))
-		{
-			if (UIManager.Instance != null)
-			{
-				if (UIManager.Instance.ConCanvas != null && !UIManager.Instance.ConCanvas.activeSelf)
-					prevLock = true;
-			}
-			else
-			{
-				prevLock = true;
-			}
-		}
-
-		if (prevLock != CursorLock) 
-			SetCursorLock(prevLock);
 	}
 
 	public Quaternion ClampRotationAroundXAxis(Quaternion q)

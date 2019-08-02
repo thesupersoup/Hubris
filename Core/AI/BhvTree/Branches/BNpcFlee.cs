@@ -66,9 +66,9 @@ namespace Hubris
 
 				if ( a.MovePos != a.NavAgent.destination )
 					a.SetMovePos( a.NavAgent.destination );
-			}
 
-			TurnToward( a, a.MovePos );
+				// TurnToward( a, a.NavAgent.steeringTarget );
+			}
 
 			// Need to include NavAgent.radius or else the Npc won't ever reach the MovePos
 			if ( b.DistMove <= Util.GetSquare( a.Params.StopDist + a.NavAgent.radius ) && a.NavAgent.hasPath )

@@ -56,9 +56,11 @@ namespace Hubris
 			// General
 			_kbList.Add( new KeyBind( KeyCode.None, Command.None ) );
 			_kbList.Add( new KeyBind( KeyCode.Return, Command.Submit ) );
+			_kbList.Add( new KeyBind( KeyCode.Escape, Command.Escape ) );
 			_kbList.Add( new KeyBind( KeyCode.Mouse0, Command.Interact0 ) );
 			_kbList.Add( new KeyBind( KeyCode.Mouse1, Command.Interact1 ) );
 			_kbList.Add( new KeyBind( KeyCode.R, Command.Interact2 ) );
+			_kbList.Add( new KeyBind( KeyCode.E, Command.Interact3 ) );
 
 			// Basic movement
 			_kbList.Add( new KeyBind( KeyCode.W, Command.MoveF ) );

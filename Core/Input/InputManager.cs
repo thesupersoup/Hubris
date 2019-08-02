@@ -46,13 +46,6 @@ namespace Hubris
 		/// InputManager methods
 		///--------------------------------------------------------------------
 
-		public void SetLite( bool lite )
-		{
-			if ( HubrisCore.Instance.Debug )
-				LocalConsole.Instance.Log( "Setting InputManager Lite to " + lite, true );
-			Lite = lite;
-		}
-
 		public void Init( bool lite = false )
 		{
 			KeyMap = new KeyMap();
@@ -123,6 +116,13 @@ namespace Hubris
 			}
 
 			return MoveKey;
+		}
+
+		public void SetLite( bool lite )
+		{
+			if ( HubrisCore.Instance.Debug )
+				LocalConsole.Instance.Log( "Setting InputManager Lite to " + lite, true );
+			Lite = lite;
 		}
 
 		public void FixedUpdate()
@@ -232,7 +232,7 @@ namespace Hubris
 						{
 							Command cmd = KeyMap.CheckKeyCmd( kc );
 
-							if ( cmd == Command.Console || cmd == Command.Submit || cmd == Command.PrevCmd || cmd == Command.NextCmd )
+							if ( cmd == Command.Console || cmd == Command.Escape || cmd == Command.Submit || cmd == Command.PrevCmd || cmd == Command.NextCmd )
 							{
 								if ( Input.GetKeyDown( kc ) )
 								{

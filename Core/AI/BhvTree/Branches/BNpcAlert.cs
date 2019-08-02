@@ -20,6 +20,12 @@ namespace Hubris
 				return b.Status;
 			}
 
+			if ( a.Stats.Wounded )
+			{
+				b.SetStatus( BhvStatus.FAILURE );
+				return b.Status;
+			}
+
 			if ( !b.SeeTarget && b.DistTarget > Util.GetSquare( a.Params.AwareMed ) )
 			{
 				// Debug.Log( "SightCheck failed" );

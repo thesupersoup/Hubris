@@ -20,6 +20,12 @@ namespace Hubris
 				return b.Status;
 			}
 
+			if ( a.Stats.Wounded )
+			{
+				b.SetStatus( BhvStatus.FAILURE );
+				return b.Status;
+			}
+
 			if ( a.TargetEnt?.Stats.IsDead ?? false )
 			{
 				// We don't reset the move here because we still want to investigate what we were hunting
@@ -51,12 +57,26 @@ namespace Hubris
 				return b.Status;
 			}
 
-			if( a.NavAgent.pathStatus == NavMeshPathStatus.PathPartial || a.NavAgent.pathStatus == NavMeshPathStatus.PathInvalid )
+			if ( a.NavAgent.pathStatus == NavMeshPathStatus.PathPartial || a.NavAgent.pathStatus == NavMeshPathStatus.PathInvalid )
 			{
-				StopMove( a );
-				b.SetPathFailed( true );
-				b.SetStatus( BhvStatus.FAILURE );
-				return b.Status;
+				bool failure = false;
+
+				if ( a.NavAgent.pathStatus == NavMeshPathStatus.PathInvalid )
+					failure = true;
+
+				if ( a.NavAgent.pathStatus == NavMeshPathStatus.PathPartial )
+				{
+					if ( Util.CheckDistSqr( a.NavAgent.destination, a.TargetPos ) > Util.GetSquare( a.Params.AtkDist ) )
+						failure = true;
+				}
+
+				if ( failure )
+				{
+					StopMove( a );
+					b.SetPathFailed( true );
+					b.SetStatus( BhvStatus.FAILURE );
+					return b.Status;
+				}
 			}
 
 			if ( a.MovePos == Vector3.zero )

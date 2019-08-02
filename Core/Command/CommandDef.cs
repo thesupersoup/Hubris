@@ -12,9 +12,11 @@
 			// General commands
 			cmds[(int)CmdType.None] = new Command( "Null", "none", CmdType.None );
 			cmds[(int)CmdType.Submit] = new Command( "Submit", "submit", CmdType.Submit, false );
+			cmds[(int)CmdType.Escape] = new Command( "Escape", "escape", CmdType.Escape, false );
 			cmds[(int)CmdType.Interact0] = new Command( "Interact0", "inter0", CmdType.Interact0, true );
 			cmds[(int)CmdType.Interact1] = new Command( "Interact1", "inter1", CmdType.Interact1, false );
 			cmds[(int)CmdType.Interact2] = new Command( "Interact2", "inter2", CmdType.Interact2, false );
+			cmds[(int)CmdType.Interact3] = new Command( "Interact3", "inter3", CmdType.Interact3, false );
 
 			// Basic movement commands
 			cmds[(int)CmdType.MoveF] = new Command( "Move Forward", "movef", CmdType.MoveF, true );

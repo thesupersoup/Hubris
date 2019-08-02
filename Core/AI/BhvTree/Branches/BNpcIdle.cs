@@ -18,7 +18,13 @@ namespace Hubris
 				b.SetStatus( BhvStatus.FAILURE );
 				return b.Status;
 			}
-				
+
+			if ( a.Stats.Wounded )
+			{
+				b.SetStatus( BhvStatus.FAILURE );
+				return b.Status;
+			}
+
 			if (a.MovePos != Vector3.zero)
 			{
 				b.SetStatus( BhvStatus.FAILURE );

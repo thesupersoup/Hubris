@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -45,20 +46,21 @@ namespace Hubris
 
 		// UIManager instance variables
 		[SerializeField]
-		private TextMeshProUGUI _conTxt = null;
+		protected TextMeshProUGUI _conTxt = null;
 		[SerializeField]
-		private TMP_InputField _conIn = null;
+		protected TMP_InputField _conIn = null;
 		[SerializeField]
-		private GameObject _conCan = null;
+		protected GameObject _conCan = null;
 		[SerializeField]
-		private TextMeshProUGUI _devSpd = null;
+		protected TextMeshProUGUI _devSpd = null;
 		[SerializeField]
-		private GameObject _devCan = null;
-		private string _input = null;
-		private List<Msg> _msgList;
-		private List<string> _inputList;
-		private int _inputIndex = 0;        // Last index of input list accessed
-		private int _msgCounter = 0;
+		protected GameObject _devCan = null;
+		protected string _input = null;
+		protected List<Msg> _msgList;
+		protected List<string> _inputList;
+		protected int _inputIndex = 0;        // Last index of input list accessed
+		protected int _msgCounter = 0;
+		protected Coroutine _delayCo = null;
 
 
 		// UIManager properties
@@ -109,6 +111,8 @@ namespace Hubris
 			protected set { _msgCounter = value; }
 		}
 
+		public bool IsConsoleActive => _conCan.activeSelf;
+
 
 		// UIManager methods
 		public override void OnEnable()
@@ -134,6 +138,12 @@ namespace Hubris
 
 			_msgList = new List<Msg>();
 			_inputList = new List<string>();
+		}
+
+		public virtual void Escape()
+		{
+			if ( _conCan.activeSelf )
+				ConsoleToggle();
 		}
 
 		private bool CheckActive(Behaviour b)
@@ -168,22 +178,25 @@ namespace Hubris
 			}
 		}
 
-		public void ConsoleToggle()
+		public virtual void ConsoleToggle()
 		{
 			if (_conCan != null)
 			{
 				bool act = !_conCan.activeSelf;
 				_conCan.SetActive(act);
 
-				if (HubrisPlayer.Instance?.PlayerType == HubrisPlayer.PType.FPS)
+				if ( HubrisPlayer.Instance != null )
 				{
-					HubrisPlayer.Instance.SetMouse(!act);
+					if ( HubrisPlayer.Instance.PlayerType == HubrisPlayer.PType.FPS )
+						EnablePlayerInput( !act );
 				}
-
-				if ( HubrisCore.Instance.Ingame )
+				else
 				{
-					// Enter Lite mode when the console is up, to prevent unwanted input
-					InputManager.Instance?.SetLite( act );
+					if ( HubrisCore.Instance.Ingame )
+					{
+						// Enter Lite mode when the console is up, to prevent unwanted input
+						InputManager.Instance.SetLite( act );
+					}
 				}
 
 				if (_conIn != null)
@@ -207,7 +220,38 @@ namespace Hubris
 			}
 		}
 
-		public void SetInput(string nIn)
+		/// <summary>
+		/// Immediately enable or disable player input
+		/// </summary>
+		public void EnablePlayerInput( bool enable )
+		{
+			if ( HubrisPlayer.Instance != null )
+				HubrisPlayer.Instance.EnablePlayerInput( enable );
+		}
+
+		/// <summary>
+		/// Assumes the player input will be enabled; arguement is delay in seconds to enable
+		/// </summary>
+		public void EnablePlayerInput( float delay )
+		{
+			EnablePlayerInputDelay( true, delay );
+		}
+
+		public void EnablePlayerInputDelay( bool enable, float delay )
+		{
+			if ( _delayCo != null )
+				StopCoroutine( _delayCo );
+
+			_delayCo = StartCoroutine( DelayEnablePlayerInput( enable, delay ) );
+		}
+
+		private IEnumerator DelayEnablePlayerInput( bool enable, float delay )
+		{
+			yield return new WaitForSeconds( delay );
+			EnablePlayerInput( enable );
+		}
+
+		public void SetConsoleInput(string nIn)
 		{
 			if(ConInput != null)
 			{

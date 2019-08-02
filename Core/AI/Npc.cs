@@ -328,6 +328,9 @@ namespace Hubris
 
 		public void SetTargetObj( GameObject obj )
 		{
+			if ( TargetObj == obj )
+				return;
+
 			TargetObj = obj;
 
 			if ( TargetObj == null )
@@ -343,6 +346,9 @@ namespace Hubris
 
 		public void SetTargetObj( GameObject obj, LiveEntity ent )
 		{
+			if ( TargetObj == obj )
+				return;
+
 			TargetObj = obj;
 			TargetEnt = ent;
 

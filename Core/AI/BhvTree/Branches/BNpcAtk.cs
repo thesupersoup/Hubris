@@ -71,7 +71,8 @@ namespace Hubris
 						if ( b.ActionReady )
 						{
 							a.PlaySound( SndT.ATK );
-							a.TargetEnt.TakeDmg( a, (int)a.Params.DamageStats.CommonType, a.Params.DamageStats.CommonAmount, false );
+							if( !HubrisCore.Instance.TrySendDmg(a.TargetObj, a.TargetEnt, (int)a.Params.DamageStats.CommonType, a.Params.DamageStats.CommonAmount, false ) )
+								Debug.LogWarning( $"{a.name} could not send damage to {a.TargetObj.name}" );
 						}
 					}
 

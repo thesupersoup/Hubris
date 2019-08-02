@@ -53,6 +53,8 @@ namespace Hubris
 		[SerializeField]
 		private string _netSendMethod = "Send";             // Method name to send data
 		[SerializeField]
+		private string _menuSceneName = "menu";
+		[SerializeField]
 		protected float _tick = 1.5f;       // Tick time in seconds
 		protected float _timer;
 		protected bool _willCall = false;   // Will call Tick() and LateTick() next Update and LateUpdate(), respectively
@@ -104,6 +106,8 @@ namespace Hubris
 			get { return _netSendMethod; }
 			protected set { _netSendMethod = value; }
 		}
+
+		public string MenuSceneName => _menuSceneName;
 
 		// Moved to SettingsHub
 		public bool Debug => (bool)_con?.Settings?.Debug.Data;
@@ -294,7 +298,7 @@ namespace Hubris
 		}
 
 		/// <summary>
-		/// Attempts to send damage to the specified entity 
+		/// Attempts to send damage to the specified entity; use if you only have the GameObject of the target
 		/// </summary>
 		public virtual bool TrySendDmg( GameObject target, LiveEntity src, int nType, int nDmg, bool nDirect )
 		{
@@ -312,6 +316,19 @@ namespace Hubris
 			return ent.TakeDmg( src, nType, nDmg, nDirect );
 		}
 
+		/// <summary>
+		/// Attempts to send damage to the specified entity; use if you have the LiveEntity UID
+		/// </summary>
+		public virtual bool TrySendDmg( ulong id, int nType, int nDmg, bool nDirect )
+		{
+			LiveEntity ent = TryGetEnt( id );
+
+			if ( ent == null )
+				return false;
+
+			return ent.TakeDmg( null, nType, nDmg, nDirect );
+		}
+
 		public Dictionary<ulong, LiveEntity> GetEntDict()
 		{
 			return _entDict;
@@ -325,11 +342,12 @@ namespace Hubris
 		/// <summary>
 		/// Register the HubrisPlayer in the dictionary and return the unique Id assigned
 		/// </summary>
-		public ulong RegisterPlayer( HubrisPlayer player )
+		public ulong RegisterPlayer( HubrisPlayer player, GameObject obj = null )
 		{
 			ulong id = PullUniqueId();
 
 			_playerDict.Add( id, player );
+			RegisterEnt( player, obj );
 
 			return id;
 		}
@@ -361,6 +379,34 @@ namespace Hubris
 		public void BroadcastSoundEvent( SoundEvent ev )
 		{
 			AcSoundEvent?.Invoke( ev );
+		}
+
+		public virtual void Escape()
+		{
+			if ( Ingame )
+				HubrisPlayer.Instance.Escape();
+			else
+				UIManager.Instance.Escape();
+		}
+
+		public virtual void ClearDicts()
+		{
+			_entDict.Clear();
+			_rootObjDict.Clear();
+			_objToEntDict.Clear();
+			_playerDict.Clear();
+		}
+
+		public virtual void ResetUid()
+		{
+			_uId = 1;	// Uid should start at 1
+		}
+
+		public virtual void LoadScene( string name )
+		{
+			SceneManager.LoadScene( name );
+			ClearDicts();
+			ResetUid();
 		}
 
 		void FixedUpdate()

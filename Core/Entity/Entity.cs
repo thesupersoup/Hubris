@@ -85,6 +85,8 @@ namespace Hubris
 			}
 			else
 				Name = this.gameObject.name;
+
+			_disposed = false;
 		}
 
 		public virtual void CleanUp(bool full = true)

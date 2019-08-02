@@ -207,6 +207,11 @@ namespace Hubris
 			}*/
 		}
 
+		protected void ClearSoundEventList()
+		{
+			_soundEventList.Clear();
+		}
+
 		/// <summary>
 		/// Handles taking damage from another entity; use nDirect true to directly damage health or false to obey restrictions
 		/// </summary>

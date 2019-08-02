@@ -18,6 +18,12 @@ namespace Hubris
 				return b.Status;
 			}
 
+			if ( a.Stats.Wounded )
+			{
+				b.SetStatus( BhvStatus.FAILURE );
+				return b.Status;
+			}
+
 			if ( b.DistTarget <= Util.GetSquare( a.Params.AwareClose ) )
 			{
 				if ( a.Params.Flighty )

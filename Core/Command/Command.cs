@@ -58,7 +58,7 @@ namespace Hubris
 			private set { _cont = value; }
 		}
 
-
+		#region Static Commands
 		///---------------------------------------------------------------------
 		/// 
 		/// Static Command methods for fetching commands by index, type, or 
@@ -66,190 +66,93 @@ namespace Hubris
 		/// 
 		///---------------------------------------------------------------------
 
-		public static Command None
-		{
-			get { return cmdArr[(int)CmdType.None]; }
-		}
+		public static Command None => cmdArr[(int)CmdType.None];
 
-		public static Command Submit
-		{
-			get { return cmdArr[(int)CmdType.Submit]; }
-		}
+		public static Command Submit => cmdArr[(int)CmdType.Submit];
 
-		public static Command Interact0
-		{
-			get { return cmdArr[(int)CmdType.Interact0]; }
-		}
+		public static Command Escape => cmdArr[(int)CmdType.Escape];
 
-		public static Command Interact1
-		{
-			get { return cmdArr[(int)CmdType.Interact1]; }
-		}
+		public static Command Interact0 => cmdArr[(int)CmdType.Interact0];
+
+		public static Command Interact1 => cmdArr[(int)CmdType.Interact1];
 
 		public static Command Interact2 => cmdArr[(int)CmdType.Interact2];
 
-		public static Command MoveF
-		{
-			get { return cmdArr[(int)CmdType.MoveF]; }
-		}
+		public static Command Interact3 => cmdArr[(int)CmdType.Interact3];
 
-		public static Command MoveB
-		{
-			get { return cmdArr[(int)CmdType.MoveB]; }
-		}
+		public static Command MoveF => cmdArr[(int)CmdType.MoveF];
 
-		public static Command MoveL
-		{
-			get { return cmdArr[(int)CmdType.MoveL]; }
-		}
+		public static Command MoveB => cmdArr[(int)CmdType.MoveB];
 
-		public static Command MoveR
-		{
-			get { return cmdArr[(int)CmdType.MoveR]; }
-		}
+		public static Command MoveL => cmdArr[(int)CmdType.MoveL];
 
-		public static Command Jump
-		{
-			get { return cmdArr[(int)CmdType.Jump]; }
-		}
+		public static Command MoveR => cmdArr[(int)CmdType.MoveR];
 
-		public static Command RunHold
-		{
-			get { return cmdArr[(int)CmdType.RunHold]; }
-		}
+		public static Command Jump => cmdArr[(int)CmdType.Jump];
 
-		public static Command RunToggle
-		{
-			get { return cmdArr[(int)CmdType.RunToggle]; }
-		}
+		public static Command RunHold => cmdArr[(int)CmdType.RunHold];
 
-		public static Command CrouchHold
-		{
-			get { return cmdArr[(int)CmdType.CrouchHold]; }
-		}
+		public static Command RunToggle => cmdArr[(int)CmdType.RunToggle];
 
-		public static Command CrouchToggle
-		{
-			get { return cmdArr[(int)CmdType.CrouchToggle]; }
-		}
+		public static Command CrouchHold => cmdArr[(int)CmdType.CrouchHold];
 
-		public static Command Slot1
-		{
-			get { return cmdArr[(int)CmdType.Slot1]; }
-		}
+		public static Command CrouchToggle => cmdArr[(int)CmdType.CrouchToggle];
 
-		public static Command Slot2
-		{
-			get { return cmdArr[(int)CmdType.Slot2]; }
-		}
+		public static Command Slot1 => cmdArr[(int)CmdType.Slot1];
 
-		public static Command Slot3
-		{
-			get { return cmdArr[(int)CmdType.Slot3]; }
-		}
+		public static Command Slot2 => cmdArr[(int)CmdType.Slot2];
 
-		public static Command Slot4
-		{
-			get { return cmdArr[(int)CmdType.Slot4]; }
-		}
+		public static Command Slot3 => cmdArr[(int)CmdType.Slot3];
+
+		public static Command Slot4 => cmdArr[(int)CmdType.Slot4];
 
 		public static Command NextSlot => cmdArr[(int)CmdType.NextSlot];
+
 		public static Command PrevSlot => cmdArr[(int)CmdType.PrevSlot];
 
-		public static Command ChatPublic
-		{
-			get { return cmdArr[(int)CmdType.ChatPublic]; }
-		}
+		public static Command ChatPublic => cmdArr[(int)CmdType.ChatPublic];
 
-		public static Command ChatPrivate
-		{
-			get { return cmdArr[(int)CmdType.ChatPrivate]; }
-		}
+		public static Command ChatPrivate => cmdArr[(int)CmdType.ChatPrivate]; 
 
-		public static Command Console
-		{
-			get { return cmdArr[(int)CmdType.Console]; }
-		}
+		public static Command Console => cmdArr[(int)CmdType.Console];
 
-		public static Command MapKey
-		{
-			get { return cmdArr[(int)CmdType.MapKey]; }
-		}
+		public static Command MapKey => cmdArr[(int)CmdType.MapKey];
 
-		public static Command Disconnect
-		{
-			get { return cmdArr[(int)CmdType.Disconnect]; }
-		}
+		public static Command Disconnect => cmdArr[(int)CmdType.Disconnect];
 
-		public static Command Quit
-		{
-			get { return cmdArr[(int)CmdType.Quit]; }
-		}
+		public static Command Quit => cmdArr[(int)CmdType.Quit];
 
-		public static Command ConClear
-		{
-			get { return cmdArr[(int)CmdType.ConClear]; }
-		}
+		public static Command ConClear => cmdArr[(int)CmdType.ConClear];
 
-		public static Command SetVar
-		{
-			get { return cmdArr[(int)CmdType.SetVar]; }
-		}
+		public static Command SetVar => cmdArr[(int)CmdType.SetVar];
 
-		public static Command PrevCmd
-		{
-			get { return cmdArr[(int)CmdType.PrevCmd]; }
-		}
+		public static Command PrevCmd => cmdArr[(int)CmdType.PrevCmd];
 
-		public static Command NextCmd
-		{
-			get { return cmdArr[(int)CmdType.NextCmd]; }
-		}
+		public static Command NextCmd => cmdArr[(int)CmdType.NextCmd];
 
-		public static Command RotLeft
-		{
-			get { return cmdArr[(int)CmdType.RotLeft]; }
-		}
+		public static Command RotLeft => cmdArr[(int)CmdType.RotLeft];
 
-		public static Command RotRight
-		{
-			get { return cmdArr[(int)CmdType.RotRight]; }
-		}
+		public static Command RotRight => cmdArr[(int)CmdType.RotRight];
 
-		public static Command Net_Send
-		{
-			get { return cmdArr[(int)CmdType.Net_Send]; }
-		}
+		public static Command Net_Send => cmdArr[(int)CmdType.Net_Send];
 
-		public static Command Net_Send_Udp
-		{ 
-			get { return cmdArr[(int)CmdType.Net_Send_Udp]; }
-		}
+		public static Command Net_Send_Udp => cmdArr[(int)CmdType.Net_Send_Udp];
 
-		public static Command Net_Send_Tcp
-		{
-			get { return cmdArr[(int)CmdType.Net_Send_Tcp]; }
-		}
+		public static Command Net_Send_Tcp => cmdArr[(int)CmdType.Net_Send_Tcp];
 
-		public static Command Net_Connect
-		{
-			get { return cmdArr[(int)CmdType.Net_Connect]; }
-		}
+		public static Command Net_Connect => cmdArr[(int)CmdType.Net_Connect]; 
 
-		public static Command Version
-		{
-			get { return cmdArr[(int)CmdType.Version]; }
-		}
+		public static Command Version => cmdArr[(int)CmdType.Version];
 
-		public static Command Net_Info
-		{
-			get { return cmdArr[(int)CmdType.Net_Info]; }
-		}
+		public static Command Net_Info => cmdArr[(int)CmdType.Net_Info];
 
-		public static int Num_Cmds
-		{
-			get { return (int)CmdType.Num_Cmds; }
-		}
+		public static int Num_Cmds => (int)CmdType.Num_Cmds;
+
+		#endregion Static Commands
+
+		///---------------------------------------------------------------------
+		/// Command methods
+		///---------------------------------------------------------------------
 
 		internal Command()
 		{

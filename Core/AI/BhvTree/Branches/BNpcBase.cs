@@ -344,9 +344,10 @@ namespace Hubris
 					}
 
 					float maxDist = a.Params.AwareMax;
+					float entDist = Util.CheckDistSqr( a.transform.position, ent.transform.position );
 
 					// Check if it's beyond our max awareness distance
-					if ( !Util.CheckDistSqr( a.transform.position, ent.transform.position, maxDist ) )
+					if ( entDist > Util.GetSquare( maxDist ) )
 					{
 						a.RemoveList.Add( id );
 						continue;
@@ -359,13 +360,13 @@ namespace Hubris
 					// If we haven't set our closest entity info yet
 					if ( fresh )
 					{
-						closestEntDistSqr = maxDist;
+						closestEntDistSqr = entDist;
 						closestEnt = ent;
 						fresh = false;
 					}
 					else
 					{
-						if ( maxDist < closestEntDistSqr )
+						if ( entDist < closestEntDistSqr )
 						{
 							closestEntDistSqr = maxDist;
 							closestEnt = ent;
@@ -380,7 +381,7 @@ namespace Hubris
 						a.SetTargetObj( closestEnt.gameObject, closestEnt );
 					else
 					{
-						if ( a.TargetObj != closestEnt.gameObject )
+						if ( a.TargetObj != closestEnt.gameObject && closestEntDistSqr < ( a.TargetDistSqr * a.Params.ProxPct ) )
 							a.SetTargetObj( closestEnt.gameObject, closestEnt );
 					}
 				}

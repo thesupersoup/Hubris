@@ -54,6 +54,11 @@ namespace Hubris
 			}
 		}
 
+		public override void Escape()
+		{
+			// Implement escape behavior, like open a menu or step backward
+		}
+
 		public override void Interact0()   // For RTSPlayer, Interact0 is contextually select or move
 		{
 			if(_pCam != null)
@@ -86,6 +91,11 @@ namespace Hubris
 		public override void Interact2()
 		{
 			
+		}
+
+		public override void Interact3()
+		{
+			// Override for unique behavior
 		}
 
 		// Basic Movement

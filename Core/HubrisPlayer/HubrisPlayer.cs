@@ -186,9 +186,11 @@ namespace Hubris
 		}
 
 		// Player methods
+		public abstract void Escape();
 		public abstract void Interact0();
 		public abstract void Interact1();
 		public abstract void Interact2();
+		public abstract void Interact3();
 		public abstract void Move(InputManager.Axis ax, float val);
 		public abstract void SpecMove(SpecMoveType nType, InputManager.Axis ax, float val);
 		public abstract void Rotate(InputManager.Axis ax, float val);
@@ -211,6 +213,7 @@ namespace Hubris
 			if ( Instance == null )
 			{
 				Instance = this;
+				_disposing = false;
 			}
 			else if ( Instance != null && Instance != this )
 			{
@@ -222,7 +225,7 @@ namespace Hubris
 
 		protected void InitHubrisPlayer()
 		{
-			_uId = HubrisCore.Instance.RegisterPlayer( this );
+			_uId = HubrisCore.Instance.RegisterPlayer( this, this.gameObject );
 			this.gameObject.name += "_" + _uId;
 
 			if ( !HubrisCore.Instance?.Ingame ?? false )
@@ -239,6 +242,15 @@ namespace Hubris
 			EntType = EntityType.PLAYER;
 
 			SpeedTarget = Movement.SpeedLow;
+		}
+
+		/// <summary>
+		/// Sets the mouse lock and InputManager appropriately for the boolean arguement
+		/// </summary>
+		public virtual void EnablePlayerInput( bool enable = true )
+		{
+			SetMouse( enable );
+			HubrisCore.Instance.Input.SetLite( !enable );
 		}
 
 		public virtual void SetActiveSlot( int nSlot, bool trySkip = false )
@@ -334,8 +346,6 @@ namespace Hubris
 		{
 			if (_mLook.CursorLock)
 				_mLook.LookRotation(_gObj.transform, _pCam.transform);
-			else
-				_mLook.UpdateCursorLock();
 		}
 
 		public void ToggleMouse()
@@ -368,11 +378,21 @@ namespace Hubris
 			
 		}
 
+		public override void OnDestroy()
+		{
+			if ( HubrisCore.Instance != null )
+				HubrisCore.Instance.SetIngame( false );
+
+			CleanUp();
+		}
+
 		public override void CleanUp(bool full = true)
 		{
 			if (!this._disposed)
 			{
 				_disposing = true;
+
+				base.CleanUp();
 
 				if (full)
 				{
@@ -387,9 +407,6 @@ namespace Hubris
 					_act = false;
 					_name = null;
 				}
-
-				// UnsubTick();    // Need to Unsubscribe from Tick Event to prevent errors
-				_disposed = true;
 			}
 		}
 	}

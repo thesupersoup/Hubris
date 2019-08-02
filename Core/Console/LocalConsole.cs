@@ -90,6 +90,10 @@ namespace Hubris
 
 					switch ( cmd.Type )
 					{
+						
+						case CmdType.Escape:
+							HubrisCore.Instance.Escape();
+							break;
 						case CmdType.Interact0:
 							HubrisPlayer.Instance.Interact0();
 							break;
@@ -98,6 +102,9 @@ namespace Hubris
 							break;
 						case CmdType.Interact2:
 							HubrisPlayer.Instance.Interact2();
+							break;
+						case CmdType.Interact3:
+							HubrisPlayer.Instance.Interact3();
 							break;
 						case CmdType.Slot1:
 							HubrisPlayer.Instance.SetActiveSlot( 0 );
@@ -411,7 +418,7 @@ namespace Hubris
 				{
 					if ( UIManager.Instance != null )
 					{
-						UIManager.Instance.AddMsg( "*WARNING* " + msg );
+						UIManager.Instance.AddMsg( "<color=#FFFF00>" + msg + "</color>" );
 					}
 
 					if ( unity )
@@ -430,7 +437,7 @@ namespace Hubris
 				{
 					if ( UIManager.Instance != null )
 					{
-						UIManager.Instance.AddMsg( "*ERROR* " + msg );
+						UIManager.Instance.AddMsg( "<color=#FF0000>" + msg + "</color>" );
 					}
 
 					if ( unity )

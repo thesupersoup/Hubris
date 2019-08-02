@@ -41,6 +41,7 @@ namespace Hubris
 		public bool IsAsleep => Stamina <= 0.0f;
 		public int Health { get { return _hp; } protected set { _hp = value; } }
 		public int HealthMax { get { return _hpMax; } protected set { _hpMax = value; } }
+		public bool Wounded => Health < HealthMax;
 		public int Armor { get { return _ap; } protected set { _ap = value; } }
 		public int ArmorMax { get { return _apMax; } protected set { _apMax = value; } }
 		public int Stamina { get { return _sta; } protected set { _sta = value; } }

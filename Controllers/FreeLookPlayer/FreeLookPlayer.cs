@@ -50,6 +50,11 @@ namespace Hubris
 			}
 		}
 
+		public override void Escape()
+		{
+			// Implement escape behavior, like open a menu or step backward
+		}
+
 		/// <summary>
 		/// Primary
 		/// </summary>
@@ -70,6 +75,11 @@ namespace Hubris
 		/// Tertiary
 		/// </summary>
 		public override void Interact2()
+		{
+			// Override for unique behavior
+		}
+
+		public override void Interact3()
 		{
 			// Override for unique behavior
 		}

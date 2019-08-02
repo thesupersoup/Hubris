@@ -9,9 +9,11 @@
 		// General commands
 		None = 0,
 		Submit,
+		Escape,
 		Interact0,
 		Interact1,
 		Interact2,
+		Interact3,
 
 		// Basic movement commands
 		MoveF,

@@ -112,6 +112,12 @@ namespace Hubris
 			}
 		}
 
+		public override void Escape()
+		{
+			if ( UIManager.Instance.IsConsoleActive )
+				UIManager.Instance.ConsoleToggle();
+		}
+
 		/// <summary>
 		/// Primary fire
 		/// </summary>
@@ -144,6 +150,14 @@ namespace Hubris
 		/// Reload
 		/// </summary>
 		public override void Interact2()
+		{
+			// Override for unique behavior
+		}
+
+		/// <summary>
+		/// Use
+		/// </summary>
+		public override void Interact3()
 		{
 			// Override for unique behavior
 		}
@@ -448,8 +462,8 @@ namespace Hubris
 
 		public override void OnDestroy()
 		{
-			if ( Instance == this )
-				Instance = null;
+			base.OnDestroy();
+			CleanUp();
 		}
 	}
 }

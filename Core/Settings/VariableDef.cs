@@ -30,7 +30,7 @@
 			vars[(int)VarType.Invis] = new Variable( "invis", "Set player invisible to AI", VarData.BOOL, VarType.Invis, SettingsHub.DEF_INVIS );
 
 			// ??
-			// vars[(int)VarType.EasterEgg] = new Variable( LocalConsole.SPEC_CHAR + "easteregg", "This is how to make a special command", VarData.BOOL, VarType.EasterEgg, false );
+			vars[(int)VarType.Cheats] = new Variable( "cheats", "Enable restricted commands", VarData.BOOL, VarType.Cheats, false );
 
 			return vars;
 		}

@@ -49,10 +49,6 @@ namespace Hubris
 		///--------------------------------------------------------------------
 
 		[SerializeField]
-		private string _netLibType = "Telepathy.Client";    // Fully qualified networking class name
-		[SerializeField]
-		private string _netSendMethod = "Send";             // Method name to send data
-		[SerializeField]
 		private string _menuSceneName = "menu";
 		[SerializeField]
 		protected float _tick = 1.5f;       // Tick time in seconds
@@ -78,9 +74,6 @@ namespace Hubris
 
 		private InputManager _im = null;
 
-		[SerializeField]
-		private HubrisNet _net;
-
 		///--------------------------------------------------------------------
 		/// HubrisCore actions
 		///--------------------------------------------------------------------
@@ -94,18 +87,6 @@ namespace Hubris
 		///--------------------------------------------------------------------
 		/// HubrisCore properties
 		///--------------------------------------------------------------------
-
-		public string NetLibType
-		{
-			get { return _netLibType; }
-			protected set { _netLibType = value; }
-		}
-
-		public string NetSendMethod
-		{
-			get { return _netSendMethod; }
-			protected set { _netSendMethod = value; }
-		}
 
 		public string MenuSceneName => _menuSceneName;
 
@@ -125,7 +106,6 @@ namespace Hubris
 
 		public InputManager Input => _im;
 
-		public HubrisNet Network => _net;
 
 		///--------------------------------------------------------------------
 		/// HubrisCore methods
@@ -147,17 +127,6 @@ namespace Hubris
 
 			if ( Instance == this )
 			{
-				// Initialize Networking
-				if ( _net == null )
-				{
-					GetComponent<HubrisNet>();
-
-					if ( _net == null )
-					{
-						this.gameObject.AddComponent<HubrisNet>();
-					}
-				}
-
 				_timer = 0.0f;
 
 				// Init Console before other objects
@@ -188,8 +157,7 @@ namespace Hubris
 
 		public void NetInfoPrint()
 		{
-			Console.Log( "NetLibType: " + NetLibType );
-			Console.Log( "NetSendMethod: " + NetSendMethod );
+			Console.Log( "No Hubris specific networking info to report" );
 		}
 
 		public void DebugToggle()
@@ -305,9 +273,6 @@ namespace Hubris
 			if ( target == null )
 				return false;
 
-			if ( src == null )
-				return false;
-
 			LiveEntity ent = TryGetEnt( target );
 
 			if ( ent == null )
@@ -344,10 +309,16 @@ namespace Hubris
 		/// </summary>
 		public ulong RegisterPlayer( HubrisPlayer player, GameObject obj = null )
 		{
+			if ( player == null )
+				return 0;
+
 			ulong id = PullUniqueId();
+			GameObject root = player.transform.root.gameObject;
 
 			_playerDict.Add( id, player );
-			RegisterEnt( player, obj );
+			_entDict.Add( id, player );
+			_rootObjDict.Add( player, root );
+			_objToEntDict.Add( root, player );
 
 			return id;
 		}
@@ -357,7 +328,17 @@ namespace Hubris
 		/// </summary>
 		public bool UnregisterPlayer( ulong id )
 		{
-			return _playerDict.Remove( id );
+			LiveEntity ent = TryGetEnt( id );
+
+			if ( ent == null )
+				return false;
+
+			GameObject root = TryGetRootObj( id );
+
+			if ( root == null )
+				return false;
+
+			return _playerDict.Remove( id ) && _entDict.Remove( id ) && _objToEntDict.Remove( root ) && _rootObjDict.Remove( ent );
 		}
 
 		/// <summary>

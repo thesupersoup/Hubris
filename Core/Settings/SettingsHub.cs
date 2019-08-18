@@ -52,8 +52,7 @@ namespace Hubris
 		public Variable Useaccel => varArr[(int)VarType.Useaccel];
 		public Variable Debug => varArr[(int)VarType.Debug];
 		public Variable Invis => varArr[(int)VarType.Invis];
-		public Variable Dork => varArr[(int)VarType.Dork];
-		public Variable N0thing => varArr[(int)VarType.N0thing];
+		public Variable Cheats => varArr[(int)VarType.Cheats];
 
 		#endregion QuickVariables
 
@@ -182,11 +181,8 @@ namespace Hubris
 						if ( HubrisPlayer.Instance != null )
 							HubrisPlayer.Instance.Stats.SetInvisible( (bool)varArr[(int)VarType.Invis].Data );
 						break;
-					case VarType.Dork:
-						// Nowhere to send it yet
-						break;
-					case VarType.N0thing:
-						// Nowhere to send it yet
+					case VarType.Cheats:
+						// Automatically handled, nothing to do
 						break;
 					default:
 						if( (int)nType < 0 || nType >= VarType.Num_Vars )

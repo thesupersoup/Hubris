@@ -54,6 +54,8 @@ namespace Hubris
 		[SerializeField]
 		protected TextMeshProUGUI _devSpd = null;
 		[SerializeField]
+		protected TextMeshProUGUI _devGrnd = null;
+		[SerializeField]
 		protected GameObject _devCan = null;
 		protected string _input = null;
 		protected List<Msg> _msgList;
@@ -146,7 +148,7 @@ namespace Hubris
 				ConsoleToggle();
 		}
 
-		private bool CheckActive(Behaviour b)
+		protected bool CheckActive(Behaviour b)
 		{
 			if (b != null)
 				return b.enabled;
@@ -156,26 +158,34 @@ namespace Hubris
 
 		public void DevSet(bool nAct)
 		{
-			if (_devCan != null)
-			{
-				_devCan.SetActive(nAct);
-			}
+			if ( _devCan == null )
+				return;
+
+			_devCan.SetActive(nAct);
+		}
+
+		public void DevSetGrnd( Vector3 vect )
+		{
+			if ( _devGrnd == null )
+				return;
+
+			_devGrnd.text = vect.ToString();
 		}
 
 		public void DevToggle()
 		{
-			if(_devCan != null)
-			{
-				_devCan.SetActive(!_devCan.activeSelf);
-			}
+			if ( _devCan == null )
+				return;
+
+			_devCan.SetActive(!_devCan.activeSelf);
 		}
 
 		public void ConsoleSet(bool nAct)
 		{
-			if(_conCan != null)
-			{
-				_conCan.SetActive(nAct);
-			}
+			if ( _conCan == null )
+				return;
+
+			_conCan.SetActive(nAct);
 		}
 
 		public virtual void ConsoleToggle()
@@ -245,7 +255,7 @@ namespace Hubris
 			_delayCo = StartCoroutine( DelayEnablePlayerInput( enable, delay ) );
 		}
 
-		private IEnumerator DelayEnablePlayerInput( bool enable, float delay )
+		protected virtual IEnumerator DelayEnablePlayerInput( bool enable, float delay )
 		{
 			yield return new WaitForSeconds( delay );
 			EnablePlayerInput( enable );
@@ -339,7 +349,7 @@ namespace Hubris
 			}
 		}
 
-		private void ProcessMessages()
+		protected virtual void ProcessMessages()
 		{
 			if (MsgList != null && MsgList.Count > 0)
 				AddConsoleText(MsgList.ToArray());
@@ -430,7 +440,7 @@ namespace Hubris
 			}
 		}
 
-		private void ClearExcess(int nLen)  // nLen is the num of chars to clear
+		protected void ClearExcess(int nLen)  // nLen is the num of chars to clear
 		{
 			_conTxt.text = _conTxt.text.Substring(nLen);    // Trim the oldest text first
 		}
@@ -465,17 +475,17 @@ namespace Hubris
 			// Handle HUD color change here
 		}
 
-		void Update()
+		protected virtual void Update()
 		{
-			if(DevSpd != null && HubrisPlayer.Instance != null)
+			if( DevSpd != null )
 			{
-				DevSpd.text = HubrisPlayer.Instance.Speed.ToString();
+				DevSpd.text = HubrisPlayer.Instance != null ? HubrisPlayer.Instance.Speed.ToString() : "No Player Instance";
 			}
 		}
 
-		void LateUpdate()
+		protected virtual void LateUpdate()
 		{
-			if (Active)
+			if ( Active )
 			{
 				ProcessMessages();
 			}

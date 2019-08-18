@@ -202,6 +202,12 @@ namespace Hubris
 						case CmdType.Net_Info:
 							HubrisCore.Instance.NetInfoPrint();
 							break;
+						case CmdType.Kill:
+							HubrisPlayer.Instance.Stats.SetHealth( 0 );
+							break;
+						case CmdType.Give:
+							ProcessRestricted( cmd, data );
+							break;
 						default:
 							break;
 					}
@@ -336,6 +342,31 @@ namespace Hubris
 			}
 
 			_setVarTemp = Settings.None;	// Reset temp variable
+		}
+
+		public void ProcessRestricted( Command cmd, string data )
+		{
+			if( !(bool)Settings.Cheats.Data )
+			{
+				Log( "Cheats are currently disabled" );
+				return;
+			}
+
+			if ( data == null || data.Length == 0 )
+			{
+				Log( "Invalid data" );
+				return;
+			}
+
+			switch ( cmd.Type )
+			{
+				case CmdType.Give:
+					if( HubrisPlayer.Instance is FPSPlayer fps )
+						fps.TryGetWeapon( data );
+					break;
+				default:
+					break;
+			}
 		}
 
 		public void SendData( string nData, bool reliable )

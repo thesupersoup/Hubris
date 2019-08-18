@@ -7,7 +7,7 @@ namespace Hubris
 	/// </summary>
 	public interface IItem
 	{
-		void Interact0( Camera pCam, LayerMask mask, LiveEntity owner );
-		void Interact1( Camera pCam, LayerMask mask, LiveEntity owner );
+		bool Interact0( Camera pCam, LayerMask mask, LiveEntity owner );
+		bool Interact1( Camera pCam, LayerMask mask, LiveEntity owner );
 	}
 }

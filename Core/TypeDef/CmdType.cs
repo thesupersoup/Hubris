@@ -59,9 +59,11 @@
 		Net_Connect,
 		Net_Disconnect,
 
-		// Developer commands
+		// Developer/cheat commands
 		Version,
 		Net_Info,
+		Kill,
+		Give,
 
 		Num_Cmds	// Keep at the end for handy enum length hack
 	}

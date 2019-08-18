@@ -14,14 +14,16 @@ namespace Hubris
 
 		public float Weight { get { return _weight; } protected set { _weight = value; } }
 
-		public virtual void Interact0( Camera pCam, LayerMask mask, LiveEntity owner )
+		public virtual bool Interact0( Camera pCam, LayerMask mask, LiveEntity owner )
 		{
 			// Override with unique implementation
+			return true;
 		}
 
-		public virtual void Interact1( Camera pCam, LayerMask mask, LiveEntity owner )
+		public virtual bool Interact1( Camera pCam, LayerMask mask, LiveEntity owner )
 		{
 			// Override with unique implementation
+			return true;
 		}
 	}
 }

@@ -319,12 +319,16 @@ namespace Hubris
 						continue;
 					}
 
-					// Check if the entity is dead or invisible
-					if ( ent.Stats.IsDead || ent.Stats.Invisible )
+					// Check if the entity is invisible
+					if ( ent.Stats.Invisible )
+					{
+						continue;
+					}
+
+					// Check if the entity is dead
+					if ( ent.Stats.IsDead )
 					{
 						// If the entity is dead and the same type as this one, set behavior to aggro or hunt or something
-
-						a.RemoveList.Add( id );
 						continue;
 					}
 
@@ -407,7 +411,7 @@ namespace Hubris
 		}
 
 		/// <summary>
-		/// Attempts to remove the specified entity from the TrackList, checks for null entity and sets TrackList reset flag if one is found
+		/// Attempts to remove the specified entity from the TrackList
 		/// </summary>
 		public void Untrack( Npc a, ulong id )
 		{

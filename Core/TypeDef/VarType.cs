@@ -27,7 +27,7 @@
 		Invis,
 
 		// ??
-		// EasterEgg,
+		Cheats,
 
 		Num_Vars	// Keep at the end for handy enum length hack
 	}

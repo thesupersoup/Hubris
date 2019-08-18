@@ -44,24 +44,5 @@ namespace Hubris
 		///	WeaponManager methods
 		///--------------------------------------------------------------------
 
-		public int GetActiveAmmoCount()
-		{
-			if ( ActiveWeapon is WeaponFirearm firearm )
-			{
-				return firearm.Ammo;
-			}
-			else
-				return -1;
-		}
-
-		public int GetActiveAmmoMax()
-		{
-			if ( ActiveWeapon is WeaponFirearm firearm )
-			{
-				return firearm.AmmoMax;
-			}
-			else
-				return -1;
-		}
 	}
 }

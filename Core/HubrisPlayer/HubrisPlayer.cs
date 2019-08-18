@@ -8,8 +8,7 @@ namespace Hubris
 	public abstract class HubrisPlayer : LiveEntity
 	{
 		// HubrisPlayer constants
-		public const float DIST_CHK_GROUND = 2.0f, ACCEL_THRESHOLD = 0.1f, DOT_THRESHOLD = -0.75f,
-							SND_PLAYER_SMALL_DIST = 30.0f, SND_PLAYER_MED_DIST = 60.0f, SND_PLAYER_LARGE_DIST = 80.0f;
+		public const float DIST_CHK_GROUND = 2.0f, ACCEL_THRESHOLD = 0.1f, DOT_THRESHOLD = -0.75f;
 
 		// Player Type; whether First Person, Free Look, or others
 		public enum PType { NONE = 0, FPS, FL, RTS, NUM_TYPES };
@@ -128,7 +127,7 @@ namespace Hubris
 			get { return _pState; }
 		}
 
-		public bool IsGrounded => _pCon.isGrounded;
+		public virtual bool IsGrounded => _pCon.isGrounded;
 
 		public Vector3 Velocity
 		{
@@ -260,6 +259,10 @@ namespace Hubris
 
 		public void SetSpeedTarget( float nTar )
 		{
+			// Only change the speed target when a movement key is being pressed
+			if ( !_moving )
+				return;
+
 			SpeedTarget = nTar;
 		}
 

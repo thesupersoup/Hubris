@@ -50,11 +50,6 @@ namespace Hubris
 			TargetObj = nObj;
 		}
 
-		public virtual void SetMovePos(Vector3 nPos)
-		{
-			MovePos = nPos;
-		}
-
 		public virtual void CheckMove()
 		{
 			if (MovePos != Vector3.zero)

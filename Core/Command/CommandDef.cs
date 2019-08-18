@@ -65,6 +65,8 @@
 			// Developer commands
 			cmds[(int)CmdType.Version] = new Command( "Display version info", "version", CmdType.Version, false );
 			cmds[(int)CmdType.Net_Info] = new Command( "Display networking info", "net_info", CmdType.Net_Info, false );
+			cmds[(int)CmdType.Kill] = new Command( "Kill local player", "kill", CmdType.Kill, false );
+			cmds[(int)CmdType.Give] = new Command( "Give item or weapon", "give", CmdType.Give, false );
 
 			// SetVar commands
 

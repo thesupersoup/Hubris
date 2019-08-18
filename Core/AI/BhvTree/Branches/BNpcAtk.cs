@@ -30,6 +30,7 @@ namespace Hubris
 				if ( b.AnimInfo.IsName( AnimString.ATK ) )
 					ResetAnimTrigger( a, AnimString.ATK );
 
+				StopMove( a );
 				b.SetStatus( BhvStatus.FAILURE );
 				return b.Status;
 			}
@@ -51,7 +52,7 @@ namespace Hubris
 				TurnToward( a, targetPos );
 			}
 
-			a.SetMovePos( targetPos );
+			a.SetMovePos( a.TargetPos );
 
 			float nSpd = a.Params.MoveSpd;
 
@@ -106,8 +107,8 @@ namespace Hubris
 				CheckEnv( a, b );
 			}
 
-			// if ( a.NavAgent.destination != a.MovePos )
-			StartMove( a, a.MovePos );
+			if ( a.NavAgent.destination != a.MovePos )
+				StartMove( a, a.MovePos );
 
 			b.SetPrevPos( a.transform.position );
 

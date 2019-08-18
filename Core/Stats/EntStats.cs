@@ -64,7 +64,7 @@ namespace Hubris
 		/// EntStats methods
 		///--------------------------------------------------------------------
 
-		public EntStats Init( int nHp, int nHpMax, int nAp, int nApMax, int nSt, int nStMax, bool nInvis = false, bool nDemi = false )
+		public EntStats ( int nHp, int nHpMax, int nAp, int nApMax, int nSt, int nStMax, bool nInvis = false, bool nDemi = false )
 		{
 			Health = nHp;
 			HealthMax = nHpMax;
@@ -74,7 +74,21 @@ namespace Hubris
 			StaminaMax = nStMax;
 			Invisible = nInvis;
 			Demigod = nDemi;
-			return this;
+		}
+
+		public void SetHealth ( int hp )
+		{
+			Health = hp;
+		}
+
+		public void SetArmor ( int ap )
+		{
+			Armor = ap;
+		}
+
+		public void SetStamina ( int sp )
+		{
+			Stamina = sp;
 		}
 
 		public void SetInvisible( bool invis )
@@ -163,11 +177,6 @@ namespace Hubris
 				Stamina = 0;
 
 			return true;
-		}
-
-		public static EntStats GetDefault()
-		{
-			return new EntStats().Init( 100, 100, 0, 100, 100, 100 );
 		}
 		#endregion Methods
 	}

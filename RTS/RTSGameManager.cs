@@ -33,7 +33,7 @@ namespace Hubris
 			get { return _select; }
 		}
 
-		public static RTSGameManager Instance
+		public static new RTSGameManager Instance
 		{
 			get { return (RTSGameManager)HubrisCore.Instance.GM; }
 		}

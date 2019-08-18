@@ -420,6 +420,11 @@ namespace Hubris
 					if ( !Util.CheckDistSqr( origin, this.transform.position, rad ) )
 						continue;
 
+					// Check if we're already interested in something closer to us
+					if ( TargetPos != Vector3.zero )
+						if ( Util.CheckDistSqr( origin, this.transform.position ) > Util.CheckDistSqr( TargetPos, this.transform.position ) )
+							continue;
+
 					LiveEntity ent = SoundEventList[i].Source;
 					GameObject src = SoundEventList[i].Source?.gameObject;
 					SoundIntensity intensity = SoundEventList[i].Intensity;
@@ -510,10 +515,6 @@ namespace Hubris
 
 			// Check if we found ourselves
 			if ( ent.UniqueId == UniqueId )
-				return;
-
-			// Ignore if the entity is dead or invisible
-			if ( ent.Stats.IsDead || ent.Stats.Invisible )
 				return;
 
 			TrackEntity( ent );

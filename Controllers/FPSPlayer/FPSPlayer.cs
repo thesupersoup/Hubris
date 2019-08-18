@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-
 namespace Hubris
 {
 	public class FPSPlayer : HubrisPlayer
@@ -17,20 +16,28 @@ namespace Hubris
 		[SerializeField]
 		[Tooltip("Airborne speed acceleration per fixed update")]
 		[Range(0.0f, MoveParams.MAX_RANGE)]
-		protected float _airAccel = 0.15f;
+		protected float _airAccel = 0.04f;
 		[SerializeField]
 		[Tooltip("Airborne speed decay per fixed update")]
 		[Range(0.0f, MoveParams.MAX_RANGE)]
-		protected float _airDecay = 0.05f;
+		protected float _airDecay = 0.005f;
 		[SerializeField]
 		[Tooltip("Coefficient of speed lost when landing")]
 		[Range(0.0f, MoveParams.MAX_RANGE)]
-		protected float _speedLoss = 0.4f;
+		protected float _speedLoss = 0.1f;
 		[SerializeField]
 		[Tooltip("Coefficient of stickiness when landing while still moving")]
 		[Range(0.0f, MoveParams.MAX_RANGE)]
-		protected float _stickiness = 0.55f;
+		protected float _stickiness = 0.7f;
 
+		[SerializeField]
+		[Tooltip( "Should the player take falling damage?" )]
+		protected bool _fallDamage = true;
+
+		// Distance to trigger falling damage
+		private float _fallDistThreshold = 5.5f;
+
+		protected float _fallStartY = 0.0f;
 
 		// Test variables
 		[SerializeField]
@@ -162,6 +169,11 @@ namespace Hubris
 			// Override for unique behavior
 		}
 
+		public virtual void TryGetWeapon( string name )
+		{
+			Debug.LogWarning( "Base FPSPlayer TryGetWeapon called" );
+		}
+
 		public override void Move(InputManager.Axis ax, float val)
 		{
 			if (Active)
@@ -203,18 +215,17 @@ namespace Hubris
 			switch (nType)
 			{
 				case SpecMoveType.JUMP:
+					if ( _slopeChk >= _pCon.slopeLimit )
+						return;
 
 					if (IsGrounded)
 					{
-						if (_slopeChk < _pCon.slopeLimit)
-						{
-							// Move this flag to a Jump/Air state
-							_jumping = true;
-							SpeedTarget = CheckSpeedTarget();
-							_canModSpdTgt = false;
+						// Move this flag to a Jump/Air state
+						_jumping = true;
+						SpeedTarget = CheckSpeedTarget();
+						_canModSpdTgt = false;
 
-							Move(ax, val);
-						}
+						Move(ax, val);
 					}
 					break;
 				default:    // Default to regular move
@@ -249,168 +260,218 @@ namespace Hubris
 
 		protected override void ProcessGravity()
 		{
-			if (Active)
+			if ( Active )
 			{
-				if (!IsGrounded)
+				if ( !IsGrounded )
 				{
+					_gravVector += Physics.gravity * Movement.GravFactor * Time.fixedDeltaTime;
+
 					// Move this flag to a Jump/Air state
 					_canModSpdTgt = false;
-					_gravVector += Physics.gravity * Movement.GravFactor * Time.fixedDeltaTime;
+
+					if ( _prevGrounded )
+						_fallStartY = this.transform.position.y;
 				}
 				else
 				{
-					_gravVector = Vector3.zero;
+					if ( _slopeChk >= _pCon.slopeLimit )
+					{
+						_gravVector += _grndChk.normal * Movement.GravBase * Time.fixedDeltaTime;
+						return;
+					}
+
+					// Set gravVector definitively when grounded
+					_gravVector = new Vector3( 0.0f, -Movement.GravBase, 0.0f );
 
 					// Move this flag to a Jump/Air state
 					_canModSpdTgt = true;
 
 					// If we were previously airborne
-					if (!_prevGrounded)
+					if ( !_prevGrounded )
 					{
 						// Emit landing sound
-						EmitSoundEvent( new SoundEvent( this, this.transform.position, SND_PLAYER_MED_DIST, SoundIntensity.NOTEWORTHY ) );
-
-						if (!_moving)
-						{
-							Speed *= (MoveParams.MAX_RANGE - SpeedLoss);
-						}
-						else
-						{
-							Speed *= ((MoveParams.MAX_RANGE - SpeedLoss) * (MoveParams.MAX_RANGE - Stickiness));
-						}
+						EmitSoundEvent( new SoundEvent( this, this.transform.position, 60.0f, SoundIntensity.NOTEWORTHY ) );
+						FallDmgCheck();
 					}
+				}
 
-					if (!_jumping)
-					{
-						if (_slopeChk < _pCon.slopeLimit)
-						{
-							_gravVector.y = -Movement.GravBase;
-						}
-						else
-						{
-							_gravVector += _grndChk.normal;
-							_gravVector.y = 0.0f;
-						}
-					}
-					else
-					{
-						_gravVector.y = Movement.JumpSpd;
+				if( _jumping )
+				{
+					_gravVector.y = Movement.JumpSpd;
 
-						// Move this flag to a Jump/Air state
-						_jumping = false;
-					}
+					// Move this flag to a Jump/Air state
+					_jumping = false;
+
+					return;
 				}
 			}
 		}
 
+		protected virtual void FallDmgCheck ()
+		{
+			float fallDist = _fallStartY - this.transform.position.y;
+			if ( fallDist > 0.0f && fallDist >= _fallDistThreshold )
+				TakeDmg( null, (int)DmgType.BASE, (int)( fallDist * 0.75f ), true );  // Fall damage is direct; should bypass armor
+		}
+
 		protected override void ProcessDeltas()
 		{
-			if (_moving)
+			if ( _moving )
 			{
 				// If no movement key is active
-				if (!InputManager.Instance.MoveKey)
+				if ( !InputManager.Instance.MoveKey )
 				{
 					_moving = false;
 					SpeedTarget = 0.0f;
 				}
-
-				// If the player's speed and speed target are both 0.0f
-				if (Speed == SpeedTarget && SpeedTarget == 0.0f)
-				{
-					_moving = false;    // Ensure _moving is false
-					_move = Vector3.zero;
-					_prevMove = Vector3.zero;
-					return;             // Quick return
-				}
-			}
-			else
-			{
-				SpeedTarget = 0.0f; // If we're no longer moving, speed target should be 0.0f
 			}
 
-			if (Movement.UseAccel)
+			// If the player's speed and speed target are both 0.0f
+			if ( Speed == SpeedTarget && SpeedTarget == 0.0f )
 			{
-				if (IsGrounded) // Use base acceleration and decay values when player is grounded
-				{
-					if (Speed < SpeedTarget)
-					{
-						if (Movement.Accel < 1.0f)
-						{
-							Speed += Movement.Accel;
+				_moving = false;	// Ensure _moving is false
+				_move = Vector3.zero;
+				_prevMove = Vector3.zero;
+				return;				// Quick return
+			}
 
-							if (!(Speed < SpeedTarget - ACCEL_THRESHOLD))
-							{
-								Speed = SpeedTarget;
-							}
-						}
-						else
+			// If the player isn't using acceleration, speed immediately changes to target
+			if ( !Movement.UseAccel )
+			{
+				Speed = SpeedTarget;
+				return;
+			}
+
+			if (IsGrounded) // Use base acceleration and decay values when player is grounded
+			{
+				// If we landed last update, reduce player speed appropriately
+				if( !_prevGrounded )
+				{
+					if ( !_moving )
+						Speed *= (MoveParams.MAX_RANGE - SpeedLoss);
+					else
+						Speed *= (MoveParams.MAX_RANGE - SpeedLoss) * (MoveParams.MAX_RANGE - Stickiness);
+				}
+
+				if (Speed < SpeedTarget)
+				{
+					if (Movement.Accel < 1.0f)
+					{
+						Speed += Movement.Accel;
+
+						if (!(Speed < SpeedTarget - ACCEL_THRESHOLD))
 						{
 							Speed = SpeedTarget;
 						}
 					}
-					else if (Speed > SpeedTarget)
+					else
 					{
-						if (Movement.Decay < 1.0f)
-						{
-							Speed -= Movement.Decay;
-
-							if (!(Speed > SpeedTarget + ACCEL_THRESHOLD))
-							{
-								Speed = SpeedTarget;
-							}
-						}
-						else
-						{
-							Speed = SpeedTarget;
-						}
+						Speed = SpeedTarget;
 					}
 				}
-				else // If airborne
+				else if (Speed > SpeedTarget)
 				{
-					if (Speed < SpeedTarget)
+					if (Movement.Decay < 1.0f)
 					{
-						if (AirAcceleration < 1.0f)
-						{
-							Speed += AirAcceleration;
+						Speed -= Movement.Decay;
 
-							if (!(Speed < SpeedTarget - ACCEL_THRESHOLD))
-							{
-								Speed = SpeedTarget;
-							}
-						}
-						else
+						if (!(Speed > SpeedTarget + ACCEL_THRESHOLD))
 						{
 							Speed = SpeedTarget;
 						}
 					}
-					else if (Speed > SpeedTarget)
+					else
 					{
-						if (AirDecay < 1.0f)
-						{
-							Speed -= AirDecay;
+						Speed = SpeedTarget;
+					}
+				}
+			}
+			else // If airborne
+			{
+				if (Speed < SpeedTarget)
+				{
+					if (AirAcceleration < 1.0f)
+					{
+						Speed += AirAcceleration;
 
-							if (!(Speed > 0.0f + ACCEL_THRESHOLD))
-							{
-								Speed = 0.0f;
-							}
+						if (!(Speed < SpeedTarget - ACCEL_THRESHOLD))
+						{
+							Speed = SpeedTarget;
 						}
-						else
+					}
+					else
+					{
+						Speed = SpeedTarget;
+					}
+				}
+				else if (Speed > SpeedTarget)
+				{
+					if (AirDecay < 1.0f)
+					{
+						Speed -= AirDecay;
+
+						if (!(Speed > 0.0f + ACCEL_THRESHOLD))
 						{
 							Speed = 0.0f;
 						}
 					}
+					else
+					{
+						Speed = 0.0f;
+					}
 				}
-			}
-			else    // If the player isn't using acceleration, speed immediately changes to target
-			{
-				Speed = SpeedTarget;
 			}
 		}
 
 		protected override void ProcessState()
 		{
-			Physics.Raycast(this.transform.position, Vector3.down, out _grndChk, _pCon.height);
-			_slopeChk = Vector3.Angle(Vector3.up, _grndChk.normal);
+			bool foundNormal = false;
+
+			// Check for a normal downward
+			if ( Physics.Raycast( this.transform.position, Vector3.down, out _grndChk, _pCon.height ) )
+				foundNormal = true;
+			else
+			{
+				// Check cardinal directions
+				for( int i = 0; i < 4; i++ )
+				{
+					switch( i )
+					{
+						// Check forward
+						case 0:
+							if ( Physics.Raycast( this.transform.position, _pCon.transform.forward, out _grndChk, _pCon.height ) )
+								foundNormal = true;
+							break;
+						// Check backward
+						case 1:
+							if ( Physics.Raycast( this.transform.position, -_pCon.transform.forward, out _grndChk, _pCon.height ) )
+								foundNormal = true;
+							break;
+						// Check right
+						case 2:
+							if ( Physics.Raycast( this.transform.position, _pCon.transform.right, out _grndChk, _pCon.height ) )
+								foundNormal = true;
+							break;
+						// Check left
+						case 3:
+							if ( Physics.Raycast( this.transform.position, -_pCon.transform.right, out _grndChk, _pCon.height ) )
+								foundNormal = true;
+							break;
+						// Something went wrong
+						default:
+							break;
+					}
+
+					// If we found a normal, break out of the for loop
+					if ( foundNormal )
+						break;
+				}
+			}
+
+			if ( foundNormal )
+				_slopeChk = Vector3.Angle( Vector3.up, _grndChk.normal );
+			else
+				_slopeChk = 0.0f;
 
 			ProcessGravity();
 			ProcessDeltas();
@@ -418,13 +479,21 @@ namespace Hubris
 			_prevGrounded = _pCon.isGrounded;
 		}
 
+		protected virtual void ResetMoveVector()
+		{
+			_prevMove = _move;
+			_move = Vector3.zero;
+		}
+
 		// Update is called once per frame
 		protected override void Update()
 		{
 			if (Active)
 			{
-				base.Update();
 				UpdateMouse();
+
+				if ( HubrisCore.Instance.Debug )
+					UIManager.Instance.DevSetGrnd( _grndChk.normal );
 			}
 		}
 
@@ -432,7 +501,7 @@ namespace Hubris
 		{
 			if (Active)
 			{
-				base.LateUpdate();
+
 			}
 		}
 
@@ -440,23 +509,22 @@ namespace Hubris
 		{
 			if (Active)
 			{
-				base.FixedUpdate();
 				ProcessState();
 
-				_move = _move.normalized;
-
-				if (_slopeChk < _pCon.slopeLimit)
-				{
-					_flags = _pCon.Move(((_move * Speed) + _gravVector) * Time.fixedDeltaTime);
-				}
+				if ( _move != Vector3.zero )
+					_move = _move.normalized;
 				else
 				{
-					// _move += _gravVector.normalized; // (Adds rebound when jumping off slope at max speed)
-					_move.y = 0.0f;     // No jump while falling down slope
-					_flags = _pCon.Move(((_move * Speed) + (_gravVector * Movement.GravFactor)) * Time.fixedDeltaTime);
+					if ( _prevMove != Vector3.zero )
+						_move = _prevMove;
+					else
+						_move = _pCon.velocity.normalized;
+					_move.y = 0.0f;	// Let ProcessGravity handle the y-value
 				}
 
-				_prevMove = _move;
+				_flags = _pCon.Move( ((_move * Speed) + _gravVector) * Time.fixedDeltaTime );
+
+				ResetMoveVector();
 			}
 		}
 

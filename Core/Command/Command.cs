@@ -146,6 +146,10 @@ namespace Hubris
 
 		public static Command Net_Info => cmdArr[(int)CmdType.Net_Info];
 
+		public static Command Kill => cmdArr[(int)CmdType.Kill];
+
+		public static Command Give => cmdArr[(int)CmdType.Give];
+
 		public static int Num_Cmds => (int)CmdType.Num_Cmds;
 
 		#endregion Static Commands

@@ -38,7 +38,7 @@ namespace Hubris
 			Range = nRange;
 		}
 
-		public override void Interact0( Camera pCam, LayerMask mask, LiveEntity owner )
+		public override bool Interact0( Camera pCam, LayerMask mask, LiveEntity owner )
 		{
 			if ( Physics.Raycast( pCam.transform.position, pCam.transform.forward, out RaycastHit hit, Range, mask ) )
 			{
@@ -46,18 +46,21 @@ namespace Hubris
 				IDamageable ent = target.GetComponent<IDamageable>();
 
 				if ( ent != null )
-				{
 					ent.TakeDmg( owner, (int)DamageType, Damage, false );
-				}
+
+				return true;
 			}
+
+			return false;
 		}
 
-		public override void Interact1( Camera pCam, LayerMask mask, LiveEntity owner )
+		public override bool Interact1( Camera pCam, LayerMask mask, LiveEntity owner )
 		{
 			if ( _alt == null )
-				return;
+				return false;
 
 			_alt.Invoke( pCam, mask, this, owner );
+			return true;
 		}
 	}
 }

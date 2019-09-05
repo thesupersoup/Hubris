@@ -25,8 +25,9 @@ namespace Hubris
 
 		private string _uiName;		// Name to be used in UI and other human-readable contexts
 		private string _cmdName;	// Name to be used when invoking the Command in console or config. Should always be lowercase
-		private CmdType _type;		// What type of Command is it? See CmdType enum
+		private CmdType _type;      // What type of Command is it? See CmdType enum
 		private bool _cont;			// Continuous key (true), or only on keypress (false)?
+		private bool _sendBoth;		// For non-continuous commands, send on both keydown and keyup (true) or just keydown (false)
 
 
 		///---------------------------------------------------------------------
@@ -56,6 +57,12 @@ namespace Hubris
 		{
 			get { return _cont; }
 			private set { _cont = value; }
+		}
+
+		public bool SendBoth
+		{
+			get { return _sendBoth; }
+			private set { _sendBoth = value; }
 		}
 
 		#region Static Commands
@@ -150,6 +157,8 @@ namespace Hubris
 
 		public static Command Give => cmdArr[(int)CmdType.Give];
 
+		public static Command Spawn => cmdArr[(int)CmdType.Spawn];
+
 		public static int Num_Cmds => (int)CmdType.Num_Cmds;
 
 		#endregion Static Commands
@@ -164,14 +173,16 @@ namespace Hubris
 			_cmdName = "DefaultCmdName".ToLower();
 			_type = CmdType.None;
 			_cont = true;
+			_sendBoth = false;
 		}
 
-		internal Command(string sUI = "DefaultUIName", string sCmd = "DefaultCmdName", CmdType eType = CmdType.None, bool bCont = true)
+		internal Command ( string sUI = "DefaultUIName", string sCmd = "DefaultCmdName", CmdType eType = CmdType.None, bool bCont = true, bool bBoth = false)
 		{
 			_uiName = sUI;
 			_cmdName = sCmd.ToLower();
 			_type = eType;
 			_cont = bCont;
+			_sendBoth = bBoth;
 		}
 
 		public static Command GetCommand(int index)

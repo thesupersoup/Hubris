@@ -47,6 +47,7 @@
 		SetVar,
 		PrevCmd,
 		NextCmd,
+		Return,
 
 		// FreeLook commands
 		RotLeft,
@@ -64,6 +65,7 @@
 		Net_Info,
 		Kill,
 		Give,
+		Spawn,
 
 		Num_Cmds	// Keep at the end for handy enum length hack
 	}

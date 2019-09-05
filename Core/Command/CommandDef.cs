@@ -24,10 +24,10 @@
 			cmds[(int)CmdType.MoveL] = new Command( "Strafe Left", "movel", CmdType.MoveL, true );
 			cmds[(int)CmdType.MoveR] = new Command( "Strafe Right", "mover", CmdType.MoveR, true );
 			cmds[(int)CmdType.Jump] = new Command( "Jump", "jump", CmdType.Jump, false );
-			cmds[(int)CmdType.RunHold] = new Command( "Run (hold)", "runhold", CmdType.RunHold, true );
-			cmds[(int)CmdType.RunToggle] = new Command( "Run (toggle)", "runtoggle", CmdType.RunToggle );
-			cmds[(int)CmdType.CrouchHold] = new Command( "Crouch (hold)", "crouchhold", CmdType.CrouchHold );
-			cmds[(int)CmdType.CrouchToggle] = new Command( "Crouch (toggle)", "crouchtoggle", CmdType.CrouchToggle );
+			cmds[(int)CmdType.RunHold] = new Command( "Run (hold)", "runhold", CmdType.RunHold, true, true );
+			cmds[(int)CmdType.RunToggle] = new Command( "Run (toggle)", "runtoggle", CmdType.RunToggle, false );
+			cmds[(int)CmdType.CrouchHold] = new Command( "Crouch (hold)", "crouchhold", CmdType.CrouchHold, true, true );
+			cmds[(int)CmdType.CrouchToggle] = new Command( "Crouch (toggle)", "crouchtoggle", CmdType.CrouchToggle, false );
 
 			// Weapons commands
 			cmds[(int)CmdType.Slot1] = new Command( "Weapon Slot - Primary", "slot1", CmdType.Slot1, false );
@@ -50,6 +50,7 @@
 			cmds[(int)CmdType.SetVar] = new Command( "Set specified variable to value", "setvar", CmdType.SetVar, false );
 			cmds[(int)CmdType.PrevCmd] = new Command( "See previous command", "prevcmd", CmdType.PrevCmd, false );
 			cmds[(int)CmdType.NextCmd] = new Command( "See next command", "nextcmd", CmdType.NextCmd, false );
+			cmds[(int)CmdType.Return] = new Command( "Return to main menu", "return", CmdType.Return, false );
 
 			// FreeLook commands
 			cmds[(int)CmdType.RotLeft] = new Command( "Rotate Camera Left", "rotleft", CmdType.RotLeft, true );
@@ -62,11 +63,12 @@
 			cmds[(int)CmdType.Net_Connect] = new Command( "Connect to the specified IP", "net_connect", CmdType.Net_Connect, false );
 			cmds[(int)CmdType.Net_Disconnect] = new Command( "Disconnect active connection", "net_disconnect", CmdType.Net_Disconnect, false );
 
-			// Developer commands
+			// Developer/cheat commands
 			cmds[(int)CmdType.Version] = new Command( "Display version info", "version", CmdType.Version, false );
 			cmds[(int)CmdType.Net_Info] = new Command( "Display networking info", "net_info", CmdType.Net_Info, false );
 			cmds[(int)CmdType.Kill] = new Command( "Kill local player", "kill", CmdType.Kill, false );
 			cmds[(int)CmdType.Give] = new Command( "Give item or weapon", "give", CmdType.Give, false );
+			cmds[(int)CmdType.Spawn] = new Command( "Spawn an NPC", "spawn", CmdType.Spawn, false );
 
 			// SetVar commands
 

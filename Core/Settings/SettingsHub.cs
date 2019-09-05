@@ -181,9 +181,6 @@ namespace Hubris
 						if ( HubrisPlayer.Instance != null )
 							HubrisPlayer.Instance.Stats.SetInvisible( (bool)varArr[(int)VarType.Invis].Data );
 						break;
-					case VarType.Cheats:
-						// Automatically handled, nothing to do
-						break;
 					default:
 						if( (int)nType < 0 || nType >= VarType.Num_Vars )
 							success = false;

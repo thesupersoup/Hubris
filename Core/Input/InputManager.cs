@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -17,11 +16,16 @@ namespace Hubris
 		///--------------------------------------------------------------------
 
 		private bool _lite = false;
+		private bool _enabled = true;
 		private KeyMap _km;
+		private bool[] _keyDownArr;
 
+	
 		///--------------------------------------------------------------------
 		/// InputManager properties
 		///--------------------------------------------------------------------
+
+		public bool Enabled => _enabled;
 
 		/// <summary>
 		/// Lite mode - minimal input management
@@ -48,9 +52,11 @@ namespace Hubris
 
 		public void Init( bool lite = false )
 		{
-			KeyMap = new KeyMap();
+			// TODO: Allow KeyMap to accept an existing KeyMap config on init
+			_km = new KeyMap();
+			_keyDownArr = new bool[KeyMap.KeysInUse.Length];
 
-			// Force lite mode when there's no player instance, or if were not ingame (in a menu)
+			// Force lite mode when there's no player instance, or if we're not ingame (in a menu)
 			if( HubrisPlayer.Instance == null || !HubrisCore.Instance.Ingame )
 			{
 				SetLite( true );
@@ -61,12 +67,15 @@ namespace Hubris
 		}
 
 		/// <summary>
-		/// Check if the passed Command is valid for a particular player type; return bool
+		/// Check if the passed Command is valid for the current player type; return bool
 		/// </summary>
 		private bool CheckValidForType( Command nCmd )
 		{
 			if ( HubrisPlayer.Instance == null )
 				throw new NullReferenceException( "No player instance found" );
+
+			if ( nCmd == Command.None )
+				return false;
 
 			bool valid;
 
@@ -101,9 +110,9 @@ namespace Hubris
 
 
 		/// <summary>
-		/// Check if a movement key is active as of the current frame; return bool
+		/// Check if a movement key is active as of the current frame
 		/// </summary>
-		private bool CheckMoveKey( Command nCmd )
+		private void UpdateMoveKey( Command nCmd )
 		{
 			switch ( nCmd.Type )
 			{
@@ -114,8 +123,11 @@ namespace Hubris
 					MoveKey = true;
 					break;
 			}
+		}
 
-			return MoveKey;
+		public void SetEnabled( bool enable )
+		{
+			_enabled = enable;
 		}
 
 		public void SetLite( bool lite )
@@ -123,6 +135,148 @@ namespace Hubris
 			if ( HubrisCore.Instance.Debug )
 				LocalConsole.Instance.Log( "Setting InputManager Lite to " + lite, true );
 			Lite = lite;
+		}
+
+		private void GetKeyState( Command cmd, bool keyDown, bool keyDownPrev, out InputState state )
+		{
+			if ( !cmd.Continuous )
+			{
+				// Non-continuous commands are not sent multiple times
+				if ( keyDown && keyDownPrev )
+				{
+					state = InputState.INVALID;
+					return;
+				}
+
+				// Update state for non-continuous commands
+				if ( keyDown && !keyDownPrev )
+					state = InputState.KEY_DOWN;
+				else
+				{
+					if ( !cmd.SendBoth )
+					{
+						state = InputState.INVALID;
+						return;
+					}
+
+					state = InputState.KEY_UP;
+				}
+			}
+			else
+			{
+				if ( keyDown && keyDownPrev )
+					state = InputState.KEY_HOLD;
+				else
+				{
+					// Update state for non-continuous commands
+					if ( keyDown && !keyDownPrev )
+						state = InputState.KEY_DOWN;
+					else
+						state = InputState.KEY_UP;
+				}
+			}
+		}
+
+		private void ProcessKeys()
+		{
+			// No keys pressed this tick
+			if ( !Input.anyKey )
+			{
+				// Check for any keys previously pressed
+				for ( int i = 0; i < KeyMap.KeysInUse.Length; i++ )
+				{
+					if ( _keyDownArr[i] )
+					{
+						KeyCode kc = KeyMap.KeysInUse[i];
+						Command cmd = KeyMap.CheckKeyCmd( kc );
+						GetKeyState( cmd, false, _keyDownArr[i], out InputState state );
+
+						if ( state == InputState.INVALID )
+							continue;
+
+						if( _lite )
+						{
+							// Only accept the following specific commands in Lite mode
+							if ( cmd == Command.Console || cmd == Command.Escape || cmd == Command.Submit || cmd == Command.PrevCmd || cmd == Command.NextCmd )
+								LocalConsole.Instance.AddToQueue( cmd, state );
+						}
+						else
+							LocalConsole.Instance.AddToQueue( cmd, state );
+					}
+
+					_keyDownArr[i] = false;
+				}
+				return;
+			}
+
+			// If running in Lite mode
+			if ( _lite )
+			{
+				for ( int i = 0; i < KeyMap.KeysInUse.Length; i++ )
+				{
+					KeyCode kc = KeyMap.KeysInUse[i];
+					bool keyDown = Input.GetKey( kc );
+
+					// Key is not pressed and was not pressed; continue
+					if ( !keyDown && !_keyDownArr[i] )
+						continue;
+
+					Command cmd = KeyMap.CheckKeyCmd( kc );
+					GetKeyState( cmd, keyDown, _keyDownArr[i], out InputState state );
+
+					_keyDownArr[i] = keyDown;
+
+					if ( state == InputState.INVALID )
+						continue;
+
+					// Only accept the following specific commands in Lite mode
+					if ( cmd == Command.Console || cmd == Command.Escape || cmd == Command.Submit || cmd == Command.PrevCmd || cmd == Command.NextCmd )
+						LocalConsole.Instance.AddToQueue( cmd, state );
+				}
+
+				return;
+			}
+
+			// Temporary mouse scroll behavior, to be checked in non-Lite mode
+			float mouseScroll = Input.mouseScrollDelta.y;
+
+			if ( mouseScroll != 0.0f )
+			{
+				if ( mouseScroll > 0.0f )
+					LocalConsole.Instance.AddToQueue( Command.NextSlot, InputState.MWHEEL_UP );
+				else
+					LocalConsole.Instance.AddToQueue( Command.PrevSlot, InputState.MWHEEL_DOWN );
+			}
+
+			// Check which keys were pressed and map to commands
+			for ( int i = 0; i < KeyMap.KeysInUse.Length; i++ )
+			{
+				KeyCode kc = KeyMap.KeysInUse[i];
+				bool keyDown = Input.GetKey( kc );
+
+				// Key is not pressed and was not pressed; continue
+				if ( !keyDown && !_keyDownArr[i] )
+					continue;
+
+				Command cmd = KeyMap.CheckKeyCmd( kc );
+				GetKeyState( cmd, keyDown, _keyDownArr[i], out InputState state );
+
+				_keyDownArr[i] = keyDown;
+
+				if ( state == InputState.INVALID )
+					continue;
+
+				if ( CheckValidForType( cmd ) )
+				{
+					UpdateMoveKey( cmd );
+					LocalConsole.Instance.AddToQueue( cmd, state );
+				}
+				else
+				{
+					if ( HubrisCore.Instance.Debug )
+						LocalConsole.Instance.LogWarning( "InputManager Tick(): CheckValidForType(" + cmd.CmdName + ") returned false", true );
+				}
+			}
 		}
 
 		public void FixedUpdate()
@@ -137,112 +291,11 @@ namespace Hubris
 			// Will be checked and set appropriately if InputManager is Ready
 			MoveKey = false;
 
-			if ( !Lite )
-			{
-				// Temporary mouse scroll behavior
-				float mouseScroll = Input.mouseScrollDelta.y;
+			// If disabled, quick return
+			if ( !_enabled )
+				return;
 
-				if( mouseScroll != 0.0f )
-				{
-					if ( mouseScroll > 0.0f )
-						LocalConsole.Instance.AddToQueue( Command.NextSlot );
-					else
-						LocalConsole.Instance.AddToQueue( Command.PrevSlot );
-				}
-
-				if ( Input.anyKey )
-				{
-					for ( int i = 0; i < KeyMap.KeysInUse.Length; i++ )
-					{
-						KeyCode kc = KeyMap.KeysInUse[i];
-						Command cmd = KeyMap.CheckKeyCmd( kc );
-
-						if ( Input.GetKey( kc ) )
-						{
-							if ( cmd != Command.None )
-							{
-								if ( CheckValidForType( cmd ) )
-								{
-									CheckMoveKey( cmd );
-
-									if ( cmd.Continuous )
-									{
-										LocalConsole.Instance.AddToQueue( cmd );
-									}
-									else
-									{
-										if ( Input.GetKeyDown( kc ) )
-										{
-											LocalConsole.Instance.AddToQueue( cmd );
-										}
-									}
-								}
-								else
-								{
-									if ( HubrisCore.Instance.Debug )
-										LocalConsole.Instance.LogWarning( "InputManager Tick(): CheckValidForType(" + cmd.CmdName + ") returned false", true );
-								}
-							}
-						}
-						else
-						{
-							if ( Input.GetKeyUp( kc ) )
-							{
-								// if (Core.Instance.Debug)
-								// LocalConsole.Instance.Log("Key " + kc + " up this frame", true);
-
-								if ( cmd.Continuous )
-								{
-									LocalConsole.Instance.AddToQueue( cmd );
-								}
-							}
-						}
-					}
-				}
-				else    // No keys pressed this tick, so check for any keys released
-				{
-					for ( int i = 0; i < KeyMap.KeysInUse.Length; i++ )
-					{
-						KeyCode kc = KeyMap.KeysInUse[i];
-						Command cmd = KeyMap.CheckKeyCmd( kc );
-
-						if ( Input.GetKeyUp( kc ) )
-						{
-							if ( HubrisCore.Instance.Debug )
-								LocalConsole.Instance.Log( "Key " + kc + " up on previous frame", true );
-
-							if ( cmd.Continuous )
-							{
-								LocalConsole.Instance.AddToQueue( cmd );
-							}
-						}
-					}
-				}
-			}
-			else
-			{
-				// Only accept input for the following specific keys when the InputManager is in Lite mode
-				if ( Input.anyKey )
-				{
-					for ( int i = 0; i < KeyMap.KeysInUse.Length; i++ )
-					{
-						KeyCode kc = KeyMap.KeysInUse[i];
-
-						if ( Input.GetKey( kc ) )
-						{
-							Command cmd = KeyMap.CheckKeyCmd( kc );
-
-							if ( cmd == Command.Console || cmd == Command.Escape || cmd == Command.Submit || cmd == Command.PrevCmd || cmd == Command.NextCmd )
-							{
-								if ( Input.GetKeyDown( kc ) )
-								{
-									LocalConsole.Instance.AddToQueue( cmd );  // Key is down, state is true
-								}
-							}
-						}
-					}
-				}
-			}
+			ProcessKeys();
 		}
 
 		public void LateUpdate()

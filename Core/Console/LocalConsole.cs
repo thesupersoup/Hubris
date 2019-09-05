@@ -1,7 +1,8 @@
 ﻿using System;
-using System.Collections;
+using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Hubris
 {
@@ -86,11 +87,10 @@ namespace Hubris
 			{
 				for ( int i = 0; i < CMD_LIMIT && _cmdQueue.HasNodes(); i++ )
 				{
-					Command cmd = _cmdQueue.Dequeue( out string data );
+					Command cmd = _cmdQueue.Dequeue( out InputState state, out string data );
 
 					switch ( cmd.Type )
-					{
-						
+					{						
 						case CmdType.Escape:
 							HubrisCore.Instance.Escape();
 							break;
@@ -148,6 +148,15 @@ namespace Hubris
 						case CmdType.RunHold:
 							HubrisPlayer.Instance.SetSpeedTarget( !HubrisPlayer.Instance.AlwaysRun ? HubrisPlayer.Instance.Movement.SpeedHigh : HubrisPlayer.Instance.Movement.SpeedLow );
 							break;
+						case CmdType.CrouchHold:
+							if ( state == InputState.KEY_DOWN )
+								HubrisPlayer.Instance.SetCrouch( true );
+							else if ( state == InputState.KEY_UP )
+								HubrisPlayer.Instance.SetCrouch( false );
+							break;
+						case CmdType.CrouchToggle:
+							HubrisPlayer.Instance.SetCrouch( !HubrisPlayer.Instance.Crouched );
+							break;
 						case CmdType.Console:
 							UIManager.Instance.ConsoleToggle();
 							break;
@@ -166,6 +175,9 @@ namespace Hubris
 						case CmdType.NextCmd:
 							UIManager.Instance.CheckNextCmd();
 							break;
+						case CmdType.Return:
+							// Return to main menu
+							break;
 						case CmdType.RotLeft:
 							HubrisPlayer.Instance.Rotate( InputManager.Axis.Y, -1.0f );
 							break;
@@ -175,6 +187,12 @@ namespace Hubris
 						case CmdType.Net_Send:
 						case CmdType.Net_Send_Tcp:
 						case CmdType.Net_Send_Udp:
+							if( data == null || data.Length == 0 )
+							{
+								Log( "Data to send is null or zero-length" );
+								break;
+							}
+
 							bool reliable;
 
 							if ( cmd.Type == CmdType.Net_Send_Udp )
@@ -182,10 +200,7 @@ namespace Hubris
 							else
 								reliable = true;
 
-							if ( data != null )
-								SendData( data, reliable );
-							else
-								Log( "Data to send is null" );
+							SendData( data, reliable );
 							break;
 						case CmdType.Net_Connect:
 							if ( data != null )
@@ -206,6 +221,7 @@ namespace Hubris
 							HubrisPlayer.Instance.Stats.SetHealth( 0 );
 							break;
 						case CmdType.Give:
+						case CmdType.Spawn:
 							ProcessRestricted( cmd, data );
 							break;
 						default:
@@ -266,7 +282,7 @@ namespace Hubris
 						data = strArr[1];
 
 					success = true;
-					AddToQueue( temp, data );
+					AddToQueue( temp, InputState.CMD_PARSE, data );
 				}
 				else
 				{
@@ -276,7 +292,7 @@ namespace Hubris
 						temp = Command.GetCommand( CmdType.SetVar );
 
 						success = true;
-						AddToQueue( temp, nIn );
+						AddToQueue( temp, InputState.CMD_PARSE, nIn );
 					}
 					else
 					{
@@ -289,6 +305,31 @@ namespace Hubris
 			}
 
 			return success;
+		}
+
+		private void DebugOutputDirInfo ( string path )
+		{
+			Log( "In DebugOutputDirInfo", true );
+			DirectoryInfo info = new DirectoryInfo( path );
+
+			if ( !info.Exists )
+			{
+				LogError( $"{path} does not exist!", true );
+				return;
+			}
+
+			FileInfo[] fileArr = info.GetFiles();
+
+			if ( fileArr == null || fileArr.Length == 0 )
+			{
+				LogError( $"fileArr is null or zero-length at {path}", true );
+				return;
+			}
+
+			foreach ( FileInfo file in fileArr )
+			{
+				Log( $"Found {file.Name}", true );
+			}
 		}
 
 		public void ProcessSetVar( string data )
@@ -361,8 +402,12 @@ namespace Hubris
 			switch ( cmd.Type )
 			{
 				case CmdType.Give:
-					if( HubrisPlayer.Instance is FPSPlayer fps )
-						fps.TryGetWeapon( data );
+					if( HubrisPlayer.Instance is FPSPlayer fpsGive )
+						fpsGive.TryGetWeapon( data );
+					break;
+				case CmdType.Spawn:
+					if ( HubrisPlayer.Instance is FPSPlayer fpsSpawn )
+						fpsSpawn.TrySpawn( data );
 					break;
 				default:
 					break;
@@ -399,10 +444,10 @@ namespace Hubris
 			}
 		}
 
-		public void AddToQueue( Command nAdd, string nData = null )
+		public void AddToQueue( Command nAdd, InputState nState, string nData = null )
 		{
 			if ( Active && Ready )
-				_cmdQueue.Enqueue( nAdd, nData );
+				_cmdQueue.Enqueue( nAdd, nState, nData );
 			else
 				Log( "Attempted to add a command into the queue of LocalConsole when inactive/not ready" );
 		}
@@ -477,6 +522,25 @@ namespace Hubris
 			}
 			else
 				UnityEngine.Debug.LogError( msg );
+		}
+
+		public void LogException ( Exception e, bool unity = false )
+		{
+			if ( Active )
+			{
+				if ( e != null )
+				{
+					if ( UIManager.Instance != null )
+					{
+						UIManager.Instance.AddMsg( "<color=#FF0000>" + e.Message + "</color>" );
+					}
+
+					if ( unity )
+						UnityEngine.Debug.LogException( e );
+				}
+			}
+			else
+				UnityEngine.Debug.LogException( e );
 		}
 
 		public override void CleanUp( bool full = true )

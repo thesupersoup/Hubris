@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
 namespace Hubris
 {
 	public class FPSPlayer : HubrisPlayer
@@ -10,7 +11,9 @@ namespace Hubris
 		/// FPSPlayer instance vars
 		///--------------------------------------------------------------------
 
-		private static bool _jumping = false;
+		// State and flag info
+		protected static FPSState _state;
+		protected static bool _jumping;
 
 		[Header("FPSPlayer variables")]
 		[SerializeField]
@@ -47,10 +50,10 @@ namespace Hubris
 		/// FPSPlayer properties
 		///--------------------------------------------------------------------
 
-		public bool Jumping
+		public FPSState State
 		{
-			get { return _jumping; }
-			protected set { _jumping = value; }
+			get { return _state; }
+			protected set { _state = value; }
 		}
 
 		public float AirAcceleration
@@ -97,7 +100,8 @@ namespace Hubris
 		{ 
 			if (Instance == this)
 			{
-				PlayerType = PType.FPS;
+				_pType = PType.FPS;
+				_state = FPSState.DEFAULT;
 
 				if (_gObj == null)
 					_gObj = this.gameObject;
@@ -174,6 +178,11 @@ namespace Hubris
 			Debug.LogWarning( "Base FPSPlayer TryGetWeapon called" );
 		}
 
+		public virtual void TrySpawn( string name )
+		{
+			Debug.LogWarning( "Base FPSPlayer TrySpawn called" );
+		}
+
 		public override void Move(InputManager.Axis ax, float val)
 		{
 			if (Active)
@@ -204,10 +213,12 @@ namespace Hubris
 
 		public float CheckSpeedTarget()
 		{
+			float mod = _crouched ? CROUCH_SLOW : 1.0f;
+
 			if ( !AlwaysRun )
-				return Movement.SpeedLow;
+				return Movement.SpeedLow * mod;
 			else
-				return Movement.SpeedHigh;
+				return Movement.SpeedHigh * mod;
 		}
 
 		public override void SpecMove(SpecMoveType nType, InputManager.Axis ax, float val)
@@ -220,11 +231,8 @@ namespace Hubris
 
 					if (IsGrounded)
 					{
-						// Move this flag to a Jump/Air state
-						_jumping = true;
 						SpeedTarget = CheckSpeedTarget();
-						_canModSpdTgt = false;
-
+						_jumping = true;
 						Move(ax, val);
 					}
 					break;
@@ -266,9 +274,6 @@ namespace Hubris
 				{
 					_gravVector += Physics.gravity * Movement.GravFactor * Time.fixedDeltaTime;
 
-					// Move this flag to a Jump/Air state
-					_canModSpdTgt = false;
-
 					if ( _prevGrounded )
 						_fallStartY = this.transform.position.y;
 				}
@@ -283,14 +288,12 @@ namespace Hubris
 					// Set gravVector definitively when grounded
 					_gravVector = new Vector3( 0.0f, -Movement.GravBase, 0.0f );
 
-					// Move this flag to a Jump/Air state
-					_canModSpdTgt = true;
-
 					// If we were previously airborne
 					if ( !_prevGrounded )
 					{
 						// Emit landing sound
 						EmitSoundEvent( new SoundEvent( this, this.transform.position, 60.0f, SoundIntensity.NOTEWORTHY ) );
+						_state = FPSState.DEFAULT;
 						FallDmgCheck();
 					}
 				}
@@ -299,7 +302,7 @@ namespace Hubris
 				{
 					_gravVector.y = Movement.JumpSpd;
 
-					// Move this flag to a Jump/Air state
+					_state = FPSState.AIRBORNE;
 					_jumping = false;
 
 					return;

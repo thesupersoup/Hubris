@@ -8,6 +8,7 @@ namespace Hubris
 	public sealed class CmdQueueNode : IDisposable
 	{
 		private Command _cmd = null;
+		private InputState _state;
 		private string _data = null;
 		private CmdQueueNode _next = null;
 
@@ -17,6 +18,14 @@ namespace Hubris
 			{ return _cmd; }
 			set
 			{ _cmd = value; }
+		}
+
+		public InputState State
+		{
+			get 
+			{ return _state; }
+			set 
+			{ _state = value; }
 		}
 
 		public string Data
@@ -35,9 +44,10 @@ namespace Hubris
 			{ _next = value; }
 		}
 
-		public CmdQueueNode(Command nCmd, string nData)
+		public CmdQueueNode( Command nCmd, InputState nState, string nData )
 		{
 			Cmd = nCmd;
+			State = nState;
 			Data = nData;
 		}
 
@@ -62,11 +72,11 @@ namespace Hubris
 		/// <summary>
 		/// Add an Command to the queue
 		/// </summary>
-		public void Enqueue(Command nCmd, string nData = null)
+		public void Enqueue( Command nCmd, InputState nState, string nData = null )
 		{
 			lock (_lock)    // Lock for thread safety
 			{
-				CmdQueueNode newNode = new CmdQueueNode(nCmd, nData);
+				CmdQueueNode newNode = new CmdQueueNode(nCmd, nState, nData);
 				if (_head == null)
 				{
 					_head = newNode;
@@ -83,7 +93,7 @@ namespace Hubris
 		/// <summary>
 		/// Remove a Command from the queue
 		/// </summary>
-		public Command Dequeue(out string nData)
+		public Command Dequeue(out InputState nState, out string nData)
 		{
 			lock (_lock)    // Lock for thread safety
 			{
@@ -97,11 +107,13 @@ namespace Hubris
 
 				if (tempNode != null)
 				{
+					nState = tempNode.State;
 					nData = tempNode.Data;
 					return tempNode.Cmd;
 				}
 				else
 				{
+					nState = InputState.INVALID;
 					nData = null;
 					return Command.None;
 				}

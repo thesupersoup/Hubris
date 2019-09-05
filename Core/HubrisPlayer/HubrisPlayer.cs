@@ -8,13 +8,13 @@ namespace Hubris
 	public abstract class HubrisPlayer : LiveEntity
 	{
 		// HubrisPlayer constants
-		public const float DIST_CHK_GROUND = 2.0f, ACCEL_THRESHOLD = 0.1f, DOT_THRESHOLD = -0.75f;
+		public const float DIST_CHK_GROUND = 2.0f, ACCEL_THRESHOLD = 0.1f, DOT_THRESHOLD = -0.75f, CROUCH_SLOW = 0.5f, CROUCH_SCALE = 0.5f;
 
 		// Player Type; whether First Person, Free Look, or others
 		public enum PType { NONE = 0, FPS, FL, RTS, NUM_TYPES };
 
 		// Special Movement Type
-		public enum SpecMoveType { NONE = 0, JUMP, CROUCH, NUM_TYPES}
+		public enum SpecMoveType { NONE = 0, JUMP, NUM_TYPES}
 
 		// Singleton instance, to be populated by the derived class
 		private static HubrisPlayer _i = null;
@@ -43,9 +43,9 @@ namespace Hubris
 		}
 
 		// Player states, use properties to interact
-		protected bool _canModSpdTgt = true;
 		protected bool _prevGrounded = false;
 		protected bool _moving = false;
+		protected bool _crouched = false;
 
 		// Player instance variables
 		[Header("Player type and components")]
@@ -84,10 +84,10 @@ namespace Hubris
 		[SerializeField]
 		protected Inventory _inv = new Inventory();
 
-		protected PlayerState _pState = new PlayerState();
 		protected Vector3 _gravVector = Vector3.zero;
 		protected Vector3 _move = Vector3.zero;
 		protected Vector3 _prevMove = Vector3.zero;
+		protected Vector3 _baseScale = Vector3.zero;
 		protected CollisionFlags _flags;
 		protected RaycastHit _grndChk;
 		protected float _slopeChk;
@@ -95,6 +95,8 @@ namespace Hubris
 		protected static MouseLook _mLook = null;
 
 		// Player properties
+		public bool Crouched => _crouched;
+
 		public Camera PlayerCam => _pCam;
 		public MoveParams Movement => _moveParams;
 		public virtual int ActiveSlot => PlayerInv.ActiveIndex;
@@ -117,15 +119,7 @@ namespace Hubris
 			protected set { _spdTar = value; }
 		}
 
-		public Inventory PlayerInv
-		{
-			get { return _inv; }
-		}
-
-		public PlayerState State
-		{
-			get { return _pState; }
-		}
+		public Inventory PlayerInv => _inv;
 
 		public virtual bool IsGrounded => _pCon.isGrounded;
 
@@ -241,6 +235,8 @@ namespace Hubris
 			EntType = EntityType.PLAYER;
 
 			SpeedTarget = Movement.SpeedLow;
+
+			_baseScale = _gObj.transform.localScale;
 		}
 
 		/// <summary>
@@ -263,7 +259,27 @@ namespace Hubris
 			if ( !_moving )
 				return;
 
-			SpeedTarget = nTar;
+			if ( _crouched )
+				SpeedTarget = nTar * CROUCH_SLOW;
+			else
+				SpeedTarget = nTar;
+		}
+
+		public void SetCrouch( bool crouch )
+		{
+			_crouched = crouch;
+			HandleCrouch();
+		}
+
+		protected virtual void HandleCrouch()
+		{
+			if ( _gObj == null )
+				return;
+
+			if( _crouched )
+				_gObj.transform.localScale = new Vector3( _baseScale.x * CROUCH_SCALE, _baseScale.y * CROUCH_SCALE, _baseScale.z * CROUCH_SCALE );
+			else
+				_gObj.transform.localScale = new Vector3( _baseScale.x, _baseScale.y, _baseScale.z );
 		}
 
 		/// <summary>

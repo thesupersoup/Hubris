@@ -75,7 +75,7 @@ namespace Hubris
 			{
 				Hp -= nDmg;
 
-                		CheckHealth();
+				CheckHealth();
 
 				return true;
 			}
@@ -86,7 +86,7 @@ namespace Hubris
 		public void Respawn()
 		{
 			Hp = MaxHp;
-			Activate();
+			SetActive( true );
 		}
 
 		void CheckHealth()
@@ -95,7 +95,7 @@ namespace Hubris
 			{
 				Hp = 0;
 				NotifyObservers(true);
-				Deactivate();
+				SetActive( false );
 			}
 		}
 	}

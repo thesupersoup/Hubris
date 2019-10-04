@@ -40,7 +40,7 @@ namespace Hubris
 					if (ent.EntType == EntityType.PLAYER)
 					{
 						NotifyObservers(true);
-						Deactivate();
+						SetActive( false );
 					}
 				}
 			}

@@ -210,7 +210,7 @@ namespace Hubris
 			}
 			else if ( Instance != null && Instance != this )
 			{
-				Deactivate();
+				SetActive( false );
 				Destroy( this.gameObject );
 				return;
 			}

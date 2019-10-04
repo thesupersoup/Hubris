@@ -48,7 +48,7 @@ namespace Hubris
 				if (_gObj != null && _pCon != null && _pBod != null && _pCam != null)
 				{
 					InitHubrisPlayer();
-					Activate();
+					SetActive( true );
 					_mLook.SetCursorLock(false);
 				}
 			}

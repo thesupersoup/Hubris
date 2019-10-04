@@ -1,7 +1,8 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.AI;
 using System.Collections.Generic;
 using Hubris;
+using Hubris.Core.Triggers;
 
 namespace Apex
 {
@@ -148,6 +149,7 @@ namespace Apex
 			_npcScript = npc;
 		}
 
+        [TriggerMethod]
 		public void SetNumToSpawn( uint num )
 		{
 			_npcNum = num;
@@ -365,6 +367,7 @@ namespace Apex
 			_canSpawn = false;
 		}
 
+        [TriggerMethod]
 		public void TriggerSpawn()
 		{
 			FindSpawnPoints();

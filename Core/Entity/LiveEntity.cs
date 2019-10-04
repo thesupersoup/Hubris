@@ -171,6 +171,8 @@ namespace Hubris
 		/// </summary>
 		public virtual void AnimEventHandler( int ev )
 		{
+			// Handled In SoundMgr now
+
 			// Add event handling
 			// Integers:
 			// 0 = Footstep

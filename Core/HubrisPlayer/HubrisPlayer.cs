@@ -321,6 +321,11 @@ namespace Hubris
 			return dir.normalized;
 		}
 
+		public override void AddSoundEvent ( SoundEvent ev )
+		{
+			// We don't want the player to do anything with sound events
+		}
+
 		public virtual void UpdateUI()
 		{
 			// UI update code goes here

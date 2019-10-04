@@ -106,6 +106,12 @@ namespace Hubris
 						case CmdType.Interact3:
 							HubrisPlayer.Instance.Interact3();
 							break;
+						case CmdType.Info:
+							if ( state == InputState.KEY_DOWN )
+								UIManager.Instance.DisplayInfo( true );
+							else if ( state == InputState.KEY_UP )
+								UIManager.Instance.DisplayInfo( false );
+							break;
 						case CmdType.Slot1:
 							HubrisPlayer.Instance.SetActiveSlot( 0 );
 							break;
@@ -218,7 +224,7 @@ namespace Hubris
 							HubrisCore.Instance.NetInfoPrint();
 							break;
 						case CmdType.Kill:
-							HubrisPlayer.Instance.Stats.SetHealth( 0 );
+							HubrisPlayer.Instance.Stats.Kill();
 							break;
 						case CmdType.Give:
 						case CmdType.Spawn:

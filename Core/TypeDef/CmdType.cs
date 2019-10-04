@@ -14,6 +14,7 @@
 		Interact1,
 		Interact2,
 		Interact3,
+		Info,
 
 		// Basic movement commands
 		MoveF,

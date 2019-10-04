@@ -133,10 +133,8 @@ namespace Hubris
 
 			DontDestroyOnLoad( this );
 
-			if(DevCanvas != null)
-			{
-				DevCanvas.SetActive( HubrisCore.Instance.Debug );
-			}
+			if( _devCan != null)
+				_devCan.SetActive( HubrisCore.Instance.Debug );
 
 			_msgList = new List<Msg>();
 			_inputList = new List<string>();
@@ -473,6 +471,11 @@ namespace Hubris
 		public virtual void SetHudColor( Color color )
 		{
 			// Handle HUD color change here
+		}
+
+		public virtual void DisplayInfo( bool fade )
+		{
+			// Handle info display here
 		}
 
 		protected virtual void Update()

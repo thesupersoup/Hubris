@@ -65,6 +65,8 @@ namespace Hubris
 
 	        if (Visual != null)
 		        Visual.enabled = Active;
+
+            CheckHealth();
         }
 
 		public virtual bool TakeDmg( LiveEntity damager, int nType, int nDmg, bool nDirect)
@@ -72,6 +74,9 @@ namespace Hubris
 			if (Active && Hp > 0 && (DmgType)nType != DmgType.STAMINA)
 			{
 				Hp -= nDmg;
+
+                CheckHealth();
+
 				return true;
 			}
 			else
@@ -84,7 +89,7 @@ namespace Hubris
             Activate();
 		}
 
-        void Update()
+        void CheckHealth()
         {
 	        if(Active && Hp <= 0)
 	        {

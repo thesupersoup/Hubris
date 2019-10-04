@@ -44,30 +44,30 @@ namespace Hubris
 		///--------------------------------------------------------------------
 
 		/// <summary>
-		/// Enables Hubris functionality
+		/// Enable or disable Hubris functionality
 		/// </summary>
-		public void Activate()
+		public void SetActive( bool active )
 		{
-			_act = true;
+			if( _act == active )
+				return;
+		
+			_act = active;
+			
+			if( _act )
+				OnActivated();
+			else
+				OnDeactivated();
 		}
 
 		/// <summary>
-		/// Disables Hubris functionality
+		/// Triggered when <see cref="Activate"/> is called. Override for custom behaviour.
 		/// </summary>
-		public void Deactivate()
-		{
-			_act = false;
-		}
+		public virtual void OnActivated() { }
 
-        /// <summary>
-        /// Triggered when <see cref="Activate"/> is called. Override for custom behaviour.
-        /// </summary>
-        public virtual void OnActivated() { }
-
-        /// <summary>
-        /// Triggered when <see cref="Deactivate"/> is called. Override for custom behaviour.
-        /// </summary>
-        public virtual void OnDeactivated() { }
+		/// <summary>
+		/// Triggered when <see cref="Deactivate"/> is called. Override for custom behaviour.
+		/// </summary>
+		public virtual void OnDeactivated() { }
 
 		public virtual void OnEnable()
 		{

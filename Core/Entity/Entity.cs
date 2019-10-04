@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using Mirror;
 
 namespace Hubris
@@ -59,16 +59,15 @@ namespace Hubris
 			_act = false;
 		}
 
-		/// <summary>
-		/// Set whether the Entity is active or not; virtual for unique functionality in derived classes
-		/// </summary>
-		public virtual void SetActive(bool nActive)
-		{
-			if (nActive)
-				Activate();
-			else
-				Deactivate();
-		}
+        /// <summary>
+        /// Triggered when <see cref="Activate"/> is called. Override for custom behaviour.
+        /// </summary>
+        public virtual void OnActivated() { }
+
+        /// <summary>
+        /// Triggered when <see cref="Deactivate"/> is called. Override for custom behaviour.
+        /// </summary>
+        public virtual void OnDeactivated() { }
 
 		public virtual void OnEnable()
 		{

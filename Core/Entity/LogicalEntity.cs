@@ -46,31 +46,30 @@ namespace Hubris
 		}
 
 		/// <summary>
-		/// Enables Hubris functionality
+		/// Enable or disable Hubris functionality
 		/// </summary>
-		public void Activate()
+		public void SetActive( bool active )
 		{
-			_act = true;
-		}
-
-		/// <summary>
-		/// Disables Hubris functionality
-		/// </summary>
-		public void Deactivate()
-		{
-			_act = false;
-		}
-
-		/// <summary>
-		/// Set whether the Entity is active or not; virtual for unique functionality in derived classes
-		/// </summary>
-		public virtual void SetActive(bool nActive)
-		{
-			if (nActive)
-				Activate();
+			if( _act == active )
+				return;
+				
+			_act = active;
+			
+			if( _act )
+				OnActivated();
 			else
-				Deactivate();
+				OnDeactivated();
 		}
+
+		/// <summary>
+		/// Triggered when <see cref="Activate"/> is called. Override for custom behaviour.
+		/// </summary>
+		public virtual void OnActivated() { }
+
+		/// <summary>
+		/// Triggered when <see cref="Deactivate"/> is called. Override for custom behaviour.
+		/// </summary>
+		public virtual void OnDeactivated() { }
 
 		/// <summary>
 		/// Subscribe to Hubris Tick-based Actions

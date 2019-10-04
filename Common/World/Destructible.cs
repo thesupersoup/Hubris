@@ -58,16 +58,16 @@ namespace Hubris
 			base.OnEnable();
 		}
 
-        public override void OnActivated()
-        {
-	        if (Phys != null)
-		        Phys.enabled = Active;
+		public override void OnActivated()
+		{
+			if (Phys != null)
+				Phys.enabled = Active;
 
-	        if (Visual != null)
-		        Visual.enabled = Active;
+			if (Visual != null)
+				Visual.enabled = Active;
 
-            CheckHealth();
-        }
+			CheckHealth();
+		}
 
 		public virtual bool TakeDmg( LiveEntity damager, int nType, int nDmg, bool nDirect)
 		{
@@ -75,7 +75,7 @@ namespace Hubris
 			{
 				Hp -= nDmg;
 
-                CheckHealth();
+                		CheckHealth();
 
 				return true;
 			}
@@ -86,17 +86,17 @@ namespace Hubris
 		public void Respawn()
 		{
 			Hp = MaxHp;
-            Activate();
+			Activate();
 		}
 
-        void CheckHealth()
-        {
-	        if(Active && Hp <= 0)
-	        {
-		        Hp = 0;
-		        NotifyObservers(true);
-                Deactivate();
-	        }
-        }
+		void CheckHealth()
+		{
+			if(Active && Hp <= 0)
+			{
+				Hp = 0;
+				NotifyObservers(true);
+				Deactivate();
+			}
+		}
 	}
 }

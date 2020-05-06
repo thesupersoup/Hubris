@@ -150,17 +150,27 @@ namespace Hubris
 
 				// Update state for non-continuous commands
 				if ( keyDown && !keyDownPrev )
-					state = InputState.KEY_DOWN;
-				else
 				{
-					if ( !cmd.SendBoth )
+					state = InputState.KEY_DOWN;
+					return;
+				}
+
+				// If the key was released this frame
+				if ( !keyDown && keyDownPrev )
+				{
+					// If the command is set to send both key up and key down
+					if ( cmd.SendBoth )
 					{
-						state = InputState.INVALID;
+						state = InputState.KEY_UP;
 						return;
 					}
 
-					state = InputState.KEY_UP;
+					state = InputState.INVALID;
+					return;
 				}
+
+				state = InputState.INVALID;
+				return;
 			}
 			else
 			{
@@ -191,6 +201,8 @@ namespace Hubris
 						Command cmd = KeyMap.CheckKeyCmd( kc );
 						GetKeyState( cmd, false, _keyDownArr[i], out InputState state );
 
+						_keyDownArr[i] = false;
+
 						if ( state == InputState.INVALID )
 							continue;
 
@@ -203,8 +215,6 @@ namespace Hubris
 						else
 							LocalConsole.Instance.AddToQueue( cmd, state );
 					}
-
-					_keyDownArr[i] = false;
 				}
 				return;
 			}

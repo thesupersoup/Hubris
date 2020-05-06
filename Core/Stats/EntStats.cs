@@ -66,115 +66,120 @@ namespace Hubris
 
 		public EntStats ( int nHp, int nHpMax, int nAp, int nApMax, int nSt, int nStMax, bool nInvis = false, bool nDemi = false )
 		{
-			Health = nHp;
-			HealthMax = nHpMax;
-			Armor = nAp;
-			ArmorMax = nApMax;
-			Stamina = nSt;
-			StaminaMax = nStMax;
-			Invisible = nInvis;
-			Demigod = nDemi;
+			_hp = nHp;
+			_hpMax = nHpMax;
+			_ap = nAp;
+			_apMax = nApMax;
+			_sta = nSt;
+			_staMax = nStMax;
+			_invisible = nInvis;
+			_demigod = nDemi;
 		}
 
 		public void SetHealth ( int hp )
 		{
-			Health = hp;
+			_hp = hp;
 		}
 
 		public void SetArmor ( int ap )
 		{
-			Armor = ap;
+			_ap = ap;
 		}
 
 		public void SetStamina ( int sp )
 		{
-			Stamina = sp;
+			_sta = sp;
 		}
 
 		public void SetInvisible( bool invis )
 		{
-			Invisible = invis;
+			_invisible = invis;
 		}
 
 		public void SetDemigod( bool demi )
 		{
-			Demigod = demi;
+			_demigod = demi;
+		}
+
+		public void Kill()
+		{
+			_hp = 0;
 		}
 
 		public bool AddHealth( int nHP ) // Returns true for successful addition, false if health is full
 		{
-			if ( Health >= HealthMax )
+			if ( _hp >= _hpMax )
 				return false; // Health is full, ideally
 
-			Health += nHP;
+			_hp += nHP;
 			
-			if ( Health > HealthMax )
-				Health = HealthMax;
+			if ( _hp > _hpMax )
+				_hp = _hpMax;
 
 			return true;
 		}
 
 		public bool AddArmor( int nArmor ) // Returns true for successful addition, false if armor is full
 		{
-			if ( Armor >= ArmorMax )
+			if ( _ap >= _apMax )
 				return false; // Armor is full, ideally
 
-			Armor += nArmor;
+			_ap += nArmor;
 			
-			if ( Armor > ArmorMax )
-				Armor = ArmorMax;
+			if ( _ap > _apMax )
+				_ap = _apMax;
 
 			return true;
 		}
 
 		public bool AddStamina( int nStamina ) // Returns true for successful addition, false if stamina is full
 		{
-			if ( Stamina >= StaminaMax )
+			if ( _sta >= _staMax )
 				return false; // Stamina is full, ideally
 
-			Stamina += nStamina;
+			_sta += nStamina;
 			
-			if ( Stamina > StaminaMax )
-				Stamina = StaminaMax;
+			if ( _sta > _staMax )
+				_sta = _staMax;
 
 			return true;
 		}
 
 		public bool ReduceHealth( int nHP ) // Returns true for successful reduction, false if Health can not be reduced
 		{
-			if ( Demigod || Health <= 0 )
+			if ( _demigod || _hp <= 0 )
 				return false;
 
-			Health -= nHP;
+			_hp -= nHP;
 
-			if ( Health < 0 )
-				Health = 0;
+			if ( _hp < 0 )
+				_hp = 0;
 
 			return true;
 		}
 
 		public bool ReduceArmor( int nArmor ) // Returns true for successful reduction, false if Armor can not be reduced
 		{
-			if ( Demigod || Armor <= 0 )
+			if ( _demigod || _ap <= 0 )
 				return false;
 
-			Armor -= nArmor;
+			_ap -= nArmor;
 
-			if ( Armor < 0 )
-				Armor = 0;
+			if ( _ap < 0 )
+				_ap = 0;
 
 			return true;
 		}
 
 		public bool ReduceStamina( int nStamina ) // Returns true for successful reduction, false if Stamina can not be reduced
 		{
-			if ( Demigod || Stamina <= 0 )
+			if ( _demigod || _sta <= 0 )
 				return false;
 
-			Stamina -= nStamina;
+			_sta -= nStamina;
 
-			if ( Stamina < 0 )
-				Stamina = 0;
+			if ( _sta < 0 )
+				_sta = 0;
 
 			return true;
 		}

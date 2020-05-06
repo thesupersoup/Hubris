@@ -3,15 +3,13 @@ using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Mirror;
 
 namespace Hubris
 {
 	/// <summary>
 	/// The central hub for all Hubris-related behavior. Must be present in every scene using Hubris Entities.
 	/// </summary>
-	[RequireComponent( typeof( NetworkIdentity ) )]
-	public class HubrisCore : NetworkBehaviour
+	public class HubrisCore : MonoBehaviour
 	{
 		///--------------------------------------------------------------------
 		/// HubrisCore singleton instance

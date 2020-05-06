@@ -17,6 +17,7 @@
 			cmds[(int)CmdType.Interact1] = new Command( "Interact1", "inter1", CmdType.Interact1, false );
 			cmds[(int)CmdType.Interact2] = new Command( "Interact2", "inter2", CmdType.Interact2, false );
 			cmds[(int)CmdType.Interact3] = new Command( "Interact3", "inter3", CmdType.Interact3, false );
+			cmds[(int)CmdType.Info] = new Command( "Show info", "info", CmdType.Info, true );
 
 			// Basic movement commands
 			cmds[(int)CmdType.MoveF] = new Command( "Move Forward", "movef", CmdType.MoveF, true );

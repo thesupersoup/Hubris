@@ -39,8 +39,8 @@ namespace Hubris
 				{
 					if (ent.EntType == EntityType.PLAYER)
 					{
-						NotifyObservers(true);
-						Deactivate();
+						NotifyObservers( true );
+						SetHubrisActive( false );
 					}
 				}
 			}

@@ -7,7 +7,7 @@ namespace Hubris
 	/// <summary>
 	/// Class which represents logical in-game objects, with virtual Tick() and LateTick() implementation
 	/// </summary>
-	public class LogicalEntity : ITickable
+	public class LogicalEntity : IActivatable, ITickable
 	{
 		// LogicalEntity instance vars 
 

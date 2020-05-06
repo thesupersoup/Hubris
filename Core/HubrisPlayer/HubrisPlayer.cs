@@ -210,7 +210,7 @@ namespace Hubris
 			}
 			else if ( Instance != null && Instance != this )
 			{
-				Deactivate();
+				SetHubrisActive( false );
 				Destroy( this.gameObject );
 				return;
 			}
@@ -317,8 +317,13 @@ namespace Hubris
 						LocalConsole.Instance.LogError("InputManager GetMoveAsVector(): Invalid Axis Vector requested", true);
 				}
 			}
-            
+			
 			return dir.normalized;
+		}
+
+		public override void AddSoundEvent ( SoundEvent ev )
+		{
+			// We don't want the player to do anything with sound events
 		}
 
 		public virtual void UpdateUI()

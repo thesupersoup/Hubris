@@ -1,12 +1,11 @@
 ﻿using UnityEngine;
-using Mirror;
 
 namespace Hubris
 {
 	/// <summary>
 	/// Abstract class for deriving tangible in-game objects, with virtual ITickable and IActivatable implementation
 	/// </summary> 
-	public abstract class Entity : MonoBehaviour //, ITickable 
+	public abstract class Entity : MonoBehaviour, IActivatable //, ITickable 
 	{
 		///--------------------------------------------------------------------
 		/// Entity instance vars

@@ -87,6 +87,8 @@ namespace Hubris
 
 		public static Command Interact3 => cmdArr[(int)CmdType.Interact3];
 
+		public static Command Info => cmdArr[(int)CmdType.Info];
+
 		public static Command MoveF => cmdArr[(int)CmdType.MoveF];
 
 		public static Command MoveB => cmdArr[(int)CmdType.MoveB];

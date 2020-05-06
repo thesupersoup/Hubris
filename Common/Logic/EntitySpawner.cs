@@ -92,7 +92,7 @@ namespace Apex
 		{
 			if ( HubrisCore.Instance == null )
 			{
-				SetActive( false );
+				SetHubrisActive( false );
 				return;
 			}
 
@@ -102,7 +102,7 @@ namespace Apex
 			if ( _npcPrefab == null )
 			{
 				LocalConsole.Instance.LogWarning( $"Spawner {this.gameObject.name} at {transform.position} has a null Npc prefab, disabling spawner...", true );
-				SetActive( false );
+				SetHubrisActive( false );
 				return;
 			}
 
@@ -114,7 +114,7 @@ namespace Apex
 				if ( _npcScript == null )
 				{
 					LocalConsole.Instance.LogError( $"Spawner {this.gameObject.name} at {transform.position} could not find Npc script, disabling spawner...", true );
-					SetActive( false );
+					SetHubrisActive( false );
 					return;
 				}
 			}
@@ -140,7 +140,7 @@ namespace Apex
 		public void SetSpawnTimeAndActivate ( float baseTime )
 		{
 			SetSpawnTime( baseTime );
-			SetActive( true );
+			SetHubrisActive( true );
 		}
 
 		public void SetNpcToSpawn ( GameObject prefab, Npc npc )
@@ -172,7 +172,7 @@ namespace Apex
 			if ( _npcNum == 0 )
 			{
 				LocalConsole.Instance.LogWarning( $"Spawner {this.gameObject.name} at {transform.position} has NpcNum set to 0 so nothing will spawn, disabling spawner...", true );
-				SetActive( false );
+				SetHubrisActive( false );
 				return;
 			}
 
@@ -251,7 +251,7 @@ namespace Apex
 				if ( _tryCount >= 3 )
 				{
 					LocalConsole.Instance.LogError( $"Spawner {this.gameObject.name} at {transform.position} exceeded number of spawn tries, disabling...", true );
-					SetActive( false );
+					SetHubrisActive( false );
 				}
 
 				return;

@@ -370,6 +370,22 @@ namespace Hubris
 				{
 					if ( a.TargetObj == null || !SeeTarget )
 					{
+						// If we're not a predator or territorial, flee immediately if wounded
+						if ( !a.Params.Predator || !a.Params.Territorial )
+						{
+							ChangeBranch( BNpcFlee.Instance, a );
+							return;
+						}
+
+						// If a LiveEntity damaged us and it's within range, aggro even if we can't see it (ignore sight check)
+						if ( a.TargetEnt != null && Util.CheckDistSqr( a.transform.position, a.TargetPos, a.Params.AwareMed ) )
+						{
+							SetIgnoreSightCheck( true );
+							ChangeBranch( BNpcAggro.Instance, a );
+							return;
+						}
+
+						// Default to fleeing behavior
 						ChangeBranch( BNpcFlee.Instance, a );
 						return;
 					}

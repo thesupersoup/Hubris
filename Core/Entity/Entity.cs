@@ -44,7 +44,7 @@ namespace Hubris
 		///--------------------------------------------------------------------
 
 		/// <summary>
-		/// Set whether the Entity is active or not; virtual for unique functionality in derived classes
+		/// Enable or disable Hubris functionality; virtual for unique functionality in derived classes
 		/// </summary>
 		public virtual void SetActive(bool nActive)
 		{

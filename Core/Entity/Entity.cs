@@ -6,8 +6,7 @@ namespace Hubris
 	/// <summary>
 	/// Abstract class for deriving tangible in-game objects, with virtual ITickable and IActivatable implementation
 	/// </summary> 
-	[RequireComponent( typeof( NetworkIdentity ) )]
-	public abstract class Entity : NetworkBehaviour, IActivatable //, ITickable 
+	public abstract class Entity : MonoBehaviour //, ITickable 
 	{
 		///--------------------------------------------------------------------
 		/// Entity instance vars
@@ -46,7 +45,7 @@ namespace Hubris
 		/// <summary>
 		/// Enable or disable Hubris functionality; virtual for unique functionality in derived classes
 		/// </summary>
-		public virtual void SetActive(bool nActive)
+		public virtual void SetHubrisActive(bool nActive)
 		{
 			_act = nActive;
 		}
@@ -58,13 +57,13 @@ namespace Hubris
 
 		public void EntityEnable()
 		{
-			if ( Name != null && Name.Length > 0 )
+			if ( _name != null && _name.Length > 0 )
 			{
 				// Set the GameObject name to match the Entity name
-				this.gameObject.name = Name;
+				this.gameObject.name = _name;
 			}
 			else
-				Name = this.gameObject.name;
+				_name = this.gameObject.name;
 
 			_disposed = false;
 		}

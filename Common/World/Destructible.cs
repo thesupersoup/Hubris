@@ -58,7 +58,7 @@ namespace Hubris
 			base.OnEnable();
 		}
 
-		public override void SetActive(bool nAct)
+		public override void SetHubrisActive(bool nAct)
 		{
 
 			if (_col != null)
@@ -85,7 +85,7 @@ namespace Hubris
 		public void Respawn()
 		{
 			_hp = _maxHp;
-			SetActive( true );
+			SetHubrisActive( true );
 		}
 
 		void CheckHealth()
@@ -94,7 +94,7 @@ namespace Hubris
 			{
 				_hp = 0;
 				NotifyObservers( true );
-				SetActive( false );
+				SetHubrisActive( false );
 			}
 		}
 	}

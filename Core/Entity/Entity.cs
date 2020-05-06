@@ -44,30 +44,11 @@ namespace Hubris
 		///--------------------------------------------------------------------
 
 		/// <summary>
-		/// Enables Hubris functionality
-		/// </summary>
-		public void Activate()
-		{
-			_act = true;
-		}
-
-		/// <summary>
-		/// Disables Hubris functionality
-		/// </summary>
-		public void Deactivate()
-		{
-			_act = false;
-		}
-
-		/// <summary>
 		/// Set whether the Entity is active or not; virtual for unique functionality in derived classes
 		/// </summary>
 		public virtual void SetActive(bool nActive)
 		{
-			if (nActive)
-				Activate();
-			else
-				Deactivate();
+			_act = nActive;
 		}
 
 		public virtual void OnEnable()

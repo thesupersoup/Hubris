@@ -103,7 +103,8 @@ namespace Hubris
 		{
 			if(Active)
 			{
-				_gObj.transform.Translate(GetMoveAsVector(ax, val * Speed, true), Space.World);
+                // Debug.LogFormat( "Moving in the {0} dir for {1} val times {2} speed", ax, val, Movement.SpeedHigh );
+				_gObj.transform.Translate(GetMoveAsVector(ax, val * Movement.SpeedHigh, true), Space.World);
 				// PhysForce(_move * _speed);
 			}
 		}

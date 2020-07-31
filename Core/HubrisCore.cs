@@ -48,6 +48,8 @@ namespace Hubris
 
 		[SerializeField]
 		private string _menuSceneName = "menu";
+        [SerializeField]
+        private GameType _gameType = GameType.FPS;
 		[SerializeField]
 		protected float _tick = 1.5f;       // Tick time in seconds
 		protected float _timer;
@@ -57,7 +59,7 @@ namespace Hubris
 		[Tooltip( "Template prefab for instanting UI GameObject" )]
 		private GameObject _ui = null;
 
-		private GameManager _gm = new GameManager();        // "new GameManager()" required to prevent null errors
+		private GameManager _gm;
 		private LocalConsole _con = new LocalConsole();     // "new LocalConsole()" required to prevent null errors
 
 		private ulong _uId = 1;	// Start at 1, so 0 can represent unassigned
@@ -126,6 +128,18 @@ namespace Hubris
 			if ( Instance == this )
 			{
 				_timer = 0.0f;
+
+                switch( _gameType )
+                {
+                    case GameType.FPS:
+                    case GameType.RPG:
+                    default:
+                        _gm = new GameManager();
+                        break;
+                    case GameType.RTS:
+                        _gm = new RTSGameManager();
+                        break;
+                }
 
 				// Init Console before other objects
 				_con.Init();
